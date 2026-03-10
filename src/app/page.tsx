@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
-// import Creature from "@/components/Creature";
 
 /* ─── Animation variants ─── */
 const fadeUp = {
@@ -68,9 +68,6 @@ function useCounter(end: number, dur: number, active: boolean) {
 
 /* ═══════════════════════════════════════ */
 export default function Home() {
-  const [navOpen, setNavOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
   const statsRef = useRef(null);
   const statsInView = useInView(statsRef, { once: true, margin: "-100px" });
 
@@ -81,57 +78,8 @@ export default function Home() {
   const heroY = useTransform(scrollYProgress, [0, 0.25], [0, -80]);
   const heroOp = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const scrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    const el = document.querySelector(id);
-    if (el && headerRef.current) {
-      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - headerRef.current.offsetHeight - 24, behavior: "smooth" });
-    }
-    setNavOpen(false);
-    document.body.style.overflow = "";
-  };
-
-  const toggleNav = () => {
-    setNavOpen(!navOpen);
-    document.body.style.overflow = !navOpen ? "hidden" : "";
-  };
-
   return (
     <>
-      {/* <Creature /> */}
-      {/* ──── NAV ──── */}
-      <header ref={headerRef} className={`nav${scrolled ? " nav--scrolled" : ""}`}>
-        <div className="nav__inner">
-          <a href="/" className="nav__logo">
-            <Image src="/logo-dark.png" alt="Workflows" width={140} height={40} priority style={{ width: "auto", height: "26px" }} />
-          </a>
-          <div className="nav__links">
-            <a href="#tjenester" onClick={e => scrollTo(e, "#tjenester")}>Tjenester</a>
-            <a href="#prosess" onClick={e => scrollTo(e, "#prosess")}>Prosess</a>
-            <a href="#om" onClick={e => scrollTo(e, "#om")}>Om oss</a>
-            <a href="#kontakt" className="nav__cta" onClick={e => scrollTo(e, "#kontakt")}>Ta kontakt</a>
-          </div>
-          <button className={`nav__burger${navOpen ? " open" : ""}`} onClick={toggleNav} aria-label="Meny">
-            <span /><span /><span />
-          </button>
-        </div>
-      </header>
-
-      {navOpen && (
-        <div className="mobile-overlay">
-          {["Tjenester", "Prosess", "Om oss", "Kontakt"].map((l, i) => {
-            const ids = ["#tjenester", "#prosess", "#om", "#kontakt"];
-            return <a key={l} href={ids[i]} onClick={e => scrollTo(e, ids[i])} style={{ animationDelay: `${i * 0.06}s` }}>{l}</a>;
-          })}
-        </div>
-      )}
-
       {/* ──── HERO ──── */}
       <section className="hero">
         {/* Floating shapes */}
@@ -198,10 +146,10 @@ export default function Home() {
           <motion.div className="hero__actions"
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}>
-            <a href="#kontakt" className="btn btn--primary" onClick={e => scrollTo(e, "#kontakt")}>
+            <a href="#kontakt" className="btn btn--primary">
               Start en samtale <span className="btn__arrow">&rarr;</span>
             </a>
-            <a href="#tjenester" className="btn btn--ghost" onClick={e => scrollTo(e, "#tjenester")}>
+            <a href="#tjenester" className="btn btn--ghost">
               Utforsk tjenester
             </a>
           </motion.div>
@@ -374,6 +322,38 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ──── KUNDER ──── */}
+      <section className="section section--elevated" id="kunder">
+        <div className="wrap">
+          <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+            <motion.span className="tag" variants={fadeUp}>Kunder</motion.span>
+            <AnimatedHeading text="Bedrifter som har valgt smartere systemer" />
+            <motion.p className="section__sub" variants={fadeUp} custom={3}>
+              Vi har hjulpet bedrifter fra subsea til forskning med a automatisere og effektivisere hverdagen.
+            </motion.p>
+          </motion.div>
+
+          <motion.div className="clients-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-40px" }} variants={stagger}>
+            {[
+              { name: "CSUB", logo: "/kunder-csub.svg", slug: "csub", desc: "Automatisert prosjektstyring og rapportering for subsea-operasjoner" },
+              { name: "Saga Subsea", logo: "/kunder-saga.png", slug: "saga-subsea", desc: "Digital assistent og kundeoppfolging for subsea-tjenester" },
+              { name: "ElementLab", logo: "/kunder-elementlab.png", slug: "elementlab", desc: "Intern kunnskapsbase og automatisert laboratoriedata" },
+            ].map((c, i) => (
+              <motion.div key={c.slug} variants={fadeUp} custom={i}>
+                <Link href={`/kunder/${c.slug}`} className="client-card">
+                  <div className="client-card__logo">
+                    <Image src={c.logo} alt={c.name} width={180} height={60} style={{ width: "auto", height: "40px", objectFit: "contain" }} />
+                  </div>
+                  <h3>{c.name}</h3>
+                  <p>{c.desc}</p>
+                  <span className="client-card__link">Les casen &rarr;</span>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
       {/* ──── CTA ──── */}
       <section className="cta-section">
         <div className="wrap">
@@ -382,7 +362,7 @@ export default function Home() {
             <motion.p variants={fadeUp} custom={1}>
               Book en uforpliktende samtale. Vi finner ut sammen hva vi kan gjøre for deg — helt gratis.
             </motion.p>
-            <motion.a href="#kontakt" className="btn btn--white" onClick={e => scrollTo(e, "#kontakt")} variants={fadeUp} custom={2}>
+            <motion.a href="#kontakt" className="btn btn--white" variants={fadeUp} custom={2}>
               Start samtalen <span className="btn__arrow">&rarr;</span>
             </motion.a>
           </motion.div>
@@ -418,22 +398,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ──── FOOTER ──── */}
-      <footer className="footer">
-        <div className="wrap">
-          <div className="footer__inner">
-            <div className="footer__left">
-              <Image src="/logo-dark.png" alt="Workflows" width={100} height={28} style={{ width: "auto", height: "18px", opacity: 0.3 }} />
-              <span>&copy; 2026 Workflows</span>
-            </div>
-            <div className="footer__links">
-              <a href="#tjenester" onClick={e => scrollTo(e, "#tjenester")}>Tjenester</a>
-              <a href="#om" onClick={e => scrollTo(e, "#om")}>Om oss</a>
-              <a href="mailto:petter@workflows.no">Kontakt</a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </>
   );
 }
