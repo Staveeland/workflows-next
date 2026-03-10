@@ -144,7 +144,6 @@ export default function Creature() {
 
     s.x = window.innerWidth * 0.5;
     s.y = window.innerHeight * 0.3;
-    s.lastScrollY = window.scrollY;
 
     // ─── Events ───
     const onResize = () => resize();
@@ -501,6 +500,7 @@ export default function Creature() {
 
     // ─── RENDER ───
     function render() {
+      if (!cvs) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, cvs.width, cvs.height);
 
