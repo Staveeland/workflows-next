@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Workflows – Intelligent arbeidsflyt",
-  description: "Workflows — Din lokale AI-partner på Haugalandet. Intelligente agenter, automatisering og språkmodell-integrasjon.",
+  title: "Workflows – Smartere systemer for din bedrift",
+  description: "Workflows bygger skreddersydd software, digitale assistenter og automatiserte systemer som sparer tid og øker inntektene for norske bedrifter.",
   icons: {
     icon: "/favicon.jpg",
   },
