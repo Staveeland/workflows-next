@@ -38,53 +38,48 @@ function Typewriter() {
 
 /* ─── Animation variants ─── */
 const fadeUp = {
-  hidden: { opacity: 0, y: 60 },
+  hidden: { opacity: 0, y: 30 },
   visible: (i: number) => ({
     opacity: 1, y: 0,
-    transition: { duration: 0.85, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] as const }
+    transition: { duration: 0.7, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] as const }
   })
 };
 
-const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
+const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
 
 /* ─── Animated words component ─── */
 function AnimatedHeading({ text, className, as: Tag = "h2" }: { text: string; className?: string; as?: "h1" | "h2" | "h3" }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
-  const words = text.split(" ");
+  const isInView = useInView(ref, { once: true, margin: "-60px" });
   return (
     <Tag ref={ref} className={className}>
-      {words.map((word, i) => (
-        <span key={i}>
-          <span className="word-wrap">
-            <motion.span
-              className="word"
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.7, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {word}
-            </motion.span>
-          </span>{" "}
-        </span>
-      ))}
+      <motion.span
+        initial={{ opacity: 0, y: 20 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        style={{ display: "inline-block" }}
+      >
+        {text}
+      </motion.span>
     </Tag>
   );
 }
 
-/* ─── Counter hook ─── */
+/* ─── Counter hook (uses rAF instead of setInterval) ─── */
 function useCounter(end: number, dur: number, active: boolean) {
   const [n, setN] = useState(0);
   useEffect(() => {
     if (!active) return;
-    let v = 0;
-    const step = end / (dur / 16);
-    const t = setInterval(() => {
-      v += step;
-      if (v >= end) { setN(end); clearInterval(t); }
-      else setN(Math.floor(v));
-    }, 16);
-    return () => clearInterval(t);
+    let start: number | null = null;
+    let raf: number;
+    const tick = (ts: number) => {
+      if (!start) start = ts;
+      const progress = Math.min((ts - start) / dur, 1);
+      setN(Math.floor(progress * end));
+      if (progress < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [end, dur, active]);
   return n;
 }
@@ -105,35 +100,24 @@ export default function Home() {
     <>
       {/* ──── HERO ──── */}
       <section className="hero">
-        <motion.div className="hero__shape hero__shape--1"
-          animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} />
-        <motion.div className="hero__shape hero__shape--2"
-          animate={{ y: [0, 15, 0], rotate: [0, -3, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} />
-        <motion.div className="hero__shape hero__shape--3"
-          animate={{ y: [0, -12, 0], x: [0, 8, 0] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} />
+        <div className="hero__shape hero__shape--1" />
+        <div className="hero__shape hero__shape--2" />
+        <div className="hero__shape hero__shape--3" />
 
         <motion.div className="hero__content" style={{ y: heroY, opacity: heroOp }}>
           <h1 className="hero__title">
-            {"Vi gjør hverdagen din".split(" ").map((w, i) => (
-              <span key={i}>
-                <span className="word-wrap">
-                  <motion.span className="word"
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.9, delay: 0.3 + i * 0.07, ease: [0.16, 1, 0.3, 1] }}>
-                    {w}
-                  </motion.span>
-                </span>{" "}
-              </span>
-            ))}
+            <motion.span
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              style={{ display: "inline-block" }}>
+              Vi gjør hverdagen din
+            </motion.span>
             <br />
             <motion.span
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}>
+              transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}>
               <Typewriter />
             </motion.span>
           </h1>
