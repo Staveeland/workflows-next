@@ -306,8 +306,8 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   height: clamp(300px, 40vw, 550px);
   top: 5%;
   right: -8%;
-  background: rgba(226, 158, 51, 0.05);
-  filter: blur(80px);
+  background: rgba(226, 158, 51, 0.08);
+  filter: blur(60px);
 }
 
 .hero__shape--2 {
@@ -315,8 +315,8 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   height: clamp(200px, 25vw, 400px);
   bottom: 10%;
   left: -5%;
-  background: rgba(226, 158, 51, 0.03);
-  filter: blur(60px);
+  background: rgba(226, 158, 51, 0.06);
+  filter: blur(50px);
 }
 
 .hero__shape--3 {
@@ -324,8 +324,31 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   height: 200px;
   top: 25%;
   left: 12%;
-  background: rgba(226, 158, 51, 0.03);
-  filter: blur(50px);
+  background: rgba(226, 158, 51, 0.05);
+  filter: blur(40px);
+}
+
+/* Pattern decoration in hero */
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 40%;
+  height: 100%;
+  background: url("/pattern-green.png") no-repeat center / contain;
+  opacity: 0.04;
+  pointer-events: none;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  top: 0; right: 0;
+  width: 35%;
+  height: 100%;
+  background: url("/pattern-green.png") no-repeat center / contain;
+  opacity: 0.03;
+  pointer-events: none;
+  transform: scaleX(-1);
 }
 
 .hero__content {
@@ -367,6 +390,19 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .hero__accent {
   color: var(--accent);
 }
+
+/* Typewriter */
+.typewriter { display: inline-block; min-width: 4ch; }
+.typewriter__cursor {
+  display: inline-block;
+  width: 3px;
+  height: 0.85em;
+  background: var(--accent);
+  margin-left: 2px;
+  vertical-align: baseline;
+  animation: tw-blink 0.65s step-end infinite;
+}
+@keyframes tw-blink { 50% { opacity: 0; } }
 
 .hero__sub {
   font-size: clamp(17px, 1.8vw, 20px);

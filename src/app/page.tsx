@@ -5,6 +5,37 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 
+/* ─── Typewriter ─── */
+const ROTATE_WORDS = ["enklere", "smartere", "raskere", "billigere"];
+
+function Typewriter() {
+  const [idx, setIdx] = useState(0);
+  const [chars, setChars] = useState(0);
+  const [del, setDel] = useState(false);
+  const word = ROTATE_WORDS[idx];
+
+  useEffect(() => {
+    if (!del && chars === word.length) {
+      const t = setTimeout(() => setDel(true), 2200);
+      return () => clearTimeout(t);
+    }
+    if (del && chars === 0) {
+      setDel(false);
+      setIdx((p) => (p + 1) % ROTATE_WORDS.length);
+      return;
+    }
+    const t = setTimeout(() => setChars((p) => p + (del ? -1 : 1)), del ? 45 : 90);
+    return () => clearTimeout(t);
+  }, [chars, del, word]);
+
+  return (
+    <span className="hero__accent typewriter">
+      {word.slice(0, chars)}
+      <span className="typewriter__cursor" />
+    </span>
+  );
+}
+
 /* ─── Animation variants ─── */
 const fadeUp = {
   hidden: { opacity: 0, y: 60 },
@@ -85,14 +116,6 @@ export default function Home() {
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} />
 
         <motion.div className="hero__content" style={{ y: heroY, opacity: heroOp }}>
-          <motion.div className="hero__badge"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}>
-            <span className="hero__badge-dot" />
-            Norskutviklet teknologi
-          </motion.div>
-
           <h1 className="hero__title">
             {"Vi gjør hverdagen din".split(" ").map((w, i) => (
               <span key={i}>
@@ -107,14 +130,12 @@ export default function Home() {
               </span>
             ))}
             <br />
-            <span className="word-wrap">
-              <motion.span className="word hero__accent"
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.9, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}>
-                enklere.
-              </motion.span>
-            </span>
+            <motion.span
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}>
+              <Typewriter />
+            </motion.span>
           </h1>
 
           <motion.p className="hero__sub"
