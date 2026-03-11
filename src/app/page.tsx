@@ -50,7 +50,7 @@ const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } }
 /* ─── Animated words component ─── */
 function AnimatedHeading({ text, className, as: Tag = "h2" }: { text: string; className?: string; as?: "h1" | "h2" | "h3" }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const isInView = useInView(ref, { once: true, margin: "-30% 0px -30% 0px" });
   return (
     <Tag ref={ref} className={className}>
       <motion.span
@@ -87,7 +87,7 @@ function useCounter(end: number, dur: number, active: boolean) {
 /* ═══════════════════════════════════════ */
 export default function Home() {
   const statsRef = useRef(null);
-  const statsInView = useInView(statsRef, { once: true, margin: "-100px" });
+  const statsInView = useInView(statsRef, { once: true, margin: "-30% 0px -30% 0px" });
 
   const s1 = useCounter(40, 2000, statsInView);
   const s2 = useCounter(12, 2000, statsInView);
@@ -151,12 +151,12 @@ export default function Home() {
         <div className="wrap">
           <motion.p className="logo-strip__label"
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
-            viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            viewport={{ once: true, margin: "-20% 0px -20% 0px" }} transition={{ duration: 0.6 }}>
             Brukt av bedrifter som
           </motion.p>
           <motion.div className="logo-strip__row"
             initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}>
+            viewport={{ once: true, margin: "-20% 0px -20% 0px" }} transition={{ duration: 0.6, delay: 0.1 }}>
             <div className="logo-strip__item">
               <Image src="/kunder-csub.svg" alt="CSUB" width={120} height={40} style={{ width: "auto", height: "32px" }} />
             </div>
@@ -166,6 +166,12 @@ export default function Home() {
             <div className="logo-strip__item">
               <Image src="/kunder-elementlab.png" alt="ElementLab" width={120} height={40} style={{ width: "auto", height: "32px" }} />
             </div>
+            <div className="logo-strip__item">
+              <Image src="/kunder-port.webp" alt="Port 5561" width={120} height={40} style={{ width: "auto", height: "32px" }} />
+            </div>
+            <div className="logo-strip__item">
+              <Image src="/kunder-nyholmen.png" alt="Nyholmen" width={120} height={40} style={{ width: "auto", height: "56px" }} />
+            </div>
           </motion.div>
         </div>
       </section>
@@ -174,7 +180,7 @@ export default function Home() {
       <section className="statement">
         <div className="wrap">
           <motion.div className="statement__inner"
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger}>
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <AnimatedHeading text="Du bruker for mye tid på ting som burde gått av seg selv." />
             <motion.p variants={fadeUp} custom={2}>
               Kopiere data mellom systemer. Lage rapporter manuelt. Følge opp kunder for hånd.
@@ -188,7 +194,7 @@ export default function Home() {
       {/* ──── STATS BAR ──── */}
       <section className="stats" ref={statsRef}>
         <div className="wrap">
-          <motion.div className="stats__grid" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+          <motion.div className="stats__grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             <motion.div className="stats__item" variants={fadeUp}>
               <span className="stats__num">{s1}<span className="stats__pct">%</span></span>
               <span className="stats__label">mindre tid på repeterende oppgaver</span>
@@ -209,14 +215,14 @@ export default function Home() {
       <section className="features" id="tjenester">
         <div className="wrap">
           <motion.div className="statement__inner" style={{ marginBottom: "clamp(48px, 6vw, 80px)" }}
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             <motion.span className="tag" variants={fadeUp}>Hva vi gjør</motion.span>
             <AnimatedHeading text="Verktøy som gjør jobben for deg" />
           </motion.div>
 
           {/* Feature 1 */}
           <motion.div className="feature-row"
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} variants={stagger}>
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <motion.div className="feature-row__content" variants={fadeUp}>
               <span className="feature-row__label">Automatisering</span>
               <h3>Slutt på kjedelig manuelt arbeid</h3>
@@ -238,7 +244,7 @@ export default function Home() {
 
           {/* Feature 2 */}
           <motion.div className="feature-row feature-row--reverse"
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} variants={stagger}>
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <motion.div className="feature-row__content" variants={fadeUp}>
               <span className="feature-row__label">AI-assistent</span>
               <h3>Din digitale medarbeider</h3>
@@ -261,7 +267,7 @@ export default function Home() {
 
           {/* Feature 3 */}
           <motion.div className="feature-row"
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} variants={stagger}>
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <motion.div className="feature-row__content" variants={fadeUp}>
               <span className="feature-row__label">Skreddersydd software</span>
               <h3>Bygget for akkurat din bedrift</h3>
@@ -287,12 +293,12 @@ export default function Home() {
       {/* ──── HOW WE WORK ──── */}
       <section className="accent-section" id="prosess">
         <div className="wrap">
-          <motion.div className="section__head section__head--left" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+          <motion.div className="section__head section__head--left" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             <motion.span className="tag tag--on-accent" variants={fadeUp}>Slik jobber vi</motion.span>
             <AnimatedHeading text="Fra idé til ferdig system på noen uker" className="accent-section__heading" />
           </motion.div>
 
-          <motion.div className="steps" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-40px" }} variants={stagger}>
+          <motion.div className="steps" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             {[
               {
                 n: "01",
@@ -327,19 +333,19 @@ export default function Home() {
       {/* ──── RESULTS ──── */}
       <section className="section" id="resultater">
         <div className="wrap">
-          <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+          <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             <motion.span className="tag" variants={fadeUp}>Resultater</motion.span>
             <AnimatedHeading text="Hva kundene våre faktisk opplever" />
           </motion.div>
 
-          <motion.div className="results-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-40px" }} variants={stagger}>
+          <motion.div className="results-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             {[
-              { title: "Mer tid til det viktige", desc: "Ansatte slipper å bruke timer på kopiering, rapporter og oppfølging. De får tiden tilbake til det de faktisk er gode på.", accent: true },
-              { title: "Færre feil", desc: "Maskiner gjør ikke slurve-feil. Når data flyter automatisk, blir alt mer nøyaktig og pålitelig.", accent: false },
-              { title: "Fornøyde kunder", desc: "Kunder får raskere svar, bedre oppfølging, og slipper å vente. Det merkes.", accent: false },
-              { title: "Vekst uten stress", desc: "Digitale systemer vokser med bedriften din. Du kan ta på deg mer uten å måtte ansette flere.", accent: true },
+              { title: "Mer tid til det viktige", desc: "Ansatte slipper å bruke timer på kopiering, rapporter og oppfølging. De får tiden tilbake til det de faktisk er gode på." },
+              { title: "Færre feil", desc: "Maskiner gjør ikke slurve-feil. Når data flyter automatisk, blir alt mer nøyaktig og pålitelig." },
+              { title: "Fornøyde kunder", desc: "Kunder får raskere svar, bedre oppfølging, og slipper å vente. Det merkes." },
+              { title: "Vekst uten stress", desc: "Digitale systemer vokser med bedriften din. Du kan ta på deg mer uten å måtte ansette flere." },
             ].map((r, i) => (
-              <motion.div key={i} className={`result${r.accent ? " result--accent" : ""}`} variants={fadeUp} custom={i}>
+              <motion.div key={i} className="result" variants={fadeUp} custom={i}>
                 <span className="result__num">0{i + 1}</span>
                 <h3>{r.title}</h3>
                 <p>{r.desc}</p>
@@ -352,7 +358,7 @@ export default function Home() {
       {/* ──── ABOUT ──── */}
       <section className="section section--elevated" id="om">
         <div className="wrap">
-          <motion.div className="split" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} variants={stagger}>
+          <motion.div className="split" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <motion.div className="split__left" variants={fadeUp}>
               <span className="tag">Om oss</span>
               <AnimatedHeading text="Teknologi skal være enkelt" />
@@ -386,7 +392,7 @@ export default function Home() {
       {/* ──── CUSTOMERS ──── */}
       <section className="section" id="kunder">
         <div className="wrap">
-          <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+          <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             <motion.span className="tag" variants={fadeUp}>Kunder</motion.span>
             <AnimatedHeading text="Se hva vi har bygget for andre" />
             <motion.p className="section__sub" variants={fadeUp} custom={3}>
@@ -394,7 +400,7 @@ export default function Home() {
             </motion.p>
           </motion.div>
 
-          <motion.div className="clients-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-40px" }} variants={stagger}>
+          <motion.div className="clients-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             {[
               { name: "CSUB", logo: "/kunder-csub.svg", slug: "csub", desc: "Automatisert prosjektstyring og rapportering for subsea-selskap. Sparer 25 timer i uken." },
               { name: "Saga Subsea", logo: "/kunder-saga.png", slug: "saga-subsea", desc: "Digital assistent som svarer kunder døgnets rundt. 50% raskere responstid." },
@@ -418,12 +424,12 @@ export default function Home() {
       {/* ──── FAQ ──── */}
       <section className="cta-section" id="faq">
         <div className="wrap">
-          <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+          <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             <motion.span className="tag tag--on-accent" variants={fadeUp}>FAQ</motion.span>
             <AnimatedHeading text="Ofte stilte spørsmål" className="accent-section__heading" />
           </motion.div>
 
-          <motion.div className="faq-layout" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-40px" }} variants={stagger}>
+          <motion.div className="faq-layout" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             {[
               {
                 category: "Om tjenestene",
@@ -508,26 +514,25 @@ export default function Home() {
       {/* ──── CONTACT ──── */}
       <section className="section" id="kontakt">
         <div className="wrap">
-          <motion.div className="contact" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} variants={stagger}>
+          <motion.div className="contact" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <motion.div className="contact__left" variants={fadeUp}>
               <span className="tag">Kontakt</span>
               <h2>La oss snakke sammen</h2>
               <p>Send oss en e-post eller ring. Vi svarer raskt, og første samtale er alltid gratis.</p>
             </motion.div>
             <motion.div className="contact__right" variants={fadeUp} custom={1}>
-              <div className="contact__person">
-                <div className="contact__avatar">PS</div>
-                <div>
-                  <strong>Petter Staveland</strong>
-                  <span>Daglig leder</span>
+              <a href="mailto:petter@workflows.no" className="contact__card">
+                <div className="contact__person">
+                  <div className="contact__avatar">PS</div>
+                  <div>
+                    <strong>Petter Staveland</strong>
+                    <span>Daglig leder</span>
+                  </div>
                 </div>
-              </div>
-              <a href="mailto:petter@workflows.no" className="contact__email">
-                petter@workflows.no
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
-              </a>
-              <a href="mailto:petter@workflows.no" className="btn btn--primary">
-                Send e-post <span className="btn__arrow">&rarr;</span>
+                <div className="contact__email-row">
+                  <span className="contact__email-label">petter@workflows.no</span>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                </div>
               </a>
             </motion.div>
           </motion.div>
