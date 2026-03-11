@@ -4,8 +4,8 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Saga Subsea – Kundecase",
-  description: "Se hvordan Workflows bygget en digital assistent og kundeoppfølgingssystem for Saga Subsea. 50% raskere responstid og 24/7 tilgjengelighet.",
-  keywords: ["Saga Subsea", "digital assistent", "kundeoppfølging", "subsea tjenester", "automatisert kundekommunikasjon", "Workflows kundecase"],
+  description: "Se hvordan Workflows bygget et intelligent sporingssystem som hjelper Saga Subsea med å identifisere salgsmuligheter før konkurrentene.",
+  keywords: ["Saga Subsea", "sporingsteknologi", "maritim intelligence", "subsea salg", "automatisert prospektering", "Workflows kundecase"],
 };
 
 export default function SagaSubseaCase() {
@@ -18,11 +18,11 @@ export default function SagaSubseaCase() {
             <div className="case-hero__info">
               <span className="tag">Kundecase</span>
               <h1>Saga Subsea</h1>
-              <p className="case-hero__tagline">Digital assistent og smart kundeoppfølging for subsea-tjenester</p>
+              <p className="case-hero__tagline">Intelligent sporingsteknologi som gir et forsprang i markedet</p>
               <div className="case-hero__meta">
                 <div><strong>Bransje</strong><span>Subsea-tjenester</span></div>
-                <div><strong>Tjenester</strong><span>Digital assistent, Systemintegrasjon</span></div>
-                <div><strong>Tidsramme</strong><span>6 uker</span></div>
+                <div><strong>Tjenester</strong><span>Skreddersydd software, Dataintegrasjon</span></div>
+                <div><strong>Tidsramme</strong><span>4 uker</span></div>
               </div>
             </div>
             <div className="case-hero__logo">
@@ -37,50 +37,50 @@ export default function SagaSubseaCase() {
           <div className="case-content">
             <div className="case-results-bar">
               <div className="case-result">
-                <span className="case-result__num">50%</span>
-                <span className="case-result__label">raskere responstid</span>
+                <span className="case-result__num">Tidlig</span>
+                <span className="case-result__label">varsling på muligheter</span>
               </div>
               <div className="case-result">
                 <span className="case-result__num">24/7</span>
-                <span className="case-result__label">tilgjengelighet</span>
+                <span className="case-result__label">automatisk overvåking</span>
               </div>
               <div className="case-result">
-                <span className="case-result__num">0</span>
-                <span className="case-result__label">tapte henvendelser</span>
+                <span className="case-result__num">Flere</span>
+                <span className="case-result__label">innhentede oppdrag</span>
               </div>
             </div>
 
             <div className="case-body">
               <h2>Utfordringen</h2>
               <p>
-                Saga Subsea tilbyr spesialiserte subsea-tjenester til olje- og gassindustrien. Med kunder spredt over hele Nordsjøen og henvendelser som kom døgnets alle timer, slet teamet med å følge opp alle i tide.
+                Saga Subsea tilbyr spesialiserte subsea-tjenester langs norskekysten. For å vinne oppdrag er timing alt — de må vite når relevante fartøy er på vei mot havn, slik at de kan ta kontakt med rederiene og tilby sine tjenester før konkurrentene.
               </p>
               <p>
-                Potensielle oppdrag falt mellom stolene fordi henvendelser ble liggende ubesvart i innboksen. Prosjektoppdateringer ble gitt muntlig eller via ad hoc-e-poster, og det var ingen systematisk måte å spore kunderelasjoner på.
+                Tidligere var dette en manuell prosess. Teamet brukte tid på å følge med på skipstrafikk, ringe rundt og sjekke havneanløp — uten noen systematisk måte å fange opp muligheter på. Verdifulle oppdrag gikk tapt fordi de rett og slett ikke visste at fartøyene var i området.
               </p>
 
               <h2>Løsningen</h2>
               <p>
-                Workflows utviklet en digital assistent som håndterer førstekontakt med kunder, kategoriserer henvendelser og ruter dem til riktig person. I tillegg ble det bygget et oppfølgingssystem som sikrer at ingen henvendelser går tapt.
+                Workflows utviklet et intelligent sporingssystem som kontinuerlig overvåker maritim trafikk og identifiserer fartøy av interesse for Saga Subsea. Når et relevant fartøy nærmer seg et aktuelt område, får teamet automatisk varsel med all nødvendig informasjon for å ta kontakt.
               </p>
               <ul>
-                <li>AI-drevet digital assistent for førstelinjesvar på e-post og nettside</li>
-                <li>Automatisk kategorisering og prioritering av henvendelser</li>
-                <li>Oppfølgingssystem med påminnelser og eskalering</li>
-                <li>Kundeportal med prosjektstatus og dokumenter</li>
-                <li>Integrasjon med eksisterende e-post og CRM</li>
+                <li>Sanntids overvåking av maritim trafikk i relevante områder</li>
+                <li>Automatisk identifisering av fartøy som matcher Sagas målgruppe</li>
+                <li>Intelligente varsler med kontekst og anbefalinger</li>
+                <li>Historisk oversikt over fartøybevegelser og mønstre</li>
+                <li>Dashboard for visuell oversikt over aktivitet i nærområdet</li>
               </ul>
 
               <h2>Resultatet</h2>
               <p>
-                Saga Subsea svarer nå på alle henvendelser innen 30 minutter — også midt på natten. Den digitale assistenten håndterer 60% av rutinehenvendelsene helt automatisk, slik at teamet kan fokusere på de komplekse forespørslene.
+                Saga Subsea har nå et kraftig verktøy som gir dem et konkret forsprang i markedet. De vet om salgsmuligheter lenge før de ville oppdaget dem manuelt, og kan ta kontakt med potensielle kunder mens de fortsatt planlegger sitt havneopphold.
               </p>
               <p>
-                Oppfølgingssystemet har eliminert problemet med tapte henvendelser fullstendig, og kundetilfredsheten har økt markant siden implementeringen.
+                Systemet kjører døgnet rundt og har allerede bidratt til å innhente oppdrag som teamet ellers aldri ville fanget opp. Tiden som tidligere gikk til manuell overvåking brukes nå på det som faktisk skaper verdi — å levere tjenester.
               </p>
 
               <blockquote>
-                &ldquo;Workflows forsto umiddelbart hva vi trengte. Den digitale assistenten føles som en naturlig del av teamet — den svarer profesjonelt og ruter alt riktig. Vi har ikke mistet en eneste henvendelse siden.&rdquo;
+                &ldquo;Vi visste at informasjonen fantes der ute, men hadde aldri kapasitet til å følge med systematisk. Nå får vi varsel i det et interessant fartøy er på vei — det har vært en gamechanger for salgsteamet.&rdquo;
               </blockquote>
             </div>
           </div>
@@ -95,12 +95,12 @@ export default function SagaSubseaCase() {
               <Link href="/kunder/csub" className="case-other__card">
                 <Image src="/kunder-csub.svg" alt="CSUB" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
                 <h3>CSUB</h3>
-                <p>Prosjektstyring og sanntidsrapportering</p>
+                <p>Intelligent dashboard og AI-assistent</p>
               </Link>
               <Link href="/kunder/elementlab" className="case-other__card">
                 <Image src="/kunder-elementlab.png" alt="ElementLab" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
                 <h3>ElementLab</h3>
-                <p>Kunnskapsbase og automatisert lab-data</p>
+                <p>Bookingintegrasjon og AI-chatbot</p>
               </Link>
             </div>
           </div>

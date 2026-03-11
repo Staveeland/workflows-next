@@ -4,8 +4,8 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "CSUB – Kundecase",
-  description: "Se hvordan Workflows hjalp CSUB med å automatisere prosjektstyring og rapportering for subsea-operasjoner. 25 timer spart per uke med skreddersydd software.",
-  keywords: ["CSUB", "subsea automatisering", "prosjektstyring", "sanntidsrapportering", "offshore software", "Workflows kundecase"],
+  description: "Se hvordan Workflows bygget et intelligent dashboard med AI-assistent som samler prosjektdata og genererer rapporter for CSUB.",
+  keywords: ["CSUB", "dashboard", "AI-assistent", "prosjektdata", "rapportering", "RAG", "Workflows kundecase"],
 };
 
 export default function CsubCase() {
@@ -18,11 +18,11 @@ export default function CsubCase() {
             <div className="case-hero__info">
               <span className="tag">Kundecase</span>
               <h1>CSUB</h1>
-              <p className="case-hero__tagline">Automatisert prosjektstyring og sanntidsrapportering for subsea-operasjoner</p>
+              <p className="case-hero__tagline">Intelligent dashboard og AI-assistent som gjør prosjektdata tilgjengelig på sekunder</p>
               <div className="case-hero__meta">
                 <div><strong>Bransje</strong><span>Subsea & Offshore</span></div>
-                <div><strong>Tjenester</strong><span>Skreddersydd software, Automatisering</span></div>
-                <div><strong>Tidsramme</strong><span>8 uker</span></div>
+                <div><strong>Tjenester</strong><span>Dashboard, AI-assistent, Dataintegrasjon</span></div>
+                <div><strong>Tidsramme</strong><span>6 uker</span></div>
               </div>
             </div>
             <div className="case-hero__logo">
@@ -37,50 +37,53 @@ export default function CsubCase() {
           <div className="case-content">
             <div className="case-results-bar">
               <div className="case-result">
-                <span className="case-result__num">25</span>
-                <span className="case-result__label">timer spart per uke</span>
+                <span className="case-result__num">Alt</span>
+                <span className="case-result__label">samlet på ett sted</span>
               </div>
               <div className="case-result">
-                <span className="case-result__num">100%</span>
-                <span className="case-result__label">automatiserte rapporter</span>
+                <span className="case-result__num">AI</span>
+                <span className="case-result__label">assistent med full datainnsikt</span>
               </div>
               <div className="case-result">
-                <span className="case-result__num">3x</span>
-                <span className="case-result__label">raskere beslutninger</span>
+                <span className="case-result__num">Sek.</span>
+                <span className="case-result__label">fra spørsmål til rapport</span>
               </div>
             </div>
 
             <div className="case-body">
               <h2>Utfordringen</h2>
               <p>
-                CSUB er et ledende selskap innen subsea-tjenester med operasjoner langs hele norskekysten. Med flere parallelle prosjekter og et voksende team ble det stadig vanskeligere å holde oversikt over fremdrift, ressursbruk og økonomi.
+                CSUB driver komplekse subsea-prosjekter med store mengder data spredt utover utallige Excel-filer, e-poster og systemer. Prosjektlederne brukte timer på å grave frem tall, sammenstille informasjon og lage rapporter manuelt.
               </p>
               <p>
-                Prosjektlederne brukte timer hver dag på å samle inn data fra ulike systemer, sette sammen rapporter manuelt i Excel, og sende oppdateringer til kunder og ledelse. Informasjonen var ofte utdatert innen den ble levert.
+                Å få svar på enkle spørsmål som «Hva er status på prosjekt X?» eller «Hvor mye har vi brukt på Y?» krevde at noen satt seg ned og lette gjennom mapper og regneark. Verdifull innsikt lå skjult i data ingen hadde tid til å analysere.
               </p>
 
               <h2>Løsningen</h2>
               <p>
-                Workflows bygget et skreddersydd prosjektstyringssystem som automatisk henter data fra CSUBs eksisterende verktøy — timeregistrering, økonomi og operasjonelle logger. Systemet genererer sanntidsrapporter og dashboards som gir full oversikt med et blikk.
+                Workflows bygget et sentralisert dashboard som automatisk samler og strukturerer data fra CSUBs eksisterende Excel-filer og systemer. All prosjektinformasjon — økonomi, fremdrift, ressursbruk — er tilgjengelig i et oversiktlig grensesnitt.
+              </p>
+              <p>
+                I tillegg ble det utviklet en AI-drevet chatassistent som har full tilgang til databasen. Teamet kan stille spørsmål i naturlig språk og få svar umiddelbart — enten det er en statusoppdatering, et sammendrag eller en fullstendig rapport.
               </p>
               <ul>
-                <li>Automatisk datainnsamling fra 4 ulike kildesystemer</li>
-                <li>Sanntids-dashboard med prosjektstatus, økonomi og KPIer</li>
-                <li>Automatisk genererte ukerapporter sendt direkte til kunder</li>
-                <li>Varslingssystem for avvik og budsjettoverskridelser</li>
-                <li>Mobilvennlig grensesnitt for bruk offshore</li>
+                <li>Sentralisert dashboard som samler data fra Excel-filer og eksisterende systemer</li>
+                <li>Navigerbar prosjektoversikt med økonomi, fremdrift og nøkkeltall</li>
+                <li>AI-chatassistent med tilgang til hele databasen via RAG-system</li>
+                <li>Rapportgenerering på forespørsel — spør og få rapport i løpet av sekunder</li>
+                <li>Filtrerbart og søkbart grensesnitt for rask navigering</li>
               </ul>
 
               <h2>Resultatet</h2>
               <p>
-                Prosjektlederne fikk tilbake 25 timer i uken som tidligere gikk til manuell rapportering. Ledelsen har nå sanntidsoversikt over alle prosjekter, og kunder får automatiske oppdateringer uten at noen trenger å lage dem manuelt.
+                CSUB har gått fra å bruke timer på å lete etter informasjon til å få svar på sekunder. Prosjektledere kan nå fokusere på å drive prosjektene fremover istedenfor å lage rapporter, og ledelsen har sanntidsoversikt over hele porteføljen.
               </p>
               <p>
-                Systemet har også avdekket kostnadsbesparelser ved å synliggjøre ressursbruk på tvers av prosjekter — noe som tidligere var umulig å se uten omfattende manuelt arbeid.
+                AI-assistenten har blitt et naturlig verktøy i hverdagen. Teamet bruker den til alt fra raske statussjekker til å generere detaljerte rapporter for kunder — uten å åpne en eneste Excel-fil.
               </p>
 
               <blockquote>
-                &ldquo;Vi visste vi brukte for mye tid på rapportering, men vi hadde ikke forestilt oss at det kunne automatiseres så fullstendig. Workflows leverte et system som faktisk endret hverdagen vår.&rdquo;
+                &ldquo;Før måtte vi bruke en halv dag på å sette sammen en prosjektrapport. Nå spør vi bare assistenten, og den leverer på sekunder. Det er som å ha en ekstra prosjektleder som aldri glemmer noe.&rdquo;
               </blockquote>
             </div>
           </div>
@@ -95,12 +98,12 @@ export default function CsubCase() {
               <Link href="/kunder/saga-subsea" className="case-other__card">
                 <Image src="/kunder-saga.png" alt="Saga Subsea" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
                 <h3>Saga Subsea</h3>
-                <p>Digital assistent og kundeoppfølging</p>
+                <p>Intelligent sporingsteknologi</p>
               </Link>
               <Link href="/kunder/elementlab" className="case-other__card">
                 <Image src="/kunder-elementlab.png" alt="ElementLab" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
                 <h3>ElementLab</h3>
-                <p>Kunnskapsbase og automatisert lab-data</p>
+                <p>Bookingintegrasjon og AI-chatbot</p>
               </Link>
             </div>
           </div>
