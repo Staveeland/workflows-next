@@ -328,15 +328,15 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   filter: blur(40px);
 }
 
-/* Pattern decoration in hero */
+/* Watercolor illustration decorations in hero */
 .hero::before {
   content: "";
   position: absolute;
   top: 0; left: 0;
-  width: 40%;
+  width: 38%;
   height: 100%;
-  background: url("/pattern-green.png") no-repeat center / contain;
-  opacity: 0.04;
+  background: url("/hero-deco-left.png") no-repeat left center / contain;
+  opacity: 0.7;
   pointer-events: none;
 }
 .hero::after {
@@ -345,10 +345,9 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   top: 0; right: 0;
   width: 35%;
   height: 100%;
-  background: url("/pattern-green.png") no-repeat center / contain;
-  opacity: 0.03;
+  background: url("/hero-deco-right.png") no-repeat right center / contain;
+  opacity: 0.65;
   pointer-events: none;
-  transform: scaleX(-1);
 }
 
 .hero__content {
@@ -1418,6 +1417,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   .nav__links { display: none; }
   .nav__burger { display: flex; }
   .hero { min-height: auto; padding: 140px 20px 80px; }
+  .hero::before, .hero::after { display: none; }
   .hero__scroll { display: none; }
   .hero__shape--1 { width: 250px; height: 250px; }
   .hero__shape--2 { width: 150px; height: 150px; }
