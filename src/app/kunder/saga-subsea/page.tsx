@@ -4,8 +4,8 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Saga Subsea – Kundecase",
-  description: "Se hvordan Workflows bygget en digital assistent og kundeoppfolgingssystem for Saga Subsea. 50% raskere responstid og 24/7 tilgjengelighet.",
-  keywords: ["Saga Subsea", "digital assistent", "kundeoppfolging", "subsea tjenester", "automatisert kundekommunikasjon", "Workflows kundecase"],
+  description: "Se hvordan Workflows bygget en digital assistent og kundeoppfølgingssystem for Saga Subsea. 50% raskere responstid og 24/7 tilgjengelighet.",
+  keywords: ["Saga Subsea", "digital assistent", "kundeoppfølging", "subsea tjenester", "automatisert kundekommunikasjon", "Workflows kundecase"],
 };
 
 export default function SagaSubseaCase() {
@@ -18,7 +18,7 @@ export default function SagaSubseaCase() {
             <div className="case-hero__info">
               <span className="tag">Kundecase</span>
               <h1>Saga Subsea</h1>
-              <p className="case-hero__tagline">Digital assistent og smart kundeoppfolging for subsea-tjenester</p>
+              <p className="case-hero__tagline">Digital assistent og smart kundeoppfølging for subsea-tjenester</p>
               <div className="case-hero__meta">
                 <div><strong>Bransje</strong><span>Subsea-tjenester</span></div>
                 <div><strong>Tjenester</strong><span>Digital assistent, Systemintegrasjon</span></div>
@@ -53,34 +53,34 @@ export default function SagaSubseaCase() {
             <div className="case-body">
               <h2>Utfordringen</h2>
               <p>
-                Saga Subsea tilbyr spesialiserte subsea-tjenester til olje- og gassindustrien. Med kunder spredt over hele Nordsjoen og henvendelser som kom dognets alle timer, slet teamet med a folge opp alle i tide.
+                Saga Subsea tilbyr spesialiserte subsea-tjenester til olje- og gassindustrien. Med kunder spredt over hele Nordsjøen og henvendelser som kom døgnets alle timer, slet teamet med å følge opp alle i tide.
               </p>
               <p>
-                Potensielle oppdrag falt mellom stolene fordi henvendelser ble liggende ubesvart i innboksen. Prosjektoppdateringer ble gitt muntlig eller via ad hoc-e-poster, og det var ingen systematisk mate a spore kunderelasjoner pa.
+                Potensielle oppdrag falt mellom stolene fordi henvendelser ble liggende ubesvart i innboksen. Prosjektoppdateringer ble gitt muntlig eller via ad hoc-e-poster, og det var ingen systematisk måte å spore kunderelasjoner på.
               </p>
 
-              <h2>Losningen</h2>
+              <h2>Løsningen</h2>
               <p>
-                Workflows utviklet en digital assistent som handterer forstekontakt med kunder, kategoriserer henvendelser og ruter dem til riktig person. I tillegg ble det bygget et oppfolgingssystem som sikrer at ingen henvendelser gar tapt.
+                Workflows utviklet en digital assistent som håndterer førstekontakt med kunder, kategoriserer henvendelser og ruter dem til riktig person. I tillegg ble det bygget et oppfølgingssystem som sikrer at ingen henvendelser går tapt.
               </p>
               <ul>
-                <li>AI-drevet digital assistent for forstelinjesvar pa e-post og nettside</li>
+                <li>AI-drevet digital assistent for førstelinjesvar på e-post og nettside</li>
                 <li>Automatisk kategorisering og prioritering av henvendelser</li>
-                <li>Oppfolgingssystem med paaminnelser og eskalering</li>
+                <li>Oppfølgingssystem med påminnelser og eskalering</li>
                 <li>Kundeportal med prosjektstatus og dokumenter</li>
                 <li>Integrasjon med eksisterende e-post og CRM</li>
               </ul>
 
               <h2>Resultatet</h2>
               <p>
-                Saga Subsea svarer na pa alle henvendelser innen 30 minutter — ogsaa midt pa natten. Den digitale assistenten handterer 60% av rutinehenvendelsene helt automatisk, slik at teamet kan fokusere pa de komplekse forespørslene.
+                Saga Subsea svarer nå på alle henvendelser innen 30 minutter — også midt på natten. Den digitale assistenten håndterer 60% av rutinehenvendelsene helt automatisk, slik at teamet kan fokusere på de komplekse forespørslene.
               </p>
               <p>
-                Oppfolgingssystemet har eliminert problemet med tapte henvendelser fullstendig, og kundetilfredsheten har okt markant siden implementeringen.
+                Oppfølgingssystemet har eliminert problemet med tapte henvendelser fullstendig, og kundetilfredsheten har økt markant siden implementeringen.
               </p>
 
               <blockquote>
-                &ldquo;Workflows forsto umiddelbart hva vi trengte. Den digitale assistenten foler seg som en naturlig del av teamet — den svarer profesjonelt og ruter alt riktig. Vi har ikke mistet en eneste henvendelse siden.&rdquo;
+                &ldquo;Workflows forsto umiddelbart hva vi trengte. Den digitale assistenten føles som en naturlig del av teamet — den svarer profesjonelt og ruter alt riktig. Vi har ikke mistet en eneste henvendelse siden.&rdquo;
               </blockquote>
             </div>
           </div>

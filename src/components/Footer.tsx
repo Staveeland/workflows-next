@@ -20,7 +20,7 @@ export default function Footer() {
           <div className="footer__col">
             <h4>Ressurser</h4>
             <Link href="/kunder">Kundecaser</Link>
-            <Link href="/faq">Ofte stilte sporsmal</Link>
+            <Link href="/faq">Ofte stilte spørsmål</Link>
           </div>
           <div className="footer__col">
             <h4>Kunder</h4>
@@ -31,7 +31,7 @@ export default function Footer() {
         </div>
         <div className="footer__bottom">
           <span>&copy; {new Date().getFullYear()} Workflows AS</span>
-          <span>Basert pa Haugalandet, Norge</span>
+          <span>Basert på Haugalandet, Norge</span>
         </div>
       </div>
     </footer>

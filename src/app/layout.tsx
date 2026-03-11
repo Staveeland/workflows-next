@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     default: "Workflows – Smartere systemer for din bedrift",
     template: "%s | Workflows",
   },
-  description: "Workflows bygger skreddersydd software, digitale assistenter og automatiserte systemer som sparer tid og oker inntektene for norske bedrifter.",
+  description: "Workflows bygger skreddersydd software, digitale assistenter og automatiserte systemer som sparer tid og øker inntektene for norske bedrifter.",
   keywords: ["automatisering", "skreddersydd software", "digitale assistenter", "systemintegrasjon", "norsk teknologi", "workflows", "AI", "kunstig intelligens", "bedriftsautomatisering"],
   icons: {
     icon: "/favicon.jpg",

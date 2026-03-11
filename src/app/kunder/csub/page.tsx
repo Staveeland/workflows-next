@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "CSUB – Kundecase",
-  description: "Se hvordan Workflows hjalp CSUB med a automatisere prosjektstyring og rapportering for subsea-operasjoner. 25 timer spart per uke med skreddersydd software.",
+  description: "Se hvordan Workflows hjalp CSUB med å automatisere prosjektstyring og rapportering for subsea-operasjoner. 25 timer spart per uke med skreddersydd software.",
   keywords: ["CSUB", "subsea automatisering", "prosjektstyring", "sanntidsrapportering", "offshore software", "Workflows kundecase"],
 };
 
@@ -53,19 +53,19 @@ export default function CsubCase() {
             <div className="case-body">
               <h2>Utfordringen</h2>
               <p>
-                CSUB er et ledende selskap innen subsea-tjenester med operasjoner langs hele norskekysten. Med flere parallelle prosjekter og et voksende team ble det stadig vanskeligere a holde oversikt over fremdrift, ressursbruk og okonomi.
+                CSUB er et ledende selskap innen subsea-tjenester med operasjoner langs hele norskekysten. Med flere parallelle prosjekter og et voksende team ble det stadig vanskeligere å holde oversikt over fremdrift, ressursbruk og økonomi.
               </p>
               <p>
-                Prosjektlederne brukte timer hver dag pa a samle inn data fra ulike systemer, sette sammen rapporter manuelt i Excel, og sende oppdateringer til kunder og ledelse. Informasjonen var ofte utdatert innen den ble levert.
+                Prosjektlederne brukte timer hver dag på å samle inn data fra ulike systemer, sette sammen rapporter manuelt i Excel, og sende oppdateringer til kunder og ledelse. Informasjonen var ofte utdatert innen den ble levert.
               </p>
 
-              <h2>Losningen</h2>
+              <h2>Løsningen</h2>
               <p>
-                Workflows bygget et skreddersydd prosjektstyringssystem som automatisk henter data fra CSUBs eksisterende verktoy — timeregistrering, okonomi og operasjonelle logger. Systemet genererer sanntidsrapporter og dashboards som gir full oversikt med et blikk.
+                Workflows bygget et skreddersydd prosjektstyringssystem som automatisk henter data fra CSUBs eksisterende verktøy — timeregistrering, økonomi og operasjonelle logger. Systemet genererer sanntidsrapporter og dashboards som gir full oversikt med et blikk.
               </p>
               <ul>
                 <li>Automatisk datainnsamling fra 4 ulike kildesystemer</li>
-                <li>Sanntids-dashboard med prosjektstatus, okonomi og KPIer</li>
+                <li>Sanntids-dashboard med prosjektstatus, økonomi og KPIer</li>
                 <li>Automatisk genererte ukerapporter sendt direkte til kunder</li>
                 <li>Varslingssystem for avvik og budsjettoverskridelser</li>
                 <li>Mobilvennlig grensesnitt for bruk offshore</li>
@@ -73,14 +73,14 @@ export default function CsubCase() {
 
               <h2>Resultatet</h2>
               <p>
-                Prosjektlederne fikk tilbake 25 timer i uken som tidligere gikk til manuell rapportering. Ledelsen har na sanntidsoversikt over alle prosjekter, og kunder far automatiske oppdateringer uten at noen trenger a lage dem manuelt.
+                Prosjektlederne fikk tilbake 25 timer i uken som tidligere gikk til manuell rapportering. Ledelsen har nå sanntidsoversikt over alle prosjekter, og kunder får automatiske oppdateringer uten at noen trenger å lage dem manuelt.
               </p>
               <p>
-                Systemet har ogsaa avdekket kostnadsbesparelser ved a synliggjore ressursbruk pa tvers av prosjekter — noe som tidligere var umulig a se uten omfattende manuelt arbeid.
+                Systemet har også avdekket kostnadsbesparelser ved å synliggjøre ressursbruk på tvers av prosjekter — noe som tidligere var umulig å se uten omfattende manuelt arbeid.
               </p>
 
               <blockquote>
-                &ldquo;Vi visste vi brukte for mye tid pa rapportering, men vi hadde ikke forestilt oss at det kunne automatiseres sa fullstendig. Workflows leverte et system som faktisk endret hverdagen var.&rdquo;
+                &ldquo;Vi visste vi brukte for mye tid på rapportering, men vi hadde ikke forestilt oss at det kunne automatiseres så fullstendig. Workflows leverte et system som faktisk endret hverdagen vår.&rdquo;
               </blockquote>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function CsubCase() {
               <Link href="/kunder/saga-subsea" className="case-other__card">
                 <Image src="/kunder-saga.png" alt="Saga Subsea" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
                 <h3>Saga Subsea</h3>
-                <p>Digital assistent og kundeoppfolging</p>
+                <p>Digital assistent og kundeoppfølging</p>
               </Link>
               <Link href="/kunder/elementlab" className="case-other__card">
                 <Image src="/kunder-elementlab.png" alt="ElementLab" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />

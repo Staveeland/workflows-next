@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "ElementLab – Kundecase",
-  description: "Se hvordan Workflows bygget en intern kunnskapsbase og automatisert datainnsamling for ElementLab. 80% raskere rapportering og sokbar dokumentasjon.",
+  description: "Se hvordan Workflows bygget en intern kunnskapsbase og automatisert datainnsamling for ElementLab. 80% raskere rapportering og søkbar dokumentasjon.",
   keywords: ["ElementLab", "kunnskapsbase", "automatisert rapportering", "laboratorium software", "forskning automatisering", "Workflows kundecase"],
 };
 
@@ -18,7 +18,7 @@ export default function ElementLabCase() {
             <div className="case-hero__info">
               <span className="tag">Kundecase</span>
               <h1>ElementLab</h1>
-              <p className="case-hero__tagline">Intern kunnskapsbase og automatisert datainnsamling for forskningsmiljo</p>
+              <p className="case-hero__tagline">Intern kunnskapsbase og automatisert datainnsamling for forskningsmiljø</p>
               <div className="case-hero__meta">
                 <div><strong>Bransje</strong><span>Forskning & Laboratorium</span></div>
                 <div><strong>Tjenester</strong><span>Kunnskapsbase, Automatisert rapportering</span></div>
@@ -42,7 +42,7 @@ export default function ElementLabCase() {
               </div>
               <div className="case-result">
                 <span className="case-result__num">500+</span>
-                <span className="case-result__label">sokbare dokumenter</span>
+                <span className="case-result__label">søkbare dokumenter</span>
               </div>
               <div className="case-result">
                 <span className="case-result__num">15</span>
@@ -53,18 +53,18 @@ export default function ElementLabCase() {
             <div className="case-body">
               <h2>Utfordringen</h2>
               <p>
-                ElementLab er et forsknings- og analyselaboratorium som jobber med komplekse proveprosesser og genererer store mengder data daglig. Forskerne brukte uforholdsmessig mye tid pa a dokumentere resultater, finne tidligere forsoksdata og sette sammen rapporter.
+                ElementLab er et forsknings- og analyselaboratorium som jobber med komplekse prøveprosesser og genererer store mengder data daglig. Forskerne brukte uforholdsmessig mye tid på å dokumentere resultater, finne tidligere forsøksdata og sette sammen rapporter.
               </p>
               <p>
-                Kunnskapen var spredt pa tvers av individuelle datamaskiner, utdaterte mapper pa en filserver og hodene til erfarne ansatte. Nar nye forskere begynte, tok det maneder for de var produktive fordi opplaeringen var ustrukturert.
+                Kunnskapen var spredt på tvers av individuelle datamaskiner, utdaterte mapper på en filserver og hodene til erfarne ansatte. Når nye forskere begynte, tok det måneder før de var produktive fordi opplæringen var ustrukturert.
               </p>
 
-              <h2>Losningen</h2>
+              <h2>Løsningen</h2>
               <p>
-                Workflows bygget en intelligent kunnskapsbase som samler all dokumentasjon, prosedyrer og forsoksdata pa ett sted — sokbart og tilgjengelig for alle. I tillegg ble det laget et automatisert system for datainnsamling fra laboratorieutstyr.
+                Workflows bygget en intelligent kunnskapsbase som samler all dokumentasjon, prosedyrer og forsøksdata på ett sted — søkbart og tilgjengelig for alle. I tillegg ble det laget et automatisert system for datainnsamling fra laboratorieutstyr.
               </p>
               <ul>
-                <li>Sokbar kunnskapsbase med AI-drevet sok og kategorisering</li>
+                <li>Søkbar kunnskapsbase med AI-drevet søk og kategorisering</li>
                 <li>Automatisk import av data fra laboratorieinstrumenter</li>
                 <li>Mal-basert rapportgenerering med ett klikk</li>
                 <li>Versjonskontroll for prosedyrer og metoder</li>
@@ -73,14 +73,14 @@ export default function ElementLabCase() {
 
               <h2>Resultatet</h2>
               <p>
-                Rapporteringstiden gikk ned med 80% — fra en halv dag til under en time for en fullstendig analyserapport. Nye ansatte er na produktive etter to uker istedenfor to maneder, takket vaere den strukturerte kunnskapsbasen.
+                Rapporteringstiden gikk ned med 80% — fra en halv dag til under en time for en fullstendig analyserapport. Nye ansatte er nå produktive etter to uker istedenfor to måneder, takket være den strukturerte kunnskapsbasen.
               </p>
               <p>
-                Forskerne bruker na mesteparten av tiden sin pa faktisk forskning istedenfor administrativt arbeid. Ledelsen har full sporbarhet pa alle prosesser, noe som ogsaa har forenklet kvalitetssikring og sertifiseringsprosesser.
+                Forskerne bruker nå mesteparten av tiden sin på faktisk forskning istedenfor administrativt arbeid. Ledelsen har full sporbarhet på alle prosesser, noe som også har forenklet kvalitetssikring og sertifiseringsprosesser.
               </p>
 
               <blockquote>
-                &ldquo;Kunnskapsbasen har forandret maten vi jobber pa. Tidligere brukte vi timer pa a lete etter informasjon — na finner vi alt pa sekunder. Og det automatiserte rapporteringssystemet har frigjort tid vi ikke visste vi hadde.&rdquo;
+                &ldquo;Kunnskapsbasen har forandret måten vi jobber på. Tidligere brukte vi timer på å lete etter informasjon — nå finner vi alt på sekunder. Og det automatiserte rapporteringssystemet har frigjort tid vi ikke visste vi hadde.&rdquo;
               </blockquote>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function ElementLabCase() {
               <Link href="/kunder/saga-subsea" className="case-other__card">
                 <Image src="/kunder-saga.png" alt="Saga Subsea" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
                 <h3>Saga Subsea</h3>
-                <p>Digital assistent og kundeoppfolging</p>
+                <p>Digital assistent og kundeoppfølging</p>
               </Link>
             </div>
           </div>

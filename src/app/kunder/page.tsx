@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Kundecaser",
-  description: "Se hvordan Workflows har hjulpet norske bedrifter med skreddersydd software, automatisering og digitale assistenter. Les vare kundecaser fra CSUB, Saga Subsea og ElementLab.",
+  description: "Se hvordan Workflows har hjulpet norske bedrifter med skreddersydd software, automatisering og digitale assistenter. Les våre kundecaser fra CSUB, Saga Subsea og ElementLab.",
   keywords: ["kundecaser", "referanser", "automatisering eksempler", "skreddersydd software Norge", "bedriftsautomatisering case study"],
 };
 
@@ -22,8 +22,8 @@ const cases = [
     logo: "/kunder-saga.png",
     slug: "saga-subsea",
     industry: "Subsea-tjenester",
-    summary: "Digital assistent for kundeoppfolging og prosjektsporing som doblet responstiden.",
-    results: ["50% raskere responstid", "Automatisk oppfolging", "24/7 tilgjengelighet"],
+    summary: "Digital assistent for kundeoppfølging og prosjektsporing som doblet responstiden.",
+    results: ["50% raskere responstid", "Automatisk oppfølging", "24/7 tilgjengelighet"],
   },
   {
     name: "ElementLab",
@@ -31,7 +31,7 @@ const cases = [
     slug: "elementlab",
     industry: "Forskning & Laboratorium",
     summary: "Intern kunnskapsbase og automatisert datainnsamling som kuttet rapporteringstid med 80%.",
-    results: ["80% raskere rapporter", "Sokbar kunnskapsbase", "Automatisk dataflyt"],
+    results: ["80% raskere rapporter", "Søkbar kunnskapsbase", "Automatisk dataflyt"],
   },
 ];
 
@@ -43,7 +43,7 @@ export default function KunderPage() {
           <span className="tag">Kundecaser</span>
           <h1>Bedrifter som jobber smartere med Workflows</h1>
           <p className="page-hero__sub">
-            Fra subsea-operasjoner til forskningslaboratorier — se hvordan vi har hjulpet norske bedrifter med a spare tid, kutte kostnader og jobbe mer effektivt.
+            Fra subsea-operasjoner til forskningslaboratorier — se hvordan vi har hjulpet norske bedrifter med å spare tid, kutte kostnader og jobbe mer effektivt.
           </p>
         </div>
       </section>
@@ -77,8 +77,8 @@ export default function KunderPage() {
         <div className="wrap">
           <div className="cta">
             <h2>Vil du bli neste suksesshistorie?</h2>
-            <p>Book en uforpliktende samtale. Vi finner ut sammen hva vi kan gjore for din bedrift.</p>
-            <Link href="/#kontakt" className="btn btn--white">
+            <p>Book en uforpliktende samtale. Vi finner ut sammen hva vi kan gjøre for din bedrift.</p>
+            <Link href="/#kontakt" className="btn btn--dark">
               Start samtalen <span className="btn__arrow">&rarr;</span>
             </Link>
           </div>
