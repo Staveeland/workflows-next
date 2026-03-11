@@ -1530,9 +1530,9 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   .statement::before { width: 100vw; height: 95%; }
   .hero__actions {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     width: 100%;
   }
-  .hero__actions .btn { justify-content: center; }
+  .hero__actions .btn { padding: 11px 28px; font-size: 13px; }
   .contact__right .btn { width: 100%; justify-content: center; }
 }
