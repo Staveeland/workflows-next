@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Lora, Inter } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+
+const lora = Lora({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-lora",
+});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nb-NO">
-      <body className={inter.className}>
+      <body className={`${lora.variable} ${inter.variable} ${lora.className}`}>
         <Nav />
         <main>{children}</main>
         <Footer />

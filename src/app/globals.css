@@ -33,7 +33,8 @@ button { font: inherit; }
   --accent-bg: #fdf6e7;
 
   /* System */
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font: var(--font-lora, 'Lora'), Georgia, 'Times New Roman', serif;
+  --font-body: var(--font-inter, 'Inter'), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --container: 1100px;
   --space: clamp(100px, 12vw, 160px);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -306,8 +307,8 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   height: clamp(300px, 40vw, 550px);
   top: 5%;
   right: -8%;
-  background: rgba(226, 158, 51, 0.05);
-  filter: blur(80px);
+  background: rgba(226, 158, 51, 0.08);
+  filter: blur(60px);
 }
 
 .hero__shape--2 {
@@ -315,8 +316,8 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   height: clamp(200px, 25vw, 400px);
   bottom: 10%;
   left: -5%;
-  background: rgba(226, 158, 51, 0.03);
-  filter: blur(60px);
+  background: rgba(226, 158, 51, 0.06);
+  filter: blur(50px);
 }
 
 .hero__shape--3 {
@@ -324,8 +325,41 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   height: 200px;
   top: 25%;
   left: 12%;
-  background: rgba(226, 158, 51, 0.03);
-  filter: blur(50px);
+  background: rgba(226, 158, 51, 0.05);
+  filter: blur(40px);
+}
+
+/* Watercolor illustration decorations in hero */
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: clamp(180px, 32vw, 500px);
+  height: 100%;
+  pointer-events: none;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.hero::before {
+  left: 0;
+  background-image: url("/hero-deco-left.png");
+  background-position: left center;
+  opacity: 0.6;
+  mask-image: linear-gradient(to right, black 20%, transparent 85%), linear-gradient(to bottom, black 40%, transparent 90%);
+  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(to right, black 20%, transparent 85%), linear-gradient(to bottom, black 40%, transparent 90%);
+  -webkit-mask-composite: source-in;
+}
+.hero::after {
+  right: 0;
+  background-image: url("/hero-deco-right.png");
+  background-position: right center;
+  opacity: 0.55;
+  mask-image: linear-gradient(to left, black 20%, transparent 85%), linear-gradient(to bottom, black 40%, transparent 90%);
+  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(to left, black 20%, transparent 85%), linear-gradient(to bottom, black 40%, transparent 90%);
+  -webkit-mask-composite: source-in;
 }
 
 .hero__content {
@@ -367,6 +401,19 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .hero__accent {
   color: var(--accent);
 }
+
+/* Typewriter */
+.typewriter { display: inline-block; min-width: 4ch; }
+.typewriter__cursor {
+  display: inline-block;
+  width: 3px;
+  height: 0.85em;
+  background: var(--accent);
+  margin-left: 2px;
+  vertical-align: baseline;
+  animation: tw-blink 0.65s step-end infinite;
+}
+@keyframes tw-blink { 50% { opacity: 0; } }
 
 .hero__sub {
   font-size: clamp(17px, 1.8vw, 20px);
@@ -1382,6 +1429,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   .nav__links { display: none; }
   .nav__burger { display: flex; }
   .hero { min-height: auto; padding: 140px 20px 80px; }
+  .hero::before, .hero::after { width: 25vw; opacity: 0.3; }
   .hero__scroll { display: none; }
   .hero__shape--1 { width: 250px; height: 250px; }
   .hero__shape--2 { width: 150px; height: 150px; }
@@ -1402,6 +1450,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 }
 
 @media (max-width: 480px) {
+  .hero::before, .hero::after { opacity: 0.15; width: 30vw; }
   .hero__actions {
     flex-direction: column;
     align-items: stretch;
