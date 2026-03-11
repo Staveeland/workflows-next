@@ -20,7 +20,7 @@ export default function Footer() {
           <div className="footer__col">
             <h4>Ressurser</h4>
             <Link href="/kunder">Kundecaser</Link>
-            <Link href="/faq">Ofte stilte spørsmål</Link>
+            <Link href="/#faq">Ofte stilte spørsmål</Link>
           </div>
           <div className="footer__col">
             <h4>Kunder</h4>

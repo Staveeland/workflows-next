@@ -47,14 +47,15 @@ export default function Nav() {
               </>
             )}
             <Link href="/kunder">Kunder</Link>
-            <Link href="/faq">FAQ</Link>
             {isHome ? (
               <>
+                <a href="#faq">FAQ</a>
                 <a href="#om">Om oss</a>
                 <a href="#kontakt" className="nav__cta">Ta kontakt</a>
               </>
             ) : (
               <>
+                <Link href="/#faq">FAQ</Link>
                 <Link href="/#om">Om oss</Link>
                 <Link href="/#kontakt" className="nav__cta">Ta kontakt</Link>
               </>
@@ -72,7 +73,7 @@ export default function Nav() {
             { label: "Tjenester", href: isHome ? "#tjenester" : "/#tjenester" },
             { label: "Kunder", href: "/kunder" },
             { label: "Prosess", href: isHome ? "#prosess" : "/#prosess" },
-            { label: "FAQ", href: "/faq" },
+            { label: "FAQ", href: isHome ? "#faq" : "/#faq" },
             { label: "Om oss", href: isHome ? "#om" : "/#om" },
             { label: "Kontakt", href: isHome ? "#kontakt" : "/#kontakt" },
           ].map((l, i) => (

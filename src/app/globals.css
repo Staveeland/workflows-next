@@ -1361,7 +1361,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   font-size: 24px;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .faq-list {
@@ -1371,7 +1371,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 }
 
 .faq-item {
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 .faq-item summary {
   font-size: 16px;

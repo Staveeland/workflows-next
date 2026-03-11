@@ -431,17 +431,92 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ──── CTA ──── */}
-      <section className="cta-section">
+      {/* ──── FAQ ──── */}
+      <section className="cta-section" id="faq">
         <div className="wrap">
-          <motion.div className="cta" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.h2 variants={fadeUp}>Lurer du på om vi kan hjelpe deg?</motion.h2>
-            <motion.p variants={fadeUp} custom={1}>
-              Ta en uforpliktende prat med oss. Vi finner ut sammen om det gir mening — helt gratis, ingen forpliktelser.
-            </motion.p>
-            <motion.a href="#kontakt" className="btn btn--dark" variants={fadeUp} custom={2}>
-              Ta kontakt <span className="btn__arrow">&rarr;</span>
-            </motion.a>
+          <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+            <motion.span className="tag tag--on-accent" variants={fadeUp}>FAQ</motion.span>
+            <AnimatedHeading text="Ofte stilte spørsmål" className="accent-section__heading" />
+          </motion.div>
+
+          <motion.div className="faq-layout" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-40px" }} variants={stagger}>
+            {[
+              {
+                category: "Om tjenestene",
+                questions: [
+                  {
+                    q: "Hva slags bedrifter jobber dere med?",
+                    a: "Vi jobber med bedrifter i alle størrelser — fra småbedrifter med 5 ansatte til større selskaper med hundrevis. Fellesnevneren er at de har manuelle prosesser som tar for mye tid. Vi har erfaring fra bransjer som subsea, forskning, eiendom, handel og tjenesteyting.",
+                  },
+                  {
+                    q: "Hva er skreddersydd software?",
+                    a: "Skreddersydd software er programvare bygget spesifikt for din bedrift og dine prosesser. I motsetning til hyllevare som Salesforce eller HubSpot, får du et system som passer perfekt til måten du jobber på — uten unødvendige funksjoner eller begrensninger.",
+                  },
+                  {
+                    q: "Hva er en digital assistent?",
+                    a: "En digital assistent er et AI-drevet system som kan håndtere oppgaver som kundeservice, oppfølging, rapportering eller databehandling — automatisk og døgnets alle timer. Tenk på det som en kollega som aldri sover, aldri glemmer, og aldri gjør slurve-feil.",
+                  },
+                  {
+                    q: "Kan dere integrere med systemene vi allerede bruker?",
+                    a: "Ja. Vi spesialiserer oss på å koble sammen eksisterende verktøy. Enten du bruker Tripletex, Visma, Microsoft 365, Google Workspace, Slack eller bransjespesifikke systemer — vi bygger broer mellom dem slik at data flyter automatisk.",
+                  },
+                  {
+                    q: "Trenger vi teknisk kompetanse internt?",
+                    a: "Nei. Vi bygger systemer som er enkle å bruke for alle. Du trenger ikke forstå teknologien — bare resultatene. Vi tar oss av alt det tekniske, og gir grundig opplæring når systemet er klart.",
+                  },
+                ],
+              },
+              {
+                category: "Pris og prosess",
+                questions: [
+                  {
+                    q: "Hva koster det?",
+                    a: "Prisen avhenger av prosjektets omfang og størrelse. Vi gir alltid et fast pristilbud etter en uforpliktende første samtale — slik at du vet nøyaktig hva du betaler før du bestemmer deg.",
+                  },
+                  {
+                    q: "Hvor lang tid tar det?",
+                    a: "De fleste prosjekter leveres innen 4–12 uker. Enkle automatiseringer kan være klare på under to uker. Du ser fremgang fra uke én — vi viser deg demoer underveis slik at du kan gi tilbakemeldinger tidlig.",
+                  },
+                  {
+                    q: "Hva skjer etter lansering?",
+                    a: "Vi tilbyr support og vedlikehold så lenge du trenger det. Alle systemer leveres med dokumentasjon og opplæring. Hvis noe trenger justering eller du vil legge til nye funksjoner senere, er vi tilgjengelige.",
+                  },
+                  {
+                    q: "Er den første samtalen virkelig gratis?",
+                    a: "Ja, helt gratis og uforpliktende. Vi setter oss ned (fysisk eller digitalt) og lytter til utfordringene dine. Etter samtalen får du et konkret forslag til hva vi kan gjøre — uten noen forpliktelser.",
+                  },
+                ],
+              },
+              {
+                category: "Teknologi og sikkerhet",
+                questions: [
+                  {
+                    q: "Er dataene våre trygge?",
+                    a: "Absolutt. Vi følger beste praksis for datasikkerhet og personvern. Alle systemer bygges med kryptering, tilgangskontroll og sikker hosting. Vi er kjent med GDPR-kravene og sørger for at løsningene er i samsvar med norske og europeiske regelverk.",
+                  },
+                  {
+                    q: "Bruker dere kunstig intelligens (AI)?",
+                    a: "Ja, der det gir verdi. Vi bruker AI for oppgaver som tekstforståelse, automatisk kategorisering, chatboter og dataanalyse. Men vi bruker det ikke bare for å være hippe — AI er et verktøy, og vi bruker det kun når det faktisk løser et problem bedre enn alternativene.",
+                  },
+                  {
+                    q: "Kan systemet skalere når vi vokser?",
+                    a: "Ja. Vi bygger med skalering i tankene fra dag én. Enten du dobler antall ansatte, får ti ganger så mange kunder, eller ekspanderer til nye markeder — systemene våre vokser med deg uten at du trenger å bygge på nytt.",
+                  },
+                ],
+              },
+            ].map((cat, ci) => (
+              <motion.div key={cat.category} className="faq-category" variants={fadeUp} custom={ci}>
+                <h2>{cat.category}</h2>
+                <div className="faq-list">
+                  {cat.questions.map((faq) => (
+                    <details key={faq.q} className="faq-item">
+                      <summary>{faq.q}</summary>
+                      <p>{faq.a}</p>
+                    </details>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
