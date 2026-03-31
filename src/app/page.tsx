@@ -266,9 +266,9 @@ export default function Home() {
         <div className="wrap">
           <motion.div className="statement__inner"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
-            <AnimatedHeading text="Uansett om du trenger en chatbot som svarer kunder, automatiserte flyter som fjerner dobbeltarbeid, eller en AI-agent som jobber for deg — vi bygger det." />
+            <AnimatedHeading text="Vi bygger det som gjør jobben for deg." />
             <motion.p variants={fadeUp} custom={2}>
-              Du forteller oss hva som tar for mye tid. Vi finner ut hvilket nivå som løser det, og bygger systemet for deg — automatisk, døgnets rundt, uten feil.
+              Uansett om du trenger en chatbot som svarer kunder, automatiserte flyter som fjerner dobbeltarbeid, eller en AI-agent som jobber for deg — vi finner ut hva som passer, og bygger det.
             </motion.p>
           </motion.div>
         </div>
