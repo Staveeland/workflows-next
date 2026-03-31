@@ -529,7 +529,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  align-items: end;
+  align-items: stretch;
 }
 
 .level {
@@ -543,10 +543,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   flex-direction: column;
 }
 
-.level--1 { min-height: 280px; }
-.level--2 { min-height: 320px; }
 .level--3 {
-  min-height: 360px;
   border-color: rgba(226, 158, 51, 0.25);
   box-shadow: 0 8px 32px rgba(226, 158, 51, 0.06);
 }
@@ -1618,8 +1615,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   .feature-row--reverse .feature-row__content { order: 1; }
   .feature-row--reverse .feature-row__visual { order: 2; }
   .steps { grid-template-columns: 1fr; gap: 16px; }
-  .levels__staircase { grid-template-columns: 1fr; align-items: stretch; }
-  .level--1, .level--2, .level--3 { min-height: auto; }
+  .levels__staircase { grid-template-columns: 1fr; }
   .contact { grid-template-columns: 1fr; gap: 48px; }
   .results-grid { grid-template-columns: repeat(2, 1fr); gap: 40px 24px; }
   .clients-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1640,7 +1636,6 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   .hero__shape--2 { width: 150px; height: 150px; }
   .hero__shape--3 { display: none; }
   .levels__staircase { grid-template-columns: 1fr; align-items: stretch; }
-  .level--1, .level--2, .level--3 { min-height: auto; }
   .statement { padding: clamp(48px, 8vw, 80px) 0; }
   .statement::before { width: 96vw; height: 94%; }
   .statement__inner { padding: 0 12px; }
