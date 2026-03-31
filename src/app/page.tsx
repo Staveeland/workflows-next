@@ -87,7 +87,7 @@ function useCounter(end: number, dur: number, active: boolean) {
 /* ═══════════════════════════════════════ */
 export default function Home() {
   const statsRef = useRef(null);
-  const statsInView = useInView(statsRef, { once: true, margin: "-30% 0px -30% 0px" });
+  const statsInView = useInView(statsRef, { once: true, margin: "0px 0px -10% 0px" });
 
   const s1 = useCounter(40, 2000, statsInView);
   const s2 = useCounter(12, 2000, statsInView);
@@ -373,6 +373,16 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ──── MID CTA ──── */}
+      <motion.div className="mid-cta"
+        initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
+        <motion.div variants={fadeUp}>
+          <a href="#kontakt" className="btn btn--primary">
+            Book en gratis prat <span className="btn__arrow">&rarr;</span>
+          </a>
+        </motion.div>
+      </motion.div>
+
       {/* ──── HOW WE WORK ──── */}
       <section className="accent-section" id="prosess">
         <div className="wrap">
@@ -438,6 +448,17 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ──── MID CTA 2 ──── */}
+      <motion.div className="mid-cta"
+        initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
+        <motion.p className="mid-cta__text" variants={fadeUp}>Vil du se hva vi kan gjøre for din bedrift?</motion.p>
+        <motion.div variants={fadeUp} custom={1}>
+          <a href="#kontakt" className="btn btn--primary">
+            Book en gratis prat <span className="btn__arrow">&rarr;</span>
+          </a>
+        </motion.div>
+      </motion.div>
+
       {/* ──── ABOUT ──── */}
       <section className="section section--elevated" id="om">
         <div className="wrap">
@@ -472,6 +493,21 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ──── TECH PARTNERS ──── */}
+      <section className="partners">
+        <div className="wrap">
+          <motion.div className="partners__inner"
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
+            <motion.p className="partners__label" variants={fadeUp}>Vi bygger med teknologi fra</motion.p>
+            <motion.div className="partners__row" variants={fadeUp} custom={1}>
+              {["OpenAI", "Anthropic", "Microsoft", "Google Cloud", "n8n", "Vercel"].map((name) => (
+                <span key={name} className="partners__badge">{name}</span>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ──── CUSTOMERS ──── */}
       <section className="section" id="kunder">
         <div className="wrap">
@@ -485,9 +521,9 @@ export default function Home() {
 
           <motion.div className="clients-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             {[
-              { name: "CSUB", logo: "/kunder-csub.svg", slug: "csub", desc: "Automatisert prosjektstyring og rapportering for subsea-selskap. Sparer 25 timer i uken." },
-              { name: "Saga Subsea", logo: "/kunder-saga.png", slug: "saga-subsea", desc: "Digital assistent som svarer kunder døgnets rundt. 50% raskere responstid." },
-              { name: "ElementLab", logo: "/kunder-elementlab.png", slug: "elementlab", desc: "Søkbar kunnskapsbase for all bedriftens kunnskap. 80% raskere rapporter." },
+              { name: "CSUB", logo: "/kunder-csub.svg", slug: "csub", desc: "Automatisert prosjektstyring og rapportering for subsea-selskap. Sparer 25 timer i uken — estimert verdi over 500 000 kr/år." },
+              { name: "Saga Subsea", logo: "/kunder-saga.png", slug: "saga-subsea", desc: "Digital assistent som svarer kunder døgnets rundt. 50% raskere responstid og færre tapte henvendelser." },
+              { name: "ElementLab", logo: "/kunder-elementlab.png", slug: "elementlab", desc: "Søkbar kunnskapsbase som erstatter manuell leting. 80% raskere rapporter — frigjør hundrevis av timer årlig." },
             ].map((c, i) => (
               <motion.div key={c.slug} variants={fadeUp} custom={i}>
                 <Link href={`/kunder/${c.slug}`} className="client-card">
@@ -615,6 +651,12 @@ export default function Home() {
                 <div className="contact__email-row">
                   <span className="contact__email-label">petter@workflows.no</span>
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+                </div>
+              </a>
+              <a href="tel:+4740238910" className="contact__card contact__card--phone">
+                <div className="contact__email-row">
+                  <span className="contact__email-label">+47 402 38 910</span>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
                 </div>
               </a>
             </motion.div>
