@@ -176,16 +176,99 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ──── 3 LEVELS OF AI ──── */}
+      <section className="levels" id="nivaer">
+        <div className="wrap">
+          <motion.div className="section__head"
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
+            <motion.span className="tag" variants={fadeUp}>Hva vi bygger</motion.span>
+            <AnimatedHeading text="Tre nivåer av AI" />
+            <motion.p className="section__sub" variants={fadeUp} custom={2}>
+              Fra enkel chatbot til autonom agent — vi bygger løsninger på alle nivåer.
+            </motion.p>
+          </motion.div>
+
+          <div className="levels__staircase">
+            {[
+              {
+                n: 1,
+                title: "Chatboter",
+                points: [
+                  "Den er koblet på språkmodeller og data",
+                  "Du snakker med den via et tilpasset chatvindu",
+                  "Den svarer på spørsmål basert på tilgjengelig data",
+                ],
+                example: "En kundeservice-chatbot som svarer på spørsmål basert på bedriftens dokumentasjon.",
+              },
+              {
+                n: 2,
+                title: "Automatiserte flyter",
+                points: [
+                  "Trigges av en hendelse og følger et fast flyt",
+                  "Kjører automatisk uten menneskelig input",
+                  "AI er bakt inn i ett eller flere steg i flyten",
+                ],
+                example: "Et system som automatisk leser innkommende fakturaer, trekker ut nøkkeldata, og legger det inn i regnskapssystemet.",
+              },
+              {
+                n: 3,
+                title: "Agenter",
+                points: [
+                  "Får et mål og tilgang til verktøy og data",
+                  "Lager selv en plan og justerer underveis",
+                  "Tar beslutninger og utfører handlinger",
+                ],
+                example: "Du sier 'lag kvartalsrapport for Q1' og den henter tallene, analyserer trender, lager grafer, skriver sammendrag og lager en powerpoint.",
+              },
+            ].map((level, i) => (
+              <motion.div
+                key={level.n}
+                className={`level level--${level.n}`}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-15% 0px -15% 0px" }}
+                variants={fadeUp}
+                custom={i}
+              >
+                <div className="level__header">
+                  <span className="level__num">Nivå {level.n}</span>
+                  <h3 className="level__title">{level.title}</h3>
+                </div>
+                <ul className="level__points">
+                  {level.points.map((p, j) => (
+                    <li key={j}><span className="level__arrow">&rarr;</span> {p}</li>
+                  ))}
+                </ul>
+                <p className="level__example">
+                  <span className="level__think">Tenk:</span> {level.example}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div className="levels__footer"
+            initial="hidden" whileInView="visible"
+            viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
+            <motion.p className="levels__footer-text" variants={fadeUp}>
+              Vi bygger på alle tre nivåene.
+            </motion.p>
+            <motion.div variants={fadeUp} custom={1}>
+              <a href="#kontakt" className="btn btn--primary">
+                Book en gratis prat <span className="btn__arrow">&rarr;</span>
+              </a>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ──── BIG STATEMENT ──── */}
       <section className="statement">
         <div className="wrap">
           <motion.div className="statement__inner"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
-            <AnimatedHeading text="Du bruker for mye tid på ting som burde gått av seg selv." />
+            <AnimatedHeading text="Uansett om du trenger en chatbot som svarer kunder, automatiserte flyter som fjerner dobbeltarbeid, eller en AI-agent som jobber for deg — vi bygger det." />
             <motion.p variants={fadeUp} custom={2}>
-              Kopiere data mellom systemer. Lage rapporter manuelt. Følge opp kunder for hånd.
-              Det finnes en bedre måte — vi bygger systemer som gjør disse tingene for deg,
-              automatisk, døgnets rundt, uten feil.
+              Du forteller oss hva som tar for mye tid. Vi finner ut hvilket nivå som løser det, og bygger systemet for deg — automatisk, døgnets rundt, uten feil.
             </motion.p>
           </motion.div>
         </div>
