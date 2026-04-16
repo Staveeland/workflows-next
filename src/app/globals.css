@@ -1739,3 +1739,41 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   .hero__actions .btn { padding: 11px 28px; font-size: 13px; }
   .contact__right .btn { width: 100%; justify-content: center; }
 }
+
+/* ═══════════════════════ Longform articles (landing pages) ═══════════════════════ */
+.longform {
+  max-width: 740px;
+  margin: 0 auto;
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+.longform h2 {
+  font-size: clamp(24px, 2.6vw, 30px);
+  color: var(--text);
+  margin-top: 56px;
+  margin-bottom: 20px;
+  line-height: 1.25;
+}
+.longform h2:first-child { margin-top: 0; }
+.longform p + h2 { margin-top: 56px; }
+.longform p {
+  margin-bottom: 20px;
+}
+.longform ul, .longform ol {
+  margin: 0 0 24px 24px;
+  padding: 0;
+}
+.longform li {
+  margin-bottom: 10px;
+  padding-left: 6px;
+}
+.longform a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+.longform a:hover { color: var(--accent, #0a3d2e); }
+.longform strong { color: var(--text); font-weight: 600; }

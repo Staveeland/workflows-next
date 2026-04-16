@@ -18,6 +18,13 @@ export default function Footer() {
             <Link href="/#kontakt">Kontakt</Link>
           </div>
           <div className="footer__col">
+            <h4>Tjenester</h4>
+            <Link href="/ai-haugesund">AI i Haugesund</Link>
+            <Link href="/ai-agenter">AI-agenter</Link>
+            <Link href="/kunstig-intelligens-haugesund">Kunstig intelligens</Link>
+            <Link href="/software-utvikling-haugesund">Softwareutvikling</Link>
+          </div>
+          <div className="footer__col">
             <h4>Ressurser</h4>
             <Link href="/kunder">Kundecaser</Link>
             <Link href="/#faq">Ofte stilte spørsmål</Link>

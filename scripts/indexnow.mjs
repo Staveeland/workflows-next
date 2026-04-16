@@ -8,6 +8,10 @@ const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
 
 const urls = [
   `https://${HOST}/`,
+  `https://${HOST}/ai-haugesund`,
+  `https://${HOST}/ai-agenter`,
+  `https://${HOST}/software-utvikling-haugesund`,
+  `https://${HOST}/kunstig-intelligens-haugesund`,
   `https://${HOST}/kunder`,
   `https://${HOST}/kunder/csub`,
   `https://${HOST}/kunder/saga-subsea`,
