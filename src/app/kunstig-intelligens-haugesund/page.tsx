@@ -156,8 +156,8 @@ export default function KunstigIntelligensHaugesundPage() {
                 overvåker maritim trafikk og varsler automatisk.
               </li>
               <li>
-                <Link href="/kunder/elementlab"><strong>ElementLab</strong></Link> — chatbot
-                trent på behandlingsdata, integrert med booking.
+                <Link href="/kunder/elementlab"><strong>ElementLab</strong></Link> — skreddersydd
+                bookingintegrasjon som sitter direkte på nettsiden.
               </li>
             </ul>
 

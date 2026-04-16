@@ -191,8 +191,8 @@ export default function SoftwareUtviklingHaugesundPage() {
               Konkrete eksempler på skreddersydde løsninger:{" "}
               <Link href="/kunder/csub">CSUB</Link> (dashboard og AI-assistent for subsea),{" "}
               <Link href="/kunder/saga-subsea">Saga Subsea</Link> (maritim sporingsteknologi),
-              og <Link href="/kunder/elementlab">ElementLab</Link> (bookingintegrasjon og
-              AI-chatbot).
+              og <Link href="/kunder/elementlab">ElementLab</Link> (skreddersydd
+              bookingintegrasjon).
             </p>
           </article>
         </div>

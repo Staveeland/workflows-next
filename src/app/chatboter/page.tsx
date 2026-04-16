@@ -178,12 +178,6 @@ export default function ChatboterPage() {
               også sette opp versjoner der ingen data sendes ut av din egen infrastruktur.
             </p>
 
-            <h2>Eksempel: ElementLab</h2>
-            <p>
-              For <Link href="/kunder/elementlab">ElementLab</Link> bygget vi en AI-chatbot
-              trent på deres behandlingsdata, integrert med bookingsystem. Les hele casen for å
-              se hvordan en chatbot kan passe inn i en sømløs kundereise.
-            </p>
           </article>
         </div>
       </section>

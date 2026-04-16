@@ -132,8 +132,8 @@ export default function AiHaugesundPage() {
                 sporingsteknologi som overvåker maritim trafikk og varsler om salgsmuligheter.
               </li>
               <li>
-                <Link href="/kunder/elementlab"><strong>ElementLab</strong></Link> — AI-chatbot
-                trent på behandlingsdata, integrert med bookingsystem.
+                <Link href="/kunder/elementlab"><strong>ElementLab</strong></Link> — skreddersydd
+                bookingintegrasjon som sitter direkte på nettsiden.
               </li>
             </ul>
             <p>
