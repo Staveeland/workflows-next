@@ -21,6 +21,8 @@ export default function Footer() {
             <h4>Tjenester</h4>
             <Link href="/ai-haugesund">AI i Haugesund</Link>
             <Link href="/ai-agenter">AI-agenter</Link>
+            <Link href="/chatboter">Chatboter</Link>
+            <Link href="/automatiserte-flyter">Automatiserte flyter</Link>
             <Link href="/kunstig-intelligens-haugesund">Kunstig intelligens</Link>
             <Link href="/software-utvikling-haugesund">Softwareutvikling</Link>
           </div>

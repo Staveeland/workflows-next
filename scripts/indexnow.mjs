@@ -10,6 +10,8 @@ const urls = [
   `https://${HOST}/`,
   `https://${HOST}/ai-haugesund`,
   `https://${HOST}/ai-agenter`,
+  `https://${HOST}/chatboter`,
+  `https://${HOST}/automatiserte-flyter`,
   `https://${HOST}/software-utvikling-haugesund`,
   `https://${HOST}/kunstig-intelligens-haugesund`,
   `https://${HOST}/kunder`,

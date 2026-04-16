@@ -194,6 +194,7 @@ export default function Home() {
               {
                 n: 1,
                 title: "Chatboter",
+                href: "/chatboter",
                 points: [
                   "Den er koblet på språkmodeller og data",
                   "Du snakker med den via et tilpasset chatvindu",
@@ -204,6 +205,7 @@ export default function Home() {
               {
                 n: 2,
                 title: "Automatiserte flyter",
+                href: "/automatiserte-flyter",
                 points: [
                   "Trigges av en hendelse og følger et fast flyt",
                   "Kjører automatisk uten menneskelig input",
@@ -214,6 +216,7 @@ export default function Home() {
               {
                 n: 3,
                 title: "Agenter",
+                href: "/ai-agenter",
                 points: [
                   "Får et mål og tilgang til verktøy og data",
                   "Lager selv en plan og justerer underveis",
@@ -231,18 +234,21 @@ export default function Home() {
                 variants={fadeUp}
                 custom={i}
               >
-                <div className="level__header">
-                  <span className="level__num">Nivå {level.n}</span>
-                  <h3 className="level__title">{level.title}</h3>
-                </div>
-                <ul className="level__points">
-                  {level.points.map((p, j) => (
-                    <li key={j}><span className="level__arrow">&rarr;</span> {p}</li>
-                  ))}
-                </ul>
-                <p className="level__example">
-                  <span className="level__think">Tenk:</span> {level.example}
-                </p>
+                <Link href={level.href} className="level__link">
+                  <div className="level__header">
+                    <span className="level__num">Nivå {level.n}</span>
+                    <h3 className="level__title">{level.title}</h3>
+                  </div>
+                  <ul className="level__points">
+                    {level.points.map((p, j) => (
+                      <li key={j}><span className="level__arrow">&rarr;</span> {p}</li>
+                    ))}
+                  </ul>
+                  <p className="level__example">
+                    <span className="level__think">Tenk:</span> {level.example}
+                  </p>
+                  <span className="level__cta">Les mer &rarr;</span>
+                </Link>
               </motion.div>
             ))}
           </div>
