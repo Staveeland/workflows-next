@@ -2,15 +2,68 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+const SITE_URL = "https://workflows.no";
+
 export const metadata: Metadata = {
-  title: "CSUB – Kundecase",
-  description: "Se hvordan Workflows bygget et intelligent dashboard med AI-assistent som samler prosjektdata og genererer rapporter for CSUB.",
-  keywords: ["CSUB", "dashboard", "AI-assistent", "prosjektdata", "rapportering", "RAG", "Workflows kundecase"],
+  title: "CSUB – AI-dashboard og RAG-assistent | Kundecase",
+  description:
+    "Kundecase: Workflows bygget et intelligent dashboard med AI-assistent (RAG) som samler prosjektdata og genererer rapporter for CSUB på sekunder.",
+  alternates: { canonical: "/kunder/csub" },
+  openGraph: {
+    title: "CSUB – AI-dashboard og RAG-assistent | Workflows Haugesund",
+    description:
+      "Hvordan Workflows bygget et sentralisert dashboard og en AI-drevet chatassistent for CSUB.",
+    url: `${SITE_URL}/kunder/csub`,
+    type: "article",
+  },
+  keywords: [
+    "CSUB",
+    "AI dashboard",
+    "RAG-assistent",
+    "AI-assistent bedrift",
+    "prosjektdata",
+    "rapportering",
+    "Workflows kundecase",
+    "kunstig intelligens subsea",
+    "AI Haugesund",
+  ],
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
+    { "@type": "ListItem", position: 2, name: "Kundecaser", item: `${SITE_URL}/kunder` },
+    { "@type": "ListItem", position: 3, name: "CSUB", item: `${SITE_URL}/kunder/csub` },
+  ],
+};
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "CSUB – Intelligent dashboard og AI-assistent på sekunder",
+  description:
+    "Workflows bygget et sentralisert dashboard og en AI-drevet chatassistent med RAG for CSUB som erstattet timevis med manuell leting i Excel-filer.",
+  author: { "@id": `${SITE_URL}/#organization` },
+  publisher: { "@id": `${SITE_URL}/#organization` },
+  image: `${SITE_URL}/kunder-csub.svg`,
+  mainEntityOfPage: `${SITE_URL}/kunder/csub`,
+  inLanguage: "nb-NO",
+  about: { "@type": "Thing", name: "CSUB" },
 };
 
 export default function CsubCase() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <section className="page-hero page-hero--case">
         <div className="wrap">
           <Link href="/kunder" className="back-link">&larr; Alle kundecaser</Link>

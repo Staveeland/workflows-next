@@ -2,15 +2,66 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+const SITE_URL = "https://workflows.no";
+
 export const metadata: Metadata = {
-  title: "ElementLab – Kundecase",
-  description: "Se hvordan Workflows integrerte bookingsystemet med nettsiden og bygget en AI-chatbot for ElementLab — et hyperbart oksygenterapi-senter.",
-  keywords: ["ElementLab", "booking integrasjon", "AI chatbot", "hyperbar oksygenterapi", "nettside booking", "Workflows kundecase"],
+  title: "ElementLab – AI-chatbot og booking­integrasjon | Kundecase",
+  description:
+    "Kundecase: Workflows integrerte bookingsystemet i nettsiden og bygget en AI-chatbot trent på behandlingsdata for ElementLab.",
+  alternates: { canonical: "/kunder/elementlab" },
+  openGraph: {
+    title: "ElementLab – AI-chatbot og booking­integrasjon | Workflows Haugesund",
+    description:
+      "Skreddersydd booking­frontend og AI-chatbot som gir en sømløs kundereise for ElementLab.",
+    url: `${SITE_URL}/kunder/elementlab`,
+    type: "article",
+  },
+  keywords: [
+    "ElementLab",
+    "AI chatbot",
+    "booking integrasjon",
+    "kunstig intelligens helse",
+    "hyperbar oksygenterapi",
+    "AI Haugesund",
+    "Workflows kundecase",
+  ],
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
+    { "@type": "ListItem", position: 2, name: "Kundecaser", item: `${SITE_URL}/kunder` },
+    { "@type": "ListItem", position: 3, name: "ElementLab", item: `${SITE_URL}/kunder/elementlab` },
+  ],
+};
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "ElementLab – AI-chatbot og skreddersydd booking­integrasjon",
+  description:
+    "Workflows bygget en skreddersydd booking-frontend og en AI-chatbot trent på behandlingsdata for ElementLab.",
+  author: { "@id": `${SITE_URL}/#organization` },
+  publisher: { "@id": `${SITE_URL}/#organization` },
+  image: `${SITE_URL}/kunder-elementlab.png`,
+  mainEntityOfPage: `${SITE_URL}/kunder/elementlab`,
+  inLanguage: "nb-NO",
+  about: { "@type": "Thing", name: "ElementLab" },
 };
 
 export default function ElementLabCase() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <section className="page-hero page-hero--case">
         <div className="wrap">
           <Link href="/kunder" className="back-link">&larr; Alle kundecaser</Link>

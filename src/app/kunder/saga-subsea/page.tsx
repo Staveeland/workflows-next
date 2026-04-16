@@ -2,15 +2,66 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+const SITE_URL = "https://workflows.no";
+
 export const metadata: Metadata = {
-  title: "Saga Subsea – Kundecase",
-  description: "Se hvordan Workflows bygget et intelligent sporingssystem som hjelper Saga Subsea med å identifisere salgsmuligheter før konkurrentene.",
-  keywords: ["Saga Subsea", "sporingsteknologi", "maritim intelligence", "subsea salg", "automatisert prospektering", "Workflows kundecase"],
+  title: "Saga Subsea – AI-drevet maritim sporing | Kundecase",
+  description:
+    "Kundecase: Workflows bygget et intelligent sporingssystem som hjelper Saga Subsea å identifisere salgsmuligheter før konkurrentene.",
+  alternates: { canonical: "/kunder/saga-subsea" },
+  openGraph: {
+    title: "Saga Subsea – AI-drevet maritim sporing | Workflows Haugesund",
+    description:
+      "Automatisk overvåking av maritim trafikk med AI — tidlig varsling og flere innhentede oppdrag.",
+    url: `${SITE_URL}/kunder/saga-subsea`,
+    type: "article",
+  },
+  keywords: [
+    "Saga Subsea",
+    "AI sporing",
+    "maritim intelligence",
+    "kunstig intelligens subsea",
+    "automatisert prospektering",
+    "AI Haugesund",
+    "Workflows kundecase",
+  ],
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
+    { "@type": "ListItem", position: 2, name: "Kundecaser", item: `${SITE_URL}/kunder` },
+    { "@type": "ListItem", position: 3, name: "Saga Subsea", item: `${SITE_URL}/kunder/saga-subsea` },
+  ],
+};
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "Saga Subsea – Intelligent maritim sporing med AI",
+  description:
+    "Workflows bygget et AI-drevet sporingssystem for Saga Subsea som varsler om salgsmuligheter før konkurrentene oppdager dem.",
+  author: { "@id": `${SITE_URL}/#organization` },
+  publisher: { "@id": `${SITE_URL}/#organization` },
+  image: `${SITE_URL}/kunder-saga.png`,
+  mainEntityOfPage: `${SITE_URL}/kunder/saga-subsea`,
+  inLanguage: "nb-NO",
+  about: { "@type": "Thing", name: "Saga Subsea" },
 };
 
 export default function SagaSubseaCase() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <section className="page-hero page-hero--case">
         <div className="wrap">
           <Link href="/kunder" className="back-link">&larr; Alle kundecaser</Link>

@@ -1,14 +1,32 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const SITE_URL = "https://workflows.no";
+
 export const metadata: Metadata = {
-  title: "Ofte stilte spørsmål (FAQ)",
-  description: "Svar på vanlige spørsmål om skreddersydd software, automatisering, digitale assistenter, priser og prosess. Workflows hjelper norske bedrifter med smartere systemer.",
+  title: "Ofte stilte spørsmål om AI, automatisering og software­utvikling",
+  description:
+    "Svar på vanlige spørsmål om AI-agenter, kunstig intelligens, skreddersydd software, automatisering, priser og prosess. Workflows i Haugesund hjelper norske bedrifter.",
+  alternates: { canonical: "/faq" },
+  openGraph: {
+    title: "Ofte stilte spørsmål om AI og software­utvikling | Workflows Haugesund",
+    description:
+      "Svar på vanlige spørsmål om AI-agenter, kunstig intelligens, skreddersydd software og automatisering for norske bedrifter.",
+    url: `${SITE_URL}/faq`,
+  },
   keywords: [
-    "automatisering spørsmål", "skreddersydd software pris", "hva koster automatisering",
-    "digital assistent bedrift", "systemintegrasjon Norge", "AI for bedrifter",
-    "automatisering småbedrift", "Workflows FAQ", "kunstig intelligens norsk bedrift",
-    "spare tid med automatisering", "erstatte manuelt arbeid",
+    "AI Haugesund spørsmål",
+    "kunstig intelligens pris",
+    "AI-agenter FAQ",
+    "automatisering spørsmål",
+    "skreddersydd software pris",
+    "hva koster AI",
+    "digital assistent bedrift",
+    "systemintegrasjon Norge",
+    "AI for bedrifter",
+    "Workflows FAQ",
+    "kunstig intelligens norsk bedrift",
+    "AI-byrå Haugesund",
   ],
 };
 
@@ -86,15 +104,45 @@ const faqs = [
   },
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.flatMap((cat) =>
+    cat.questions.map((q) => ({
+      "@type": "Question",
+      name: q.q,
+      acceptedAnswer: { "@type": "Answer", text: q.a },
+    }))
+  ),
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
+    { "@type": "ListItem", position: 2, name: "FAQ", item: `${SITE_URL}/faq` },
+  ],
+};
+
 export default function FaqPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <section className="page-hero">
         <div className="wrap">
           <span className="tag">FAQ</span>
-          <h1>Ofte stilte spørsmål</h1>
+          <h1>Ofte stilte spørsmål om AI og software­utvikling</h1>
           <p className="page-hero__sub">
-            Alt du lurer på om automatisering, skreddersydd software og hvordan Workflows kan hjelpe din bedrift.
+            Alt du lurer på om AI-agenter, kunstig intelligens, automatisering og skreddersydd software —
+            og hvordan Workflows i Haugesund kan hjelpe din bedrift.
           </p>
         </div>
       </section>

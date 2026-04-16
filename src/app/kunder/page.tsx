@@ -2,10 +2,28 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+const SITE_URL = "https://workflows.no";
+
 export const metadata: Metadata = {
-  title: "Kundecaser",
-  description: "Se hvordan Workflows har hjulpet norske bedrifter med skreddersydd software, AI-assistenter og smarte integrasjoner. Les våre kundecaser fra CSUB, Saga Subsea og ElementLab.",
-  keywords: ["kundecaser", "referanser", "automatisering eksempler", "skreddersydd software Norge", "AI-løsninger case study"],
+  title: "Kundecaser — AI, smarte agenter og skreddersydd software",
+  description:
+    "Se hvordan Workflows i Haugesund har hjulpet norske bedrifter med AI-agenter, kunstig intelligens og skreddersydd software. Les casene fra CSUB, Saga Subsea og ElementLab.",
+  alternates: { canonical: "/kunder" },
+  openGraph: {
+    title: "Kundecaser | Workflows Haugesund",
+    description:
+      "Ekte AI- og software­prosjekter levert av Workflows i Haugesund — CSUB, Saga Subsea og ElementLab.",
+    url: `${SITE_URL}/kunder`,
+  },
+  keywords: [
+    "AI kundecaser",
+    "kunstig intelligens case Norge",
+    "AI-agenter kundecase",
+    "skreddersydd software Norge",
+    "automatisering eksempler",
+    "Workflows referanser",
+    "AI Haugesund referanser",
+  ],
 };
 
 const cases = [
@@ -35,15 +53,49 @@ const cases = [
   },
 ];
 
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
+    { "@type": "ListItem", position: 2, name: "Kundecaser", item: `${SITE_URL}/kunder` },
+  ],
+};
+
+const collectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Kundecaser — Workflows Haugesund",
+  description:
+    "Samling av kundecaser som viser AI-agenter, kunstig intelligens og skreddersydd software levert av Workflows.",
+  url: `${SITE_URL}/kunder`,
+  inLanguage: "nb-NO",
+  hasPart: cases.map((c) => ({
+    "@type": "CreativeWork",
+    name: c.name,
+    url: `${SITE_URL}/kunder/${c.slug}`,
+    about: c.industry,
+  })),
+};
+
 export default function KunderPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
       <section className="page-hero">
         <div className="wrap">
           <span className="tag">Kundecaser</span>
-          <h1>Bedrifter som jobber smartere med Workflows</h1>
+          <h1>Bedrifter som jobber smartere med AI fra Workflows</h1>
           <p className="page-hero__sub">
-            Fra subsea-operasjoner til helsesentre — se hvordan vi har bygget skreddersydde løsninger som faktisk gjør en forskjell i hverdagen.
+            Fra subsea-operasjoner til helsesentre — se hvordan vi har bygget AI-agenter,
+            kunstig intelligens og skreddersydd software som faktisk gjør en forskjell i hverdagen.
           </p>
         </div>
       </section>
