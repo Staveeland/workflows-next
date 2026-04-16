@@ -21,11 +21,11 @@ const SITE_URL = "https://workflows.no";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Workflows – AI, smarte agenter og software­utvikling i Haugesund",
-    template: "%s | Workflows Haugesund",
+    default: "Workflows – AI og softwareutvikling i Haugesund",
+    template: "%s | Workflows",
   },
   description:
-    "Workflows bygger AI-agenter, kunstig intelligens-løsninger og skreddersydd software for bedrifter i Haugesund og resten av Norge. Gratis første samtale.",
+    "AI-agenter, kunstig intelligens og skreddersydd software for bedrifter i Haugesund og Norge. Gratis første samtale, ingen forpliktelser.",
   applicationName: "Workflows",
   authors: [{ name: "Workflows AS", url: SITE_URL }],
   generator: "Next.js",
@@ -80,23 +80,23 @@ export const metadata: Metadata = {
     locale: "nb_NO",
     url: SITE_URL,
     siteName: "Workflows",
-    title: "Workflows – AI, smarte agenter og software­utvikling i Haugesund",
+    title: "Workflows – AI og softwareutvikling i Haugesund",
     description:
-      "Vi bygger AI-agenter, kunstig intelligens og skreddersydd software for bedrifter i Haugesund og resten av Norge.",
+      "AI-agenter, kunstig intelligens og skreddersydd software for bedrifter i Haugesund og Norge.",
     images: [
       {
         url: "/logo-square.jpg",
         width: 1200,
         height: 630,
-        alt: "Workflows – AI og software­utvikling i Haugesund",
+        alt: "Workflows – AI og softwareutvikling i Haugesund",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Workflows – AI, smarte agenter og software­utvikling i Haugesund",
+    title: "Workflows – AI og softwareutvikling i Haugesund",
     description:
-      "Vi bygger AI-agenter, kunstig intelligens og skreddersydd software for bedrifter i Haugesund og resten av Norge.",
+      "AI-agenter, kunstig intelligens og skreddersydd software for bedrifter i Haugesund og Norge.",
     images: ["/logo-square.jpg"],
   },
   icons: {
@@ -129,7 +129,7 @@ const organizationJsonLd = {
   logo: `${SITE_URL}/logo-dark.png`,
   image: `${SITE_URL}/logo-square.jpg`,
   description:
-    "Workflows er et AI- og software­utviklings­selskap i Haugesund som bygger smarte agenter, kunstig intelligens og skreddersydde systemer for norske bedrifter.",
+    "Workflows er et AI- og softwareutviklingsselskap i Haugesund som bygger smarte agenter, kunstig intelligens og skreddersydde systemer for norske bedrifter.",
   foundingDate: "2024",
   email: "petter@workflows.no",
   telephone: "+47 930 77 915",
@@ -158,7 +158,7 @@ const organizationJsonLd = {
     "Kunstig intelligens",
     "AI-agenter",
     "Maskinlæring",
-    "Skreddersydd software­utvikling",
+    "Skreddersydd softwareutvikling",
     "Automatisering",
     "Digitale assistenter",
     "Chatboter",
@@ -193,7 +193,7 @@ const organizationJsonLd = {
         "@type": "Offer",
         itemOffered: {
           "@type": "Service",
-          name: "Skreddersydd software­utvikling",
+          name: "Skreddersydd softwareutvikling",
           description:
             "Programvare bygget spesifikt for dine prosesser og behov.",
         },
@@ -232,7 +232,7 @@ const websiteJsonLd = {
   url: SITE_URL,
   name: "Workflows",
   description:
-    "AI, smarte agenter og software­utvikling for bedrifter i Haugesund og Norge.",
+    "AI, smarte agenter og softwareutvikling for bedrifter i Haugesund og Norge.",
   inLanguage: "nb-NO",
   publisher: { "@id": `${SITE_URL}/#organization` },
 };

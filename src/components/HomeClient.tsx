@@ -125,7 +125,7 @@ export default function Home() {
           <motion.p className="hero__sub"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.0 }}>
-            Haugesund-basert AI- og software­utviklings­selskap som bygger smarte agenter,
+            Haugesund-basert AI- og softwareutviklingsselskap som bygger smarte agenter,
             kunstig intelligens og skreddersydde systemer — slik at du kan fokusere
             på det som faktisk betyr noe.
           </motion.p>
@@ -468,7 +468,7 @@ export default function Home() {
               <span className="tag">Om oss</span>
               <AnimatedHeading text="Teknologi skal være enkelt" />
               <motion.p variants={fadeUp} custom={2}>
-                Workflows er et AI- og software­utviklings­selskap i Haugesund. Vi bygger
+                Workflows er et AI- og softwareutviklingsselskap i Haugesund. Vi bygger
                 kunstig intelligens, smarte agenter og skreddersydd programvare for
                 bedrifter på Haugalandet og i resten av Norge. Du trenger ikke forstå
                 programutvikling eller maskinlæring — det er vår jobb.

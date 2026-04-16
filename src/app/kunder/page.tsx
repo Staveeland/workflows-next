@@ -5,14 +5,14 @@ import Link from "next/link";
 const SITE_URL = "https://workflows.no";
 
 export const metadata: Metadata = {
-  title: "Kundecaser — AI, smarte agenter og skreddersydd software",
+  title: "Kundecaser — AI-agenter og skreddersydd software",
   description:
-    "Se hvordan Workflows i Haugesund har hjulpet norske bedrifter med AI-agenter, kunstig intelligens og skreddersydd software. Les casene fra CSUB, Saga Subsea og ElementLab.",
+    "Workflows i Haugesund bygger AI-agenter, kunstig intelligens og skreddersydd software. Les kundecasene fra CSUB, Saga Subsea og ElementLab.",
   alternates: { canonical: "/kunder" },
   openGraph: {
-    title: "Kundecaser | Workflows Haugesund",
+    title: "Kundecaser | Workflows",
     description:
-      "Ekte AI- og software­prosjekter levert av Workflows i Haugesund — CSUB, Saga Subsea og ElementLab.",
+      "Ekte AI- og softwareprosjekter levert av Workflows i Haugesund — CSUB, Saga Subsea og ElementLab.",
     url: `${SITE_URL}/kunder`,
   },
   keywords: [

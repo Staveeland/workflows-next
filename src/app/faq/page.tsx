@@ -4,12 +4,12 @@ import Link from "next/link";
 const SITE_URL = "https://workflows.no";
 
 export const metadata: Metadata = {
-  title: "Ofte stilte spørsmål om AI, automatisering og software­utvikling",
+  title: "Vanlige spørsmål om AI og softwareutvikling",
   description:
-    "Svar på vanlige spørsmål om AI-agenter, kunstig intelligens, skreddersydd software, automatisering, priser og prosess. Workflows i Haugesund hjelper norske bedrifter.",
+    "Svar på vanlige spørsmål om AI-agenter, kunstig intelligens, skreddersydd software, automatisering, priser og prosess hos Workflows i Haugesund.",
   alternates: { canonical: "/faq" },
   openGraph: {
-    title: "Ofte stilte spørsmål om AI og software­utvikling | Workflows Haugesund",
+    title: "Vanlige spørsmål om AI og softwareutvikling | Workflows",
     description:
       "Svar på vanlige spørsmål om AI-agenter, kunstig intelligens, skreddersydd software og automatisering for norske bedrifter.",
     url: `${SITE_URL}/faq`,
@@ -139,7 +139,7 @@ export default function FaqPage() {
       <section className="page-hero">
         <div className="wrap">
           <span className="tag">FAQ</span>
-          <h1>Ofte stilte spørsmål om AI og software­utvikling</h1>
+          <h1>Ofte stilte spørsmål om AI og softwareutvikling</h1>
           <p className="page-hero__sub">
             Alt du lurer på om AI-agenter, kunstig intelligens, automatisering og skreddersydd software —
             og hvordan Workflows i Haugesund kan hjelpe din bedrift.

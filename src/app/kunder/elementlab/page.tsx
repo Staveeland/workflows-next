@@ -5,14 +5,14 @@ import Link from "next/link";
 const SITE_URL = "https://workflows.no";
 
 export const metadata: Metadata = {
-  title: "ElementLab – AI-chatbot og booking­integrasjon | Kundecase",
+  title: "ElementLab – AI-chatbot og bookingintegrasjon",
   description:
     "Kundecase: Workflows integrerte bookingsystemet i nettsiden og bygget en AI-chatbot trent på behandlingsdata for ElementLab.",
   alternates: { canonical: "/kunder/elementlab" },
   openGraph: {
-    title: "ElementLab – AI-chatbot og booking­integrasjon | Workflows Haugesund",
+    title: "ElementLab – AI-chatbot og bookingintegrasjon | Workflows",
     description:
-      "Skreddersydd booking­frontend og AI-chatbot som gir en sømløs kundereise for ElementLab.",
+      "Skreddersydd bookingfrontend og AI-chatbot som gir en sømløs kundereise for ElementLab.",
     url: `${SITE_URL}/kunder/elementlab`,
     type: "article",
   },
@@ -40,7 +40,7 @@ const breadcrumbJsonLd = {
 const articleJsonLd = {
   "@context": "https://schema.org",
   "@type": "Article",
-  headline: "ElementLab – AI-chatbot og skreddersydd booking­integrasjon",
+  headline: "ElementLab – AI-chatbot og skreddersydd bookingintegrasjon",
   description:
     "Workflows bygget en skreddersydd booking-frontend og en AI-chatbot trent på behandlingsdata for ElementLab.",
   author: { "@id": `${SITE_URL}/#organization` },

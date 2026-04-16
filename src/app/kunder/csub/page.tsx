@@ -5,12 +5,12 @@ import Link from "next/link";
 const SITE_URL = "https://workflows.no";
 
 export const metadata: Metadata = {
-  title: "CSUB – AI-dashboard og RAG-assistent | Kundecase",
+  title: "CSUB – AI-dashboard og RAG-assistent",
   description:
     "Kundecase: Workflows bygget et intelligent dashboard med AI-assistent (RAG) som samler prosjektdata og genererer rapporter for CSUB på sekunder.",
   alternates: { canonical: "/kunder/csub" },
   openGraph: {
-    title: "CSUB – AI-dashboard og RAG-assistent | Workflows Haugesund",
+    title: "CSUB – AI-dashboard og RAG-assistent | Workflows",
     description:
       "Hvordan Workflows bygget et sentralisert dashboard og en AI-drevet chatassistent for CSUB.",
     url: `${SITE_URL}/kunder/csub`,

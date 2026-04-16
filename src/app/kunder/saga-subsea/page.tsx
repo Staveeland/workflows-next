@@ -5,12 +5,12 @@ import Link from "next/link";
 const SITE_URL = "https://workflows.no";
 
 export const metadata: Metadata = {
-  title: "Saga Subsea – AI-drevet maritim sporing | Kundecase",
+  title: "Saga Subsea – AI-drevet maritim sporing",
   description:
-    "Kundecase: Workflows bygget et intelligent sporingssystem som hjelper Saga Subsea å identifisere salgsmuligheter før konkurrentene.",
+    "Kundecase: Workflows bygget et AI-drevet sporingssystem som hjelper Saga Subsea å identifisere salgsmuligheter før konkurrentene.",
   alternates: { canonical: "/kunder/saga-subsea" },
   openGraph: {
-    title: "Saga Subsea – AI-drevet maritim sporing | Workflows Haugesund",
+    title: "Saga Subsea – AI-drevet maritim sporing | Workflows",
     description:
       "Automatisk overvåking av maritim trafikk med AI — tidlig varsling og flere innhentede oppdrag.",
     url: `${SITE_URL}/kunder/saga-subsea`,

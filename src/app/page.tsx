@@ -4,17 +4,17 @@ import HomeClient from "@/components/HomeClient";
 const SITE_URL = "https://workflows.no";
 
 export const metadata: Metadata = {
-  title: "AI, smarte agenter og software­utvikling i Haugesund",
+  title: "AI-agenter og softwareutvikling i Haugesund",
   description:
-    "Workflows bygger AI-agenter, kunstig intelligens og skreddersydd software for bedrifter i Haugesund og resten av Norge. Gratis første samtale — ingen forpliktelser.",
+    "AI-agenter, kunstig intelligens og skreddersydd software for bedrifter i Haugesund og Norge. Gratis første samtale, ingen forpliktelser.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     url: SITE_URL,
-    title: "AI, smarte agenter og software­utvikling i Haugesund | Workflows",
+    title: "AI-agenter og softwareutvikling i Haugesund | Workflows",
     description:
-      "AI-byrå og software­utviklings­selskap i Haugesund. Vi bygger smarte agenter, kunstig intelligens og skreddersydde systemer for norske bedrifter.",
+      "AI-byrå i Haugesund. Vi bygger smarte agenter, kunstig intelligens og skreddersydde systemer for norske bedrifter.",
   },
 };
 
@@ -74,9 +74,9 @@ const webPageJsonLd = {
   "@type": "WebPage",
   "@id": `${SITE_URL}/#webpage`,
   url: SITE_URL,
-  name: "Workflows – AI, smarte agenter og software­utvikling i Haugesund",
+  name: "Workflows – AI og softwareutvikling i Haugesund",
   description:
-    "Workflows er et AI- og software­utviklings­selskap i Haugesund. Vi bygger AI-agenter, kunstig intelligens og skreddersydde systemer for norske bedrifter.",
+    "Workflows er et AI- og softwareutviklingsselskap i Haugesund. Vi bygger AI-agenter, kunstig intelligens og skreddersydde systemer for norske bedrifter.",
   inLanguage: "nb-NO",
   isPartOf: { "@id": `${SITE_URL}/#website` },
   about: { "@id": `${SITE_URL}/#organization` },
@@ -129,10 +129,10 @@ const servicesJsonLd = {
     {
       "@type": "Service",
       "@id": `${SITE_URL}/#service-software`,
-      serviceType: "Software­utvikling",
-      name: "Skreddersydd software­utvikling i Haugesund",
+      serviceType: "Softwareutvikling",
+      name: "Skreddersydd softwareutvikling i Haugesund",
       description:
-        "Skreddersydd program­vare­utvikling for norske bedrifter. Interne verktøy, kundeportaler og komplette forretningssystemer.",
+        "Skreddersydd programvareutvikling for norske bedrifter. Interne verktøy, kundeportaler og komplette forretningssystemer.",
       provider: { "@id": `${SITE_URL}/#organization` },
       areaServed: [
         { "@type": "City", name: "Haugesund" },
