@@ -5,6 +5,37 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 
+/* ─── Typewriter ─── */
+const ROTATE_WORDS = ["enklere", "smartere", "raskere", "billigere"];
+
+function Typewriter() {
+  const [idx, setIdx] = useState(0);
+  const [chars, setChars] = useState(0);
+  const [del, setDel] = useState(false);
+  const word = ROTATE_WORDS[idx];
+
+  useEffect(() => {
+    if (!del && chars === word.length) {
+      const t = setTimeout(() => setDel(true), 2200);
+      return () => clearTimeout(t);
+    }
+    if (del && chars === 0) {
+      setDel(false);
+      setIdx((p) => (p + 1) % ROTATE_WORDS.length);
+      return;
+    }
+    const t = setTimeout(() => setChars((p) => p + (del ? -1 : 1)), del ? 45 : 90);
+    return () => clearTimeout(t);
+  }, [chars, del, word]);
+
+  return (
+    <span className="hero__accent typewriter">
+      {word.slice(0, chars)}
+      <span className="typewriter__cursor" />
+    </span>
+  );
+}
+
 /* ─── Animation variants ─── */
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -80,24 +111,23 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               style={{ display: "inline-block" }}>
-              Det kjedelige arbeidet?
+              Vi gjør hverdagen din
             </motion.span>
             <br />
             <motion.span
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              style={{ display: "inline-block" }}>
-              Det tar vi.
+              transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}>
+              <Typewriter />
             </motion.span>
           </h1>
 
           <motion.p className="hero__sub"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.0 }}>
-            Vi bygger smarte systemer som håndterer det repeterende — kundesvar, rapporter,
-            fakturahåndtering og leting etter data. Slik at du får tid til det som faktisk
-            krever deg.
+            Haugesund-basert AI- og softwareutviklingsselskap som bygger smarte agenter,
+            kunstig intelligens og skreddersydde systemer — slik at du kan fokusere
+            på det som faktisk betyr noe.
           </motion.p>
 
           <motion.div className="hero__actions"
@@ -152,10 +182,10 @@ export default function Home() {
         <div className="wrap">
           <motion.div className="section__head"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            <motion.span className="tag" variants={fadeUp}>Eksempler</motion.span>
-            <AnimatedHeading text="Tre ting vi ofte lager" />
+            <motion.span className="tag" variants={fadeUp}>Hva vi bygger</motion.span>
+            <AnimatedHeading text="Tre nivåer av AI" />
             <motion.p className="section__sub" variants={fadeUp} custom={2}>
-              Vi tilpasser alt til bedriften din — her er tre eksempler på hva vi ofte lager.
+              Fra enkel chatbot til autonom agent — vi bygger løsninger på alle nivåer.
             </motion.p>
           </motion.div>
 
@@ -163,36 +193,36 @@ export default function Home() {
             {[
               {
                 n: 1,
-                title: "En assistent som svarer kunder",
+                title: "Chatboter",
                 href: "/chatboter",
                 points: [
-                  "Svarer kunder døgnet rundt",
-                  "Kjenner bedriften og tjenestene dine",
-                  "Baserer seg på deres egne dokumenter",
+                  "Den er koblet på språkmodeller og data",
+                  "Du snakker med den via et tilpasset chatvindu",
+                  "Den svarer på spørsmål basert på tilgjengelig data",
                 ],
-                example: "Som en kollega som aldri blir sliten, og som husker alt som står i dokumentasjonen deres.",
+                example: "En kundeservice-chatbot som svarer på spørsmål basert på bedriftens dokumentasjon.",
               },
               {
                 n: 2,
-                title: "Et system som tar rutineoppgaver",
+                title: "Automatiserte flyter",
                 href: "/automatiserte-flyter",
                 points: [
-                  "Leser fakturaer og legger dem i regnskapet",
-                  "Sender oppfølgingsmailer automatisk",
-                  "Flytter data mellom systemene dere bruker",
+                  "Trigges av en hendelse og følger et fast flyt",
+                  "Kjører automatisk uten menneskelig input",
+                  "AI er bakt inn i ett eller flere steg i flyten",
                 ],
-                example: "Ting dere gjør på samme måte hver dag — bare at systemet gjør det for dere, av seg selv.",
+                example: "Et system som automatisk leser innkommende fakturaer, trekker ut nøkkeldata, og legger det inn i regnskapssystemet.",
               },
               {
                 n: 3,
-                title: "En agent som gjør større jobber",
+                title: "Agenter",
                 href: "/ai-agenter",
                 points: [
-                  "Henter tall fra flere systemer",
-                  "Lager grafer og skriver sammendrag",
-                  "Leverer ferdige rapporter",
+                  "Får et mål og tilgang til verktøy og data",
+                  "Lager selv en plan og justerer underveis",
+                  "Tar beslutninger og utfører handlinger",
                 ],
-                example: "Du sier «lag kvartalsrapport for Q1» — et kvarter senere ligger den ferdig i innboksen.",
+                example: "Du sier 'lag kvartalsrapport for Q1' og den henter tallene, analyserer trender, lager grafer, skriver sammendrag og lager en powerpoint.",
               },
             ].map((level, i) => (
               <motion.div
@@ -227,7 +257,7 @@ export default function Home() {
             initial="hidden" whileInView="visible"
             viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             <motion.p className="levels__footer-text" variants={fadeUp}>
-              Vi kombinerer gjerne flere av disse, og baker dem inn i systemene dere allerede bruker.
+              Vi bygger på alle tre nivåene.
             </motion.p>
             <motion.div variants={fadeUp} custom={1}>
               <a href="#kontakt" className="btn btn--primary">
@@ -243,12 +273,9 @@ export default function Home() {
         <div className="wrap">
           <motion.div className="statement__inner"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
-            <AnimatedHeading text="Vi bygger smart programvare for bedrifter i hele Norge." />
+            <AnimatedHeading text="Vi bygger det som gjør jobben for deg." />
             <motion.p variants={fadeUp} custom={2}>
-              Vi er et lite team basert i Haugesund. Noen ganger er det en chatbot vi lager, noen ganger et helt nytt system, noen ganger noe imellom. Vi finner ut sammen med deg hva som passer — og bygger det.
-            </motion.p>
-            <motion.p variants={fadeUp} custom={3}>
-              Ja, vi bruker AI. Men vi snakker ikke om det som en trylleformel. Det er et verktøy — som en god datamaskin, bare smartere. Det viktige er ikke teknologien, det er hva den gjør for deg.
+              Uansett om du trenger en chatbot som svarer kunder, automatiserte flyter som fjerner dobbeltarbeid, eller en AI-agent som jobber for deg — vi finner ut hva som passer, og bygger det.
             </motion.p>
           </motion.div>
         </div>
