@@ -173,6 +173,9 @@ export default function Home() {
             <div className="logo-strip__item">
               <Image src="/kunder-nyholmen.png" alt="Nyholmen" width={120} height={40} style={{ width: "auto", height: "56px" }} />
             </div>
+            <div className="logo-strip__item">
+              <Image src="/kunder-festiviteten.png" alt="Festiviteten Haugesund" width={120} height={40} style={{ width: "auto", height: "40px" }} />
+            </div>
           </motion.div>
         </div>
       </section>
