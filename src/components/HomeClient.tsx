@@ -162,6 +162,9 @@ export default function Home() {
               <Image src="/kunder-csub.svg" alt="CSUB" width={120} height={40} style={{ width: "auto", height: "32px" }} />
             </div>
             <div className="logo-strip__item">
+              <Image src="/kunder-saga.png" alt="Saga Subsea" width={120} height={40} style={{ width: "auto", height: "32px" }} />
+            </div>
+            <div className="logo-strip__item">
               <Image src="/kunder-elementlab.png" alt="ElementLab" width={120} height={40} style={{ width: "auto", height: "32px" }} />
             </div>
             <div className="logo-strip__item">
