@@ -576,7 +576,7 @@ export default function ChatWidget() {
               >
                 <span className="chat-panel__handover-avatar">P</span>
                 <span className="chat-panel__handover-text">
-                  <strong>Snakk direkte med Petter</strong>
+                  <strong>Skriv direkte til Petter</strong>
                   <span>Få svar fra et menneske</span>
                 </span>
                 <svg

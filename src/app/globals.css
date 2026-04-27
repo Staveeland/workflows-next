@@ -1967,6 +1967,16 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   color: var(--text-on-dark);
   border-bottom-right-radius: 4px;
 }
+.chat-msg--petter {
+  align-self: flex-start;
+  background: var(--accent);
+  color: #fff;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 4px 14px rgba(226, 158, 51, 0.22);
+}
+.chat-msg--petter strong { color: #fff; }
+.chat-msg--petter a { color: #fff; }
+.chat-msg--petter li::before { color: #fff; }
 
 .chat-msg--typing {
   display: inline-flex;
