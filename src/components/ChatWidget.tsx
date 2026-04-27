@@ -9,12 +9,10 @@ const WEBHOOK_URL =
   process.env.NEXT_PUBLIC_CHAT_WEBHOOK_URL ||
   "https://workflowsas.app.n8n.cloud/webhook/workflows-chat";
 
-const TELEGRAM_URL = "https://t.me/staveeland";
-
 const WELCOME: Msg = {
   role: "assistant",
   text:
-    "Hei! Jeg er Workflows sin AI-assistent. Spør meg om AI-agenter, automatisering eller hva vi har bygget for andre — eller be om å snakke direkte med Petter, så kobler jeg dere sammen på Telegram.",
+    "Hei! Jeg er Workflows sin AI-assistent. Spør meg om AI-agenter, automatisering eller hva vi har bygget for andre — eller be om å bli kontaktet av Petter, så ordner jeg det.",
 };
 
 function getSessionId() {
@@ -179,18 +177,6 @@ export default function ChatWidget() {
                   <span>Svarer vanligvis på sekunder</span>
                 </div>
               </div>
-              <a
-                href={TELEGRAM_URL}
-                target="_blank"
-                rel="noopener"
-                className="chat-panel__telegram"
-                title="Skriv direkte på Telegram"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M21.94 4.32a1.2 1.2 0 0 0-1.23-.18L2.9 11.05a1.2 1.2 0 0 0 .07 2.25l4.45 1.39 1.7 5.43a1.2 1.2 0 0 0 1.97.5l2.6-2.39 4.5 3.3a1.2 1.2 0 0 0 1.88-.74l3.27-15.18a1.2 1.2 0 0 0-.4-1.29zM9.7 14.6l-.6 4.4-1.27-4.05 9.06-7.16-7.19 6.8z" />
-                </svg>
-                Telegram
-              </a>
             </header>
 
             <div className="chat-panel__scroll" ref={scrollRef}>
@@ -243,10 +229,7 @@ export default function ChatWidget() {
                 </svg>
               </button>
             </form>
-            <p className="chat-panel__foot">
-              Drevet av AI · Snakk direkte med{" "}
-              <a href={TELEGRAM_URL} target="_blank" rel="noopener">Petter på Telegram</a>
-            </p>
+            <p className="chat-panel__foot">Drevet av AI</p>
           </motion.div>
         )}
       </AnimatePresence>
