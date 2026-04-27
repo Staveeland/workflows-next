@@ -34,7 +34,7 @@ export default function Footer() {
           <div className="footer__col">
             <h4>Kunder</h4>
             <Link href="/kunder/csub">CSUB</Link>
-            <Link href="/kunder/saga-subsea">Saga Subsea</Link>
+            <Link href="/kunder/festiviteten">Festiviteten</Link>
             <Link href="/kunder/elementlab">ElementLab</Link>
           </div>
         </div>

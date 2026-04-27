@@ -128,8 +128,9 @@ export default function AiHaugesundPage() {
                 og RAG-basert AI-assistent som gir prosjektledere svar på sekunder.
               </li>
               <li>
-                <Link href="/kunder/saga-subsea"><strong>Saga Subsea</strong></Link> — AI-drevet
-                sporingsteknologi som overvåker maritim trafikk og varsler om salgsmuligheter.
+                <Link href="/kunder/festiviteten"><strong>Festiviteten</strong></Link> — AI som
+                styrer billettsalg og annonser på Meta, Google og radio, med personlige
+                AI-assistenter tilgjengelig 24/7.
               </li>
               <li>
                 <Link href="/kunder/elementlab"><strong>ElementLab</strong></Link> — skreddersydd

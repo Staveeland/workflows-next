@@ -7,12 +7,12 @@ const SITE_URL = "https://workflows.no";
 export const metadata: Metadata = {
   title: "Kundecaser — AI-agenter og skreddersydd software",
   description:
-    "Workflows i Haugesund bygger AI-agenter, kunstig intelligens og skreddersydd software. Les kundecasene fra CSUB, Saga Subsea og ElementLab.",
+    "Workflows i Haugesund bygger AI-agenter, kunstig intelligens og skreddersydd software. Les kundecasene fra CSUB, Festiviteten og ElementLab.",
   alternates: { canonical: "/kunder" },
   openGraph: {
     title: "Kundecaser | Workflows",
     description:
-      "Ekte AI- og softwareprosjekter levert av Workflows i Haugesund — CSUB, Saga Subsea og ElementLab.",
+      "Ekte AI- og softwareprosjekter levert av Workflows i Haugesund — CSUB, Festiviteten og ElementLab.",
     url: `${SITE_URL}/kunder`,
   },
   keywords: [
@@ -36,12 +36,12 @@ const cases = [
     results: ["Alt samlet på ett sted", "AI-assistent med datainnsikt", "Rapporter på sekunder"],
   },
   {
-    name: "Saga Subsea",
-    logo: "/kunder-saga.png",
-    slug: "saga-subsea",
-    industry: "Subsea-tjenester",
-    summary: "Intelligent sporingsteknologi som overvåker maritim trafikk og varsler om salgsmuligheter — lenge før konkurrentene oppdager dem.",
-    results: ["Tidlig varsling", "Automatisk overvåking 24/7", "Flere innhentede oppdrag"],
+    name: "Festiviteten",
+    logo: "/kunder-festiviteten.png",
+    slug: "festiviteten",
+    industry: "Kultur & arrangement",
+    summary: "AI som holder styr på billettsalg og annonser på Meta, Google og radio — med personlige AI-assistenter koblet på hele økosystemet, tilgjengelig 24/7.",
+    results: ["Sanntidsoversikt på alle kanaler", "AI-assistent 24/7", "Varsler ved svakt salg"],
   },
   {
     name: "ElementLab",

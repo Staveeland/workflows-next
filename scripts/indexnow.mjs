@@ -16,7 +16,7 @@ const urls = [
   `https://${HOST}/kunstig-intelligens-haugesund`,
   `https://${HOST}/kunder`,
   `https://${HOST}/kunder/csub`,
-  `https://${HOST}/kunder/saga-subsea`,
+  `https://${HOST}/kunder/festiviteten`,
   `https://${HOST}/kunder/elementlab`,
   `https://${HOST}/faq`,
 ];
