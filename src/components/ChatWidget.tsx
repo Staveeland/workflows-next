@@ -1,9 +1,63 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 type Msg = { role: "user" | "assistant"; text: string };
+
+function ChatMessage({ role, text }: Msg) {
+  const html = useMemo(() => renderMessage(text), [text]);
+  return (
+    <motion.div
+      className={`chat-msg chat-msg--${role}`}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function renderInline(s: string) {
+  return escapeHtml(s)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/(?<!\*)\*(?!\*)([^\*\n]+?)\*(?!\*)/g, "<em>$1</em>")
+    .replace(
+      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+}
+
+function renderMessage(text: string) {
+  const lines = text.split("\n");
+  const blocks: string[] = [];
+  let listBuffer: string[] = [];
+  const flushList = () => {
+    if (listBuffer.length) {
+      blocks.push(`<ul>${listBuffer.map((li) => `<li>${renderInline(li)}</li>`).join("")}</ul>`);
+      listBuffer = [];
+    }
+  };
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    const m = line.match(/^\s*[-•]\s+(.*)$/);
+    if (m) listBuffer.push(m[1]);
+    else {
+      flushList();
+      if (line === "") blocks.push("<br />");
+      else blocks.push(`<p>${renderInline(line)}</p>`);
+    }
+  }
+  flushList();
+  return blocks.join("");
+}
 
 const WEBHOOK_URL =
   process.env.NEXT_PUBLIC_CHAT_WEBHOOK_URL ||
@@ -181,15 +235,7 @@ export default function ChatWidget() {
 
             <div className="chat-panel__scroll" ref={scrollRef}>
               {msgs.map((m, i) => (
-                <motion.div
-                  key={i}
-                  className={`chat-msg chat-msg--${m.role}`}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  {m.text}
-                </motion.div>
+                <ChatMessage key={i} role={m.role} text={m.text} />
               ))}
               {busy && (
                 <motion.div
