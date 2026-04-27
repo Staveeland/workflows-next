@@ -97,6 +97,7 @@ export default function ChatWidget() {
 
   const sessionIdRef = useRef<string>("");
   const lastPollRef = useRef<string>(new Date(0).toISOString());
+  const justOpenedRef = useRef(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -117,16 +118,23 @@ export default function ChatWidget() {
   useEffect(() => {
     if (open) {
       setUnread(false);
+      justOpenedRef.current = true;
       setTimeout(() => inputRef.current?.focus(), 250);
     }
   }, [open, mode]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
+    const el = scrollRef.current;
+    if (!el) return;
+    const jump = justOpenedRef.current;
+    requestAnimationFrame(() => {
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: jump ? "auto" : "smooth",
+      });
     });
-  }, [msgs, busy, mode]);
+    justOpenedRef.current = false;
+  }, [msgs, busy, mode, open]);
 
   const loadHistory = useCallback(async (e: string) => {
     try {
