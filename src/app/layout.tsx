@@ -3,6 +3,7 @@ import { Lora, Inter } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import ChatWidget from "@/components/ChatWidget";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -258,6 +259,7 @@ export default function RootLayout({
         <Nav />
         <main>{children}</main>
         <Footer />
+        <ChatWidget />
       </body>
     </html>
   );
