@@ -2047,11 +2047,18 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   font-family: var(--font-body);
   background: var(--bg);
 }
-.chat-panel__foot a {
+.chat-panel__foot a,
+.chat-panel__forget {
   color: var(--accent);
   text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
 }
-.chat-panel__foot a:hover { text-decoration: underline; }
+.chat-panel__foot a:hover,
+.chat-panel__forget:hover { text-decoration: underline; }
 
 /* Handover form (inline) */
 .chat-handover {

@@ -100,14 +100,16 @@ export default function ChatWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Init: session id + restore email if present
+  // Init: session id + restore identity if present
   useEffect(() => {
     sessionIdRef.current = getSessionId();
-    const saved = localStorage.getItem("wf_chat_email");
-    if (saved && EMAIL_RX.test(saved)) {
-      setEmail(saved);
+    const savedEmail = localStorage.getItem("wf_chat_email");
+    const savedName = localStorage.getItem("wf_chat_name") || "";
+    if (savedEmail && EMAIL_RX.test(savedEmail)) {
+      setEmail(savedEmail);
+      setName(savedName);
       setMode("direct");
-      void loadHistory(saved);
+      void loadHistory(savedEmail);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -288,8 +290,11 @@ export default function ChatWidget() {
         throw new Error(data.error || "Kunne ikke koble deg til Petter.");
       }
       localStorage.setItem("wf_chat_email", cleanEmail);
+      localStorage.setItem("wf_chat_name", cleanName);
       setEmail(cleanEmail);
+      setName(cleanName);
       setMode("direct");
+      lastPollRef.current = new Date().toISOString();
       setMsgs((prev) => [
         ...prev,
         {
@@ -306,8 +311,32 @@ export default function ChatWidget() {
     }
   }
 
-  function endDirectChat() {
+  function switchToAi() {
+    setMode("ai");
+    setMsgs([WELCOME]);
+  }
+
+  async function switchToDirect() {
+    if (!email || !EMAIL_RX.test(email)) {
+      setMode("form");
+      return;
+    }
+    setMode("direct");
+    setMsgs([
+      {
+        role: "assistant",
+        text: name
+          ? `Velkommen tilbake, ${name}! 👋 Skriv her, så får Petter beskjed med en gang.`
+          : "Velkommen tilbake! 👋 Skriv her, så får Petter beskjed med en gang.",
+      },
+    ]);
+    lastPollRef.current = new Date(0).toISOString();
+    await loadHistory(email);
+  }
+
+  function forgetMe() {
     localStorage.removeItem("wf_chat_email");
+    localStorage.removeItem("wf_chat_name");
     setEmail("");
     setName("");
     setMode("ai");
@@ -412,11 +441,21 @@ export default function ChatWidget() {
               {mode === "direct" && (
                 <button
                   className="chat-panel__end"
-                  onClick={endDirectChat}
-                  title="Avslutt direkte samtale"
+                  onClick={switchToAi}
+                  title="Bytt til AI-assistent"
                   type="button"
                 >
-                  Avslutt
+                  ← AI-assistent
+                </button>
+              )}
+              {mode === "ai" && email && (
+                <button
+                  className="chat-panel__end"
+                  onClick={switchToDirect}
+                  title="Tilbake til samtalen med Petter"
+                  type="button"
+                >
+                  Til Petter →
                 </button>
               )}
             </header>
@@ -529,7 +568,7 @@ export default function ChatWidget() {
               </form>
             )}
 
-            {mode === "ai" && (
+            {mode === "ai" && !email && (
               <button
                 type="button"
                 className="chat-panel__handover"
@@ -563,9 +602,22 @@ export default function ChatWidget() {
               </div>
             )}
             <p className="chat-panel__foot">
-              {mode === "direct"
-                ? "Lukk gjerne vinduet — samtalen fortsetter neste gang."
-                : "Drevet av AI"}
+              {mode === "direct" ? (
+                <>
+                  Lukk gjerne vinduet — samtalen fortsetter neste gang.
+                  {" · "}
+                  <button
+                    type="button"
+                    className="chat-panel__forget"
+                    onClick={forgetMe}
+                    title="Slett lokal info og start på nytt"
+                  >
+                    Glem meg
+                  </button>
+                </>
+              ) : (
+                "Drevet av AI"
+              )}
             </p>
           </motion.div>
         )}
