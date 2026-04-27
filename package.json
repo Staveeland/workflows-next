@@ -10,6 +10,7 @@
     "indexnow": "node scripts/indexnow.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.104.1",
     "framer-motion": "^12.35.2",
     "next": "16.1.6",
     "react": "19.2.3",

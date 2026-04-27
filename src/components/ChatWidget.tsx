@@ -1,30 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-type Msg = { role: "user" | "assistant"; text: string };
+type Role = "user" | "assistant" | "petter";
+type Msg = { role: Role; text: string; createdAt?: string };
+type Mode = "ai" | "form" | "direct";
 
-function ChatMessage({ role, text }: Msg) {
-  const html = useMemo(() => renderMessage(text), [text]);
-  return (
-    <motion.div
-      className={`chat-msg chat-msg--${role}`}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
-}
+const WEBHOOK_URL =
+  process.env.NEXT_PUBLIC_CHAT_WEBHOOK_URL ||
+  "https://workflowsas.app.n8n.cloud/webhook/workflows-chat";
+
+const POLL_INTERVAL_MS = 4000;
+const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const WELCOME: Msg = {
+  role: "assistant",
+  text:
+    "Hei! 😊 Jeg er Workflows sin AI-assistent. Spør meg om AI-agenter, automatisering eller hva vi har bygget for andre — eller trykk «Snakk med Petter» nedenfor for direkte samtale.",
+};
 
 function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
-
 function renderInline(s: string) {
   return escapeHtml(s)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
@@ -34,14 +32,15 @@ function renderInline(s: string) {
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
     );
 }
-
 function renderMessage(text: string) {
   const lines = text.split("\n");
   const blocks: string[] = [];
   let listBuffer: string[] = [];
   const flushList = () => {
     if (listBuffer.length) {
-      blocks.push(`<ul>${listBuffer.map((li) => `<li>${renderInline(li)}</li>`).join("")}</ul>`);
+      blocks.push(
+        `<ul>${listBuffer.map((li) => `<li>${renderInline(li)}</li>`).join("")}</ul>`
+      );
       listBuffer = [];
     }
   };
@@ -59,15 +58,18 @@ function renderMessage(text: string) {
   return blocks.join("");
 }
 
-const WEBHOOK_URL =
-  process.env.NEXT_PUBLIC_CHAT_WEBHOOK_URL ||
-  "https://workflowsas.app.n8n.cloud/webhook/workflows-chat";
-
-const WELCOME: Msg = {
-  role: "assistant",
-  text:
-    "Hei! Jeg er Workflows sin AI-assistent. Spør meg om AI-agenter, automatisering eller hva vi har bygget for andre — eller be om å bli kontaktet av Petter, så ordner jeg det.",
-};
+function ChatMessage({ role, text }: { role: Role; text: string }) {
+  const html = useMemo(() => renderMessage(text), [text]);
+  return (
+    <motion.div
+      className={`chat-msg chat-msg--${role}`}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
 
 function getSessionId() {
   if (typeof window === "undefined") return "";
@@ -83,16 +85,31 @@ function getSessionId() {
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<Mode>("ai");
   const [msgs, setMsgs] = useState<Msg[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [unread, setUnread] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formBusy, setFormBusy] = useState(false);
+
   const sessionIdRef = useRef<string>("");
+  const lastPollRef = useRef<string>(new Date(0).toISOString());
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // Init: session id + restore email if present
   useEffect(() => {
     sessionIdRef.current = getSessionId();
+    const saved = localStorage.getItem("wf_chat_email");
+    if (saved && EMAIL_RX.test(saved)) {
+      setEmail(saved);
+      setMode("direct");
+      void loadHistory(saved);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -100,29 +117,93 @@ export default function ChatWidget() {
       setUnread(false);
       setTimeout(() => inputRef.current?.focus(), 250);
     }
-  }, [open]);
+  }, [open, mode]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [msgs, busy]);
+  }, [msgs, busy, mode]);
 
-  async function send() {
-    const text = input.trim();
-    if (!text || busy) return;
-    setInput("");
+  const loadHistory = useCallback(async (e: string) => {
+    try {
+      const res = await fetch(`/api/chat/history?email=${encodeURIComponent(e)}`);
+      const data = await res.json();
+      if (Array.isArray(data.messages) && data.messages.length) {
+        const restored: Msg[] = data.messages
+          .filter((m: { role: Role }) =>
+            m.role === "user" || m.role === "assistant" || m.role === "petter"
+          )
+          .map((m: { role: Role; text: string; created_at: string }) => ({
+            role: m.role,
+            text: m.text,
+            createdAt: m.created_at,
+          }));
+        setMsgs([
+          {
+            role: "assistant",
+            text:
+              "Velkommen tilbake! 👋 Du er fortsatt koblet direkte til Petter. Skriv her, så får han det med en gang.",
+          },
+          ...restored,
+        ]);
+        const lastPetter = [...data.messages]
+          .reverse()
+          .find((m: { role: Role; created_at: string }) => m.role === "petter");
+        if (lastPetter) lastPollRef.current = lastPetter.created_at;
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Polling for Petter's replies in direct mode
+  useEffect(() => {
+    if (mode !== "direct" || !email) return;
+    let stopped = false;
+    const tick = async () => {
+      try {
+        const res = await fetch(
+          `/api/chat/poll?email=${encodeURIComponent(email)}&since=${encodeURIComponent(
+            lastPollRef.current
+          )}`
+        );
+        const data = await res.json();
+        if (Array.isArray(data.messages) && data.messages.length) {
+          const newMsgs: Msg[] = data.messages.map(
+            (m: { role: Role; text: string; created_at: string }) => ({
+              role: m.role,
+              text: m.text,
+              createdAt: m.created_at,
+            })
+          );
+          setMsgs((prev) => [...prev, ...newMsgs]);
+          lastPollRef.current = data.messages[data.messages.length - 1].created_at;
+          if (!open) setUnread(true);
+        }
+      } catch {
+        /* swallow */
+      }
+    };
+    void tick();
+    const id = window.setInterval(() => {
+      if (!stopped) void tick();
+    }, POLL_INTERVAL_MS);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
+  }, [mode, email, open]);
+
+  async function sendAi(text: string) {
     setMsgs((m) => [...m, { role: "user", text }]);
     setBusy(true);
     try {
       const res = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: text,
-          sessionId: sessionIdRef.current,
-        }),
+        body: JSON.stringify({ message: text, sessionId: sessionIdRef.current }),
       });
       const data = await res.json().catch(() => ({}));
       const reply: string =
@@ -146,6 +227,94 @@ export default function ChatWidget() {
     }
   }
 
+  async function sendDirect(text: string) {
+    setMsgs((m) => [...m, { role: "user", text }]);
+    setBusy(true);
+    try {
+      const res = await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, text }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Kunne ikke sende");
+      }
+    } catch {
+      setMsgs((m) => [
+        ...m,
+        {
+          role: "assistant",
+          text:
+            "Klarte ikke å sende meldingen akkurat nå. Prøv igjen om litt.",
+        },
+      ]);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function send() {
+    const text = input.trim();
+    if (!text || busy) return;
+    setInput("");
+    if (mode === "ai") await sendAi(text);
+    else if (mode === "direct") await sendDirect(text);
+  }
+
+  async function submitHandover(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError(null);
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+    if (!cleanName) return setFormError("Hva heter du?");
+    if (!EMAIL_RX.test(cleanEmail)) return setFormError("Skriv en gyldig e-post.");
+    setFormBusy(true);
+    try {
+      const history = msgs
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .map((m) => ({ role: m.role as "user" | "assistant", text: m.text }));
+      const res = await fetch("/api/chat/handover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: cleanEmail,
+          name: cleanName,
+          history,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Kunne ikke koble deg til Petter.");
+      }
+      localStorage.setItem("wf_chat_email", cleanEmail);
+      setEmail(cleanEmail);
+      setMode("direct");
+      setMsgs((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: `Perfekt, ${cleanName}! 🙌 Du er nå koblet direkte til Petter. Skriv hva du lurer på, så svarer han her så fort han kan.`,
+        },
+      ]);
+    } catch (err) {
+      setFormError(
+        err instanceof Error ? err.message : "Noe gikk galt. Prøv igjen."
+      );
+    } finally {
+      setFormBusy(false);
+    }
+  }
+
+  function endDirectChat() {
+    localStorage.removeItem("wf_chat_email");
+    setEmail("");
+    setName("");
+    setMode("ai");
+    setMsgs([WELCOME]);
+    lastPollRef.current = new Date(0).toISOString();
+  }
+
   function onKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -155,7 +324,6 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* Floating launcher */}
       <motion.button
         className="chat-launcher"
         aria-label={open ? "Lukk chat" : "Åpne chat"}
@@ -209,7 +377,6 @@ export default function ChatWidget() {
         {unread && !open && <span className="chat-launcher__dot" />}
       </motion.button>
 
-      {/* Panel */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -219,18 +386,39 @@ export default function ChatWidget() {
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             role="dialog"
-            aria-label="AI-chat med Workflows"
+            aria-label="Chat med Workflows"
           >
             <header className="chat-panel__head">
               <div className="chat-panel__head-info">
                 <div className="chat-panel__avatar">
-                  <span className="chat-panel__pulse" />W
+                  <span
+                    className={`chat-panel__pulse${
+                      mode === "direct" ? " chat-panel__pulse--live" : ""
+                    }`}
+                  />
+                  {mode === "direct" ? "P" : "W"}
                 </div>
                 <div>
-                  <strong>Workflows AI</strong>
-                  <span>Svarer vanligvis på sekunder</span>
+                  <strong>
+                    {mode === "direct" ? "Direkte med Petter" : "Workflows AI"}
+                  </strong>
+                  <span>
+                    {mode === "direct"
+                      ? "Du chatter direkte med oss"
+                      : "Svarer vanligvis på sekunder"}
+                  </span>
                 </div>
               </div>
+              {mode === "direct" && (
+                <button
+                  className="chat-panel__end"
+                  onClick={endDirectChat}
+                  title="Avslutt direkte samtale"
+                  type="button"
+                >
+                  Avslutt
+                </button>
+              )}
             </header>
 
             <div className="chat-panel__scroll" ref={scrollRef}>
@@ -246,36 +434,115 @@ export default function ChatWidget() {
                   <span /> <span /> <span />
                 </motion.div>
               )}
+
+              {mode === "form" && (
+                <motion.form
+                  className="chat-handover"
+                  onSubmit={submitHandover}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <p className="chat-handover__lead">
+                    Skriv inn navn og e-post, så kobler jeg deg direkte til Petter. ✉️
+                  </p>
+                  <input
+                    type="text"
+                    placeholder="Navn"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                    disabled={formBusy}
+                  />
+                  <input
+                    type="email"
+                    placeholder="E-post"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    disabled={formBusy}
+                  />
+                  {formError && <p className="chat-handover__err">{formError}</p>}
+                  <div className="chat-handover__row">
+                    <button
+                      type="button"
+                      className="chat-handover__cancel"
+                      onClick={() => {
+                        setMode("ai");
+                        setFormError(null);
+                      }}
+                      disabled={formBusy}
+                    >
+                      Avbryt
+                    </button>
+                    <button
+                      type="submit"
+                      className="chat-handover__submit"
+                      disabled={formBusy}
+                    >
+                      {formBusy ? "Kobler…" : "Start direkte chat"}
+                    </button>
+                  </div>
+                </motion.form>
+              )}
             </div>
 
-            <form
-              className="chat-panel__form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                send();
-              }}
-            >
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={onKey}
-                placeholder="Skriv en melding…"
-                rows={1}
-                disabled={busy}
-              />
-              <button
-                type="submit"
-                aria-label="Send melding"
-                disabled={busy || !input.trim()}
+            {mode !== "form" && (
+              <form
+                className="chat-panel__form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  send();
+                }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13" />
-                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                </svg>
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={onKey}
+                  placeholder={
+                    mode === "direct"
+                      ? "Skriv til Petter…"
+                      : "Skriv en melding…"
+                  }
+                  rows={1}
+                  disabled={busy}
+                />
+                <button
+                  type="submit"
+                  aria-label="Send melding"
+                  disabled={busy || !input.trim()}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
+                </button>
+              </form>
+            )}
+
+            {mode === "ai" && (
+              <button
+                type="button"
+                className="chat-panel__handover"
+                onClick={() => setMode("form")}
+              >
+                💬 Snakk direkte med Petter
               </button>
-            </form>
-            <p className="chat-panel__foot">Drevet av AI</p>
+            )}
+            <p className="chat-panel__foot">
+              {mode === "direct"
+                ? "Du kan trygt lukke vinduet — neste gang du kommer tilbake fortsetter samtalen."
+                : "Drevet av AI"}
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
