@@ -294,7 +294,7 @@ export default function ChatWidget() {
         ...prev,
         {
           role: "assistant",
-          text: `Perfekt, ${cleanName}! 🙌 Du er nå koblet direkte til Petter. Skriv hva du lurer på, så svarer han her så fort han kan.`,
+          text: `Perfekt, ${cleanName}! 🙌 Petter er varslet og svarer her så fort han kan. Du kan skrive videre — han ser alt med en gang.`,
         },
       ]);
     } catch (err) {
@@ -535,12 +535,36 @@ export default function ChatWidget() {
                 className="chat-panel__handover"
                 onClick={() => setMode("form")}
               >
-                💬 Snakk direkte med Petter
+                <span className="chat-panel__handover-avatar">P</span>
+                <span className="chat-panel__handover-text">
+                  <strong>Snakk direkte med Petter</strong>
+                  <span>Få svar fra et menneske</span>
+                </span>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
               </button>
+            )}
+            {mode === "direct" && (
+              <div className="chat-panel__status">
+                <span className="chat-panel__status-dot" />
+                Petter er varslet og svarer så fort han kan
+              </div>
             )}
             <p className="chat-panel__foot">
               {mode === "direct"
-                ? "Du kan trygt lukke vinduet — neste gang du kommer tilbake fortsetter samtalen."
+                ? "Lukk gjerne vinduet — samtalen fortsetter neste gang."
                 : "Drevet av AI"}
             </p>
           </motion.div>

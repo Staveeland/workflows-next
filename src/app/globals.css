@@ -2126,22 +2126,109 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 
 /* CTA below input in AI mode */
 .chat-panel__handover {
-  margin: 0 14px 8px;
-  padding: 9px 12px;
-  border: 1px dashed var(--border);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
+  margin: 4px 14px 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-light);
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--accent-bg) 100%);
+  color: var(--text);
   font-family: var(--font-body);
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s var(--ease);
+  transition: all 0.25s var(--ease);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 28px);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+.chat-panel__handover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-soft), transparent);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+  pointer-events: none;
 }
 .chat-panel__handover:hover {
   border-color: var(--accent);
-  color: var(--accent-dark);
-  background: var(--accent-soft);
+  box-shadow: 0 6px 20px rgba(226, 158, 51, 0.18);
+  transform: translateY(-1px);
+}
+.chat-panel__handover:hover::before { opacity: 1; }
+
+.chat-panel__handover-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  font-family: var(--font);
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(226, 158, 51, 0.3);
+  position: relative;
+  z-index: 1;
+}
+.chat-panel__handover-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+.chat-panel__handover-text strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.chat-panel__handover-text span {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.chat-panel__handover svg {
+  color: var(--accent);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.25s var(--ease);
+}
+.chat-panel__handover:hover svg { transform: translateX(3px); }
+
+/* Status banner in direct mode */
+.chat-panel__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 14px 6px;
+  padding: 8px 12px;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.18);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+}
+.chat-panel__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6);
+  animation: status-pulse 2s ease-in-out infinite;
+}
+@keyframes status-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); }
+  50% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
 }
 
 /* End direct chat button */
