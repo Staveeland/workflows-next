@@ -162,9 +162,6 @@ export default function Home() {
               <Image src="/kunder-csub.svg" alt="CSUB" width={120} height={40} style={{ width: "auto", height: "32px" }} />
             </div>
             <div className="logo-strip__item">
-              <Image src="/kunder-saga.png" alt="Saga Subsea" width={120} height={40} style={{ width: "auto", height: "32px" }} />
-            </div>
-            <div className="logo-strip__item">
               <Image src="/kunder-elementlab.png" alt="ElementLab" width={120} height={40} style={{ width: "auto", height: "32px" }} />
             </div>
             <div className="logo-strip__item">
@@ -534,7 +531,7 @@ export default function Home() {
           <motion.div className="clients-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             {[
               { name: "CSUB", logo: "/kunder-csub.svg", slug: "csub", desc: "Automatisert prosjektstyring og rapportering for subsea-selskap. Sparer 25 timer i uken — estimert verdi over 500 000 kr/år." },
-              { name: "Saga Subsea", logo: "/kunder-saga.png", slug: "saga-subsea", desc: "Digital assistent som svarer kunder døgnets rundt. 50% raskere responstid og færre tapte henvendelser." },
+              { name: "Festiviteten", logo: "/kunder-festiviteten.png", slug: "festiviteten", desc: "AI som overvåker billettsalg og annonser på Meta, Google og radio i sanntid. Personlige AI-assistenter rådgir 24/7 og varsler ved svakt salg." },
               { name: "ElementLab", logo: "/kunder-elementlab.png", slug: "elementlab", desc: "Søkbar kunnskapsbase som erstatter manuell leting. 80% raskere rapporter — frigjør hundrevis av timer årlig." },
             ].map((c, i) => (
               <motion.div key={c.slug} variants={fadeUp} custom={i}>

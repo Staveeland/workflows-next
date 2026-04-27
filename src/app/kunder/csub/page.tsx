@@ -148,10 +148,10 @@ export default function CsubCase() {
           <div className="case-other">
             <h2>Andre kundecaser</h2>
             <div className="case-other__grid">
-              <Link href="/kunder/saga-subsea" className="case-other__card">
-                <Image src="/kunder-saga.png" alt="Saga Subsea" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
-                <h3>Saga Subsea</h3>
-                <p>Intelligent sporingsteknologi</p>
+              <Link href="/kunder/festiviteten" className="case-other__card">
+                <Image src="/kunder-festiviteten.png" alt="Festiviteten" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
+                <h3>Festiviteten</h3>
+                <p>AI for billettsalg og annonsering</p>
               </Link>
               <Link href="/kunder/elementlab" className="case-other__card">
                 <Image src="/kunder-elementlab.png" alt="ElementLab" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />

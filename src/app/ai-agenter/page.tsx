@@ -178,8 +178,8 @@ export default function AiAgenterPage() {
               Vi har bygget agent-lignende systemer for flere kunder. Les om{" "}
               <Link href="/kunder/csub">CSUB</Link> — der en RAG-assistent henter frem
               prosjektdata og genererer rapporter — eller{" "}
-              <Link href="/kunder/saga-subsea">Saga Subsea</Link>, der AI overvåker maritim
-              trafikk og varsler automatisk.
+              <Link href="/kunder/festiviteten">Festiviteten</Link>, der AI overvåker
+              billettsalg og annonseytelse i sanntid og rådgir 24/7.
             </p>
 
             <h2>Kom i gang</h2>

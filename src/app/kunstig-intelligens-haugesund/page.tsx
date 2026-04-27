@@ -152,8 +152,8 @@ export default function KunstigIntelligensHaugesundPage() {
                 prosjektledere svar fra Excel-filer og systemer på sekunder.
               </li>
               <li>
-                <Link href="/kunder/saga-subsea"><strong>Saga Subsea</strong></Link> — AI som
-                overvåker maritim trafikk og varsler automatisk.
+                <Link href="/kunder/festiviteten"><strong>Festiviteten</strong></Link> — AI som
+                overvåker billettsalg og annonsering på Meta, Google og radio, og rådgir 24/7.
               </li>
               <li>
                 <Link href="/kunder/elementlab"><strong>ElementLab</strong></Link> — skreddersydd

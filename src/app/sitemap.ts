@@ -61,7 +61,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     {
-      url: `${BASE_URL}/kunder/saga-subsea`,
+      url: `${BASE_URL}/kunder/festiviteten`,
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.7,
