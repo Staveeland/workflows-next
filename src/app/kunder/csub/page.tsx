@@ -121,9 +121,10 @@ export default function CsubCase() {
               </p>
               <ul>
                 <li>Sentralisert dashboard som samler data fra Excel-filer og eksisterende systemer</li>
-                <li>Navigerbar prosjektoversikt med økonomi, fremdrift og nøkkeltall</li>
+                <li>Navigerbar prosjektoversikt med statistikk, økonomi og fremdrift</li>
                 <li>AI-chatassistent med tilgang til hele databasen via RAG-system</li>
-                <li>Rapportgenerering på forespørsel — spør og få rapport i løpet av sekunder</li>
+                <li>Rapportgenerering basert på brukerens preferanser fra databasen</li>
+                <li>Delegering av prosjekter til ansatte for å vise tydelig hvem som jobber med hva</li>
                 <li>Filtrerbart og søkbart grensesnitt for rask navigering</li>
               </ul>
 
