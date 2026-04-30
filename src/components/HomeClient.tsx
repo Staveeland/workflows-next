@@ -533,7 +533,7 @@ export default function Home() {
 
           <motion.div className="clients-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             {[
-              { name: "CSUB", logo: "/kunder-csub.svg", slug: "csub", desc: "Automatisert prosjektstyring og rapportering for subsea-selskap. Sparer 25 timer i uken — estimert verdi over 500 000 kr/år." },
+              { name: "CSUB", logo: "/kunder-csub.svg", slug: "csub", desc: "Samlet dashboard for prosjektdata som tidligere lå spredt i Excel-filer. RAG-system med AI-assistent for søk, statistikk og rapporter — pluss delegering av prosjekter til ansatte." },
               { name: "Festiviteten", logo: "/kunder-festiviteten.png", slug: "festiviteten", desc: "AI som overvåker billettsalg og annonser på Meta, Google og radio i sanntid. Personlige AI-assistenter rådgir 24/7 og varsler ved svakt salg." },
               { name: "ElementLab", logo: "/kunder-elementlab.png", slug: "elementlab", desc: "Søkbar kunnskapsbase som erstatter manuell leting. 80% raskere rapporter — frigjør hundrevis av timer årlig." },
             ].map((c, i) => (
