@@ -552,6 +552,75 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ──── OUR APP (MyStyler) ──── */}
+      <section className="our-app" id="vaar-app">
+        <div className="wrap">
+          <motion.div className="our-app__grid"
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
+            <motion.div className="our-app__content" variants={fadeUp}>
+              <span className="tag">Vår egen app</span>
+              <AnimatedHeading text="Prøv vår AI-stylist" />
+              <p className="our-app__lead">
+                MyStyler er vår egenutviklede iOS-app — en personlig AI-stylist du kan ha i lommen.
+                Last opp to bilder, beskriv anledningen, og få fire fotorealistiske antrekk
+                som faktisk ser ut som deg.
+              </p>
+              <p className="our-app__sub">
+                Middag i Paris. Jobbintervju. Strandbryllup. Første dag tilbake på kontoret.
+                Uansett hva du skriver inn, kler MyStyler deg opp for det — uten å miste
+                ansiktet, hårfargen eller proporsjonene dine.
+              </p>
+
+              <ul className="our-app__features">
+                {[
+                  "Beskriv hvilken som helst anledning på vanlig norsk eller engelsk",
+                  "Garderobe-modus: ta bilde av klærne du allerede eier",
+                  "Lagre favorittene i ditt eget stilbibliotek",
+                  "Generer hele antrekk eller hår + sminke-looks",
+                ].map((item) => (
+                  <li key={item} className="our-app__feature">
+                    <span className="our-app__check">&#10003;</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="our-app__cta">
+                <a
+                  href="https://apps.apple.com/no/app/mystyler-ai/id6763133918"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn--primary"
+                >
+                  Last ned i App Store <span className="btn__arrow">&rarr;</span>
+                </a>
+                <span className="our-app__platform">Tilgjengelig for iPhone</span>
+              </div>
+            </motion.div>
+
+            <motion.div className="our-app__visual" variants={fadeUp} custom={1}>
+              <div className="our-app__logo-wrap">
+                <Image
+                  src="/mystyler-logo.png"
+                  alt="MyStyler — AI stylist app"
+                  width={520}
+                  height={520}
+                  className="our-app__logo"
+                  priority={false}
+                />
+              </div>
+              <div className="our-app__badge">
+                <span className="our-app__badge-spark">&#10022;</span>
+                <div>
+                  <strong>Real outfits.</strong>
+                  <span>Made for you. By AI.</span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ──── FAQ ──── */}
       <section className="cta-section" id="faq">
         <div className="wrap">
