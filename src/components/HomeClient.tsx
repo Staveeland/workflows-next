@@ -618,6 +618,27 @@ export default function Home() {
               </div>
             </motion.div>
           </motion.div>
+
+          <motion.div className="our-app__shots"
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-15% 0px -15% 0px" }} variants={stagger}>
+            {[
+              { src: "/mystyler-1.png", alt: "Build a style library — favourite looks you love" },
+              { src: "/mystyler-2.png", alt: "Use the clothes you own — wardrobe mode" },
+              { src: "/mystyler-3.png", alt: "Photorealistic, unmistakably you — four variations per prompt" },
+              { src: "/mystyler-4.png", alt: "Dinner, interview, beach — describe any moment, MyStyler dresses you for it" },
+            ].map((shot, i) => (
+              <motion.div key={shot.src} className="our-app__shot" variants={fadeUp} custom={i}>
+                <Image
+                  src={shot.src}
+                  alt={shot.alt}
+                  width={420}
+                  height={910}
+                  sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 240px"
+                  className="our-app__shot-img"
+                />
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
