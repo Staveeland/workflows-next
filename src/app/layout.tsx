@@ -4,6 +4,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
+import { LanguageProvider } from "@/components/LanguageProvider";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -256,10 +257,12 @@ export default function RootLayout({
         />
       </head>
       <body className={`${lora.variable} ${inter.variable} ${lora.className}`}>
-        <Nav />
-        <main>{children}</main>
-        <Footer />
-        <ChatWidget />
+        <LanguageProvider>
+          <Nav />
+          <main>{children}</main>
+          <Footer />
+          <ChatWidget />
+        </LanguageProvider>
       </body>
     </html>
   );

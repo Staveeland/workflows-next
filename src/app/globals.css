@@ -260,6 +260,47 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .nav__burger.open span:nth-child(2) { opacity: 0; }
 .nav__burger.open span:nth-child(3) { transform: rotate(-45deg) translate(4.5px, -4.5px); }
 
+.lang-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+  background: var(--bg-elevated);
+  border-radius: 10px;
+  padding: 3px;
+}
+.lang-toggle__btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 7px;
+  border-radius: 7px;
+  font-size: 18px;
+  line-height: 1;
+  transition: background 0.2s, transform 0.15s;
+  opacity: 0.45;
+}
+.lang-toggle__btn:hover { opacity: 0.75; transform: scale(1.1); }
+.lang-toggle__btn--active {
+  background: #fff;
+  opacity: 1;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+}
+.lang-toggle--mobile {
+  margin: 24px auto 0;
+  gap: 6px;
+  padding: 6px;
+}
+.lang-toggle--mobile .lang-toggle__btn {
+  font-size: 15px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .mobile-overlay {
   position: fixed; inset: 0;
   background: var(--bg);

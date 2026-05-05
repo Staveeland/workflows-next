@@ -4,15 +4,21 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import { useLang } from "@/components/LanguageProvider";
+import { translations } from "@/lib/translations";
 
 /* ─── Typewriter ─── */
-const ROTATE_WORDS = ["enklere", "smartere", "raskere", "billigere"];
-
-function Typewriter() {
+function Typewriter({ words }: { words: readonly string[] }) {
   const [idx, setIdx] = useState(0);
   const [chars, setChars] = useState(0);
   const [del, setDel] = useState(false);
-  const word = ROTATE_WORDS[idx];
+  const word = words[idx];
+
+  useEffect(() => {
+    setIdx(0);
+    setChars(0);
+    setDel(false);
+  }, [words]);
 
   useEffect(() => {
     if (!del && chars === word.length) {
@@ -21,12 +27,12 @@ function Typewriter() {
     }
     if (del && chars === 0) {
       setDel(false);
-      setIdx((p) => (p + 1) % ROTATE_WORDS.length);
+      setIdx((p) => (p + 1) % words.length);
       return;
     }
     const t = setTimeout(() => setChars((p) => p + (del ? -1 : 1)), del ? 45 : 90);
     return () => clearTimeout(t);
-  }, [chars, del, word]);
+  }, [chars, del, word, words]);
 
   return (
     <span className="hero__accent typewriter">
@@ -86,6 +92,9 @@ function useCounter(end: number, dur: number, active: boolean) {
 
 /* ═══════════════════════════════════════ */
 export default function Home() {
+  const { lang } = useLang();
+  const t = translations[lang];
+
   const statsRef = useRef(null);
   const statsInView = useInView(statsRef, { once: true, margin: "0px 0px -10% 0px" });
 
@@ -111,33 +120,31 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               style={{ display: "inline-block" }}>
-              Vi gjør hverdagen din
+              {t.hero.title}
             </motion.span>
             <br />
             <motion.span
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}>
-              <Typewriter />
+              <Typewriter words={t.hero.rotateWords} />
             </motion.span>
           </h1>
 
           <motion.p className="hero__sub"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.0 }}>
-            Haugesund-basert AI- og softwareutviklingsselskap som bygger smarte agenter,
-            kunstig intelligens og skreddersydde systemer — slik at du kan fokusere
-            på det som faktisk betyr noe.
+            {t.hero.sub}
           </motion.p>
 
           <motion.div className="hero__actions"
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}>
             <a href="#kontakt" className="btn btn--primary">
-              Book en gratis prat <span className="btn__arrow">&rarr;</span>
+              {t.hero.cta} <span className="btn__arrow">&rarr;</span>
             </a>
             <a href="#tjenester" className="btn btn--ghost">
-              Se hva vi gjør
+              {t.hero.ctaSecondary}
             </a>
           </motion.div>
         </motion.div>
@@ -153,7 +160,7 @@ export default function Home() {
           <motion.p className="logo-strip__label"
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: "-20% 0px -20% 0px" }} transition={{ duration: 0.6 }}>
-            Brukt av bedrifter som
+            {t.logoStrip.label}
           </motion.p>
           <motion.div className="logo-strip__row"
             initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
@@ -185,52 +192,18 @@ export default function Home() {
         <div className="wrap">
           <motion.div className="section__head"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            <motion.span className="tag" variants={fadeUp}>Hva vi bygger</motion.span>
-            <AnimatedHeading text="Tre nivåer av AI" />
+            <motion.span className="tag" variants={fadeUp}>{t.levels.tag}</motion.span>
+            <AnimatedHeading text={t.levels.heading} />
             <motion.p className="section__sub" variants={fadeUp} custom={2}>
-              Fra enkel chatbot til autonom agent — vi bygger løsninger på alle nivåer.
+              {t.levels.sub}
             </motion.p>
           </motion.div>
 
           <div className="levels__staircase">
-            {[
-              {
-                n: 1,
-                title: "Chatboter",
-                href: "/chatboter",
-                points: [
-                  "Den er koblet på språkmodeller og data",
-                  "Du snakker med den via et tilpasset chatvindu",
-                  "Den svarer på spørsmål basert på tilgjengelig data",
-                ],
-                example: "En kundeservice-chatbot som svarer på spørsmål basert på bedriftens dokumentasjon.",
-              },
-              {
-                n: 2,
-                title: "Automatiserte flyter",
-                href: "/automatiserte-flyter",
-                points: [
-                  "Trigges av en hendelse og følger et fast flyt",
-                  "Kjører automatisk uten menneskelig input",
-                  "AI er bakt inn i ett eller flere steg i flyten",
-                ],
-                example: "Et system som automatisk leser innkommende fakturaer, trekker ut nøkkeldata, og legger det inn i regnskapssystemet.",
-              },
-              {
-                n: 3,
-                title: "Agenter",
-                href: "/ai-agenter",
-                points: [
-                  "Får et mål og tilgang til verktøy og data",
-                  "Lager selv en plan og justerer underveis",
-                  "Tar beslutninger og utfører handlinger",
-                ],
-                example: "Du sier 'lag kvartalsrapport for Q1' og den henter tallene, analyserer trender, lager grafer, skriver sammendrag og lager en powerpoint.",
-              },
-            ].map((level, i) => (
+            {t.levels.items.map((level, i) => (
               <motion.div
-                key={level.n}
-                className={`level level--${level.n}`}
+                key={level.title}
+                className={`level level--${i + 1}`}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-15% 0px -15% 0px" }}
@@ -239,7 +212,7 @@ export default function Home() {
               >
                 <Link href={level.href} className="level__link">
                   <div className="level__header">
-                    <span className="level__num">Nivå {level.n}</span>
+                    <span className="level__num">{level.levelLabel} {i + 1}</span>
                     <h3 className="level__title">{level.title}</h3>
                   </div>
                   <ul className="level__points">
@@ -248,9 +221,9 @@ export default function Home() {
                     ))}
                   </ul>
                   <p className="level__example">
-                    <span className="level__think">Tenk:</span> {level.example}
+                    <span className="level__think">{t.levels.think}</span> {level.example}
                   </p>
-                  <span className="level__cta">Les mer &rarr;</span>
+                  <span className="level__cta">{t.levels.readMore} &rarr;</span>
                 </Link>
               </motion.div>
             ))}
@@ -260,11 +233,11 @@ export default function Home() {
             initial="hidden" whileInView="visible"
             viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             <motion.p className="levels__footer-text" variants={fadeUp}>
-              Vi bygger på alle tre nivåene.
+              {t.levels.footerText}
             </motion.p>
             <motion.div variants={fadeUp} custom={1}>
               <a href="#kontakt" className="btn btn--primary">
-                Book en gratis prat <span className="btn__arrow">&rarr;</span>
+                {t.levels.footerCta} <span className="btn__arrow">&rarr;</span>
               </a>
             </motion.div>
           </motion.div>
@@ -276,9 +249,9 @@ export default function Home() {
         <div className="wrap">
           <motion.div className="statement__inner"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
-            <AnimatedHeading text="Vi bygger det som gjør jobben for deg." />
+            <AnimatedHeading text={t.statement.heading} />
             <motion.p variants={fadeUp} custom={2}>
-              Uansett om du trenger en chatbot som svarer kunder, automatiserte flyter som fjerner dobbeltarbeid, eller en AI-agent som jobber for deg — vi finner ut hva som passer, og bygger det.
+              {t.statement.body}
             </motion.p>
           </motion.div>
         </div>
@@ -290,15 +263,15 @@ export default function Home() {
           <motion.div className="stats__grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             <motion.div className="stats__item" variants={fadeUp}>
               <span className="stats__num">{s1}<span className="stats__pct">%</span></span>
-              <span className="stats__label">mindre tid på repeterende oppgaver</span>
+              <span className="stats__label">{t.stats.s1Label}</span>
             </motion.div>
             <motion.div className="stats__item" variants={fadeUp} custom={1}>
               <span className="stats__num">{s2}<span className="stats__pct">+</span></span>
-              <span className="stats__label">norske bedrifter bruker systemene våre daglig</span>
+              <span className="stats__label">{t.stats.s2Label}</span>
             </motion.div>
             <motion.div className="stats__item" variants={fadeUp} custom={2}>
               <span className="stats__num">24<span className="stats__pct">/7</span></span>
-              <span className="stats__label">systemene jobber — også når du ikke gjør det</span>
+              <span className="stats__label">{t.stats.s3Label}</span>
             </motion.div>
           </motion.div>
         </div>
@@ -309,24 +282,20 @@ export default function Home() {
         <div className="wrap">
           <motion.div className="statement__inner" style={{ marginBottom: "clamp(48px, 6vw, 80px)" }}
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            <motion.span className="tag" variants={fadeUp}>Hva vi gjør</motion.span>
-            <AnimatedHeading text="Verktøy som gjør jobben for deg" />
+            <motion.span className="tag" variants={fadeUp}>{t.features.tag}</motion.span>
+            <AnimatedHeading text={t.features.heading} />
           </motion.div>
 
           {/* Feature 1 */}
           <motion.div className="feature-row"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <motion.div className="feature-row__content" variants={fadeUp}>
-              <span className="feature-row__label">Automatisering</span>
-              <h3>Slutt på kjedelig manuelt arbeid</h3>
-              <p>
-                Vi setter opp systemer som gjør de repeterende oppgavene automatisk.
-                Rapporter lager seg selv. Kunder får svar med en gang.
-                Data flyter mellom systemene dine uten at noen trenger å løfte en finger.
-              </p>
+              <span className="feature-row__label">{t.features.rows[0].label}</span>
+              <h3>{t.features.rows[0].title}</h3>
+              <p>{t.features.rows[0].body}</p>
             </motion.div>
             <motion.div className="feature-row__visual" variants={fadeUp} custom={1}>
-              {["Automatiske rapporter og oppdateringer", "Svar kunder døgnets rundt", "Koble sammen alle verktøyene dine", "Kutt ut dobbeltarbeid for godt"].map((item, i) => (
+              {t.features.rows[0].items.map((item, i) => (
                 <div key={i} className="feature-row__visual-item">
                   <span className="feature-row__check">&#10003;</span>
                   {item}
@@ -339,17 +308,13 @@ export default function Home() {
           <motion.div className="feature-row feature-row--reverse"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <motion.div className="feature-row__content" variants={fadeUp}>
-              <span className="feature-row__label">AI-assistent</span>
-              <h3>Din digitale medarbeider</h3>
-              <p>
-                En smart assistent som svarer kunder, sorterer henvendelser og følger opp — akkurat som en ekte kollega, bare raskere og tilgjengelig døgnets rundt.
-              </p>
-              <p>
-                Den lærer bedriften din å kjenne, og blir bedre over tid. Du bestemmer hva den skal gjøre, og vi sørger for at den gjør det riktig.
-              </p>
+              <span className="feature-row__label">{t.features.rows[1].label}</span>
+              <h3>{t.features.rows[1].title}</h3>
+              <p>{t.features.rows[1].body1}</p>
+              <p>{t.features.rows[1].body2}</p>
             </motion.div>
             <motion.div className="feature-row__visual" variants={fadeUp} custom={1}>
-              {["Svarer kunder på sekunder", "Sorterer og videresender henvendelser", "Følger opp automatisk", "Tilgjengelig 24/7, hele året"].map((item, i) => (
+              {t.features.rows[1].items.map((item, i) => (
                 <div key={i} className="feature-row__visual-item">
                   <span className="feature-row__check">&#10003;</span>
                   {item}
@@ -362,17 +327,13 @@ export default function Home() {
           <motion.div className="feature-row"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <motion.div className="feature-row__content" variants={fadeUp}>
-              <span className="feature-row__label">Skreddersydd software</span>
-              <h3>Bygget for akkurat din bedrift</h3>
-              <p>
-                Trenger du et system som ikke finnes? Vi bygger det. Tilpasset din bedrift, dine behov, dine prosesser — ingen kompromisser, ingen unødvendige funksjoner.
-              </p>
-              <p>
-                Alt fra interne verktøy og kundeportaler til komplette forretningssystemer.
-              </p>
+              <span className="feature-row__label">{t.features.rows[2].label}</span>
+              <h3>{t.features.rows[2].title}</h3>
+              <p>{t.features.rows[2].body1}</p>
+              <p>{t.features.rows[2].body2}</p>
             </motion.div>
             <motion.div className="feature-row__visual" variants={fadeUp} custom={1}>
-              {["Skreddersydd til dine prosesser", "Søkbare kunnskapsbaser", "Rapporter som lager seg selv", "Vokser med bedriften din"].map((item, i) => (
+              {t.features.rows[2].items.map((item, i) => (
                 <div key={i} className="feature-row__visual-item">
                   <span className="feature-row__check">&#10003;</span>
                   {item}
@@ -388,7 +349,7 @@ export default function Home() {
         initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
         <motion.div variants={fadeUp}>
           <a href="#kontakt" className="btn btn--primary">
-            Book en gratis prat <span className="btn__arrow">&rarr;</span>
+            {t.midCta.cta} <span className="btn__arrow">&rarr;</span>
           </a>
         </motion.div>
       </motion.div>
@@ -397,33 +358,14 @@ export default function Home() {
       <section className="accent-section" id="prosess">
         <div className="wrap">
           <motion.div className="section__head section__head--left" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            <motion.span className="tag tag--on-accent" variants={fadeUp}>Slik jobber vi</motion.span>
-            <AnimatedHeading text="Fra idé til ferdig system på noen uker" className="accent-section__heading" />
+            <motion.span className="tag tag--on-accent" variants={fadeUp}>{t.process.tag}</motion.span>
+            <AnimatedHeading text={t.process.heading} className="accent-section__heading" />
           </motion.div>
 
           <motion.div className="steps" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            {[
-              {
-                n: "01",
-                title: "Vi snakker sammen",
-                desc: "Du forteller oss hva som tar for mye tid i hverdagen. Vi lytter, stiller spørsmål, og finner ut hva vi kan lage for deg. Ingen teknisk sjargong — bare en vanlig samtale.",
-                label: "Gratis og uforpliktende"
-              },
-              {
-                n: "02",
-                title: "Vi bygger det",
-                desc: "Du ser fremgang fra første uke. Vi viser deg hva vi lager underveis, og du gir tilbakemeldinger. Ingen overraskelser når vi er ferdige.",
-                label: "Du er med hele veien"
-              },
-              {
-                n: "03",
-                title: "Det bare fungerer",
-                desc: "Systemet er klart. Vi lærer deg å bruke det, og vi er her hvis noe trengs. Dine ansatte sparer tid fra dag én.",
-                label: "Opplæring inkludert"
-              },
-            ].map((s, i) => (
+            {t.process.steps.map((s, i) => (
               <motion.div key={i} className="step" variants={fadeUp} custom={i}>
-                <span className="step__num">{s.n}</span>
+                <span className="step__num">0{i + 1}</span>
                 <h3>{s.title}</h3>
                 <p>{s.desc}</p>
                 <span className="step__label">{s.label}</span>
@@ -437,17 +379,12 @@ export default function Home() {
       <section className="section" id="resultater">
         <div className="wrap">
           <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            <motion.span className="tag" variants={fadeUp}>Resultater</motion.span>
-            <AnimatedHeading text="Hva kundene våre faktisk opplever" />
+            <motion.span className="tag" variants={fadeUp}>{t.results.tag}</motion.span>
+            <AnimatedHeading text={t.results.heading} />
           </motion.div>
 
           <motion.div className="results-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            {[
-              { title: "Mer tid til det viktige", desc: "Ansatte slipper å bruke timer på kopiering, rapporter og oppfølging. De får tiden tilbake til det de faktisk er gode på." },
-              { title: "Færre feil", desc: "Maskiner gjør ikke slurve-feil. Når data flyter automatisk, blir alt mer nøyaktig og pålitelig." },
-              { title: "Fornøyde kunder", desc: "Kunder får raskere svar, bedre oppfølging, og slipper å vente. Det merkes." },
-              { title: "Vekst uten stress", desc: "Digitale systemer vokser med bedriften din. Du kan ta på deg mer uten å måtte ansette flere." },
-            ].map((r, i) => (
+            {t.results.items.map((r, i) => (
               <motion.div key={i} className="result" variants={fadeUp} custom={i}>
                 <span className="result__num">0{i + 1}</span>
                 <h3>{r.title}</h3>
@@ -461,10 +398,10 @@ export default function Home() {
       {/* ──── MID CTA 2 ──── */}
       <motion.div className="mid-cta"
         initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-        <motion.p className="mid-cta__text" variants={fadeUp}>Vil du se hva vi kan gjøre for din bedrift?</motion.p>
+        <motion.p className="mid-cta__text" variants={fadeUp}>{t.midCta.text2}</motion.p>
         <motion.div variants={fadeUp} custom={1}>
           <a href="#kontakt" className="btn btn--primary">
-            Book en gratis prat <span className="btn__arrow">&rarr;</span>
+            {t.midCta.cta} <span className="btn__arrow">&rarr;</span>
           </a>
         </motion.div>
       </motion.div>
@@ -474,29 +411,22 @@ export default function Home() {
         <div className="wrap">
           <motion.div className="split" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <motion.div className="split__left" variants={fadeUp}>
-              <span className="tag">Om oss</span>
-              <AnimatedHeading text="Teknologi skal være enkelt" />
+              <span className="tag">{t.about.tag}</span>
+              <AnimatedHeading text={t.about.heading} />
               <motion.p variants={fadeUp} custom={2}>
-                Workflows er et AI- og softwareutviklingsselskap i Haugesund. Vi bygger
-                kunstig intelligens, smarte agenter og skreddersydd programvare for
-                bedrifter på Haugalandet og i resten av Norge. Du trenger ikke forstå
-                programutvikling eller maskinlæring — det er vår jobb.
+                {t.about.body1}
               </motion.p>
               <motion.p variants={fadeUp} custom={3}>
-                Din jobb er å fortelle oss hva som tar for mye tid. Vår jobb er å fikse det.
+                {t.about.body2}
               </motion.p>
             </motion.div>
             <motion.div className="split__right" variants={stagger}>
-              {[
-                ["Null sjargong", "Vi snakker norsk, ikke data-norsk. Du skal forstå alt vi sier og gjør."],
-                ["Du ser resultater fort", "Ingen månedslange prosjekter i mørket. Du ser fremgang fra uke én."],
-                ["Du eier alt", "Koden er din. Systemet er ditt. Ingen innlåsing, ingen skjulte avgifter."],
-              ].map(([t, d], i) => (
+              {t.about.values.map(([title, desc], i) => (
                 <motion.div key={i} className="val" variants={fadeUp} custom={i}>
                   <div className="val__bar" />
                   <div>
-                    <h4>{t}</h4>
-                    <p>{d}</p>
+                    <h4>{title}</h4>
+                    <p>{desc}</p>
                   </div>
                 </motion.div>
               ))}
@@ -510,7 +440,7 @@ export default function Home() {
         <div className="wrap">
           <motion.div className="partners__inner"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            <motion.p className="partners__label" variants={fadeUp}>Vi bygger med teknologi fra</motion.p>
+            <motion.p className="partners__label" variants={fadeUp}>{t.partners.label}</motion.p>
             <motion.div className="partners__row" variants={fadeUp} custom={1}>
               {["OpenAI", "Anthropic", "Microsoft", "Google Cloud", "n8n", "Vercel"].map((name) => (
                 <span key={name} className="partners__badge">{name}</span>
@@ -524,19 +454,15 @@ export default function Home() {
       <section className="section" id="kunder">
         <div className="wrap">
           <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            <motion.span className="tag" variants={fadeUp}>Kunder</motion.span>
-            <AnimatedHeading text="Se hva vi har bygget for andre" />
+            <motion.span className="tag" variants={fadeUp}>{t.clientsSection.tag}</motion.span>
+            <AnimatedHeading text={t.clientsSection.heading} />
             <motion.p className="section__sub" variants={fadeUp} custom={3}>
-              Ekte bedrifter med ekte resultater. Klikk for å lese hele historien.
+              {t.clientsSection.sub}
             </motion.p>
           </motion.div>
 
           <motion.div className="clients-grid" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            {[
-              { name: "CSUB", logo: "/kunder-csub.svg", slug: "csub", desc: "Samlet dashboard for prosjektdata som tidligere lå spredt i Excel-filer. RAG-system med AI-assistent for søk, statistikk og rapporter — pluss delegering av prosjekter til ansatte." },
-              { name: "Festiviteten", logo: "/kunder-festiviteten.png", slug: "festiviteten", desc: "AI som overvåker billettsalg og annonser på Meta, Google og radio i sanntid. Personlige AI-assistenter rådgir 24/7 og varsler ved svakt salg." },
-              { name: "ElementLab", logo: "/kunder-elementlab.png", slug: "elementlab", desc: "Søkbar kunnskapsbase som erstatter manuell leting. 80% raskere rapporter — frigjør hundrevis av timer årlig." },
-            ].map((c, i) => (
+            {t.clientsSection.clients.map((c, i) => (
               <motion.div key={c.slug} variants={fadeUp} custom={i}>
                 <Link href={`/kunder/${c.slug}`} className="client-card">
                   <div className="client-card__logo">
@@ -544,7 +470,7 @@ export default function Home() {
                   </div>
                   <h3>{c.name}</h3>
                   <p>{c.desc}</p>
-                  <span className="client-card__link">Les hele casen &rarr;</span>
+                  <span className="client-card__link">{t.clientsSection.readMore} &rarr;</span>
                 </Link>
               </motion.div>
             ))}
@@ -558,26 +484,13 @@ export default function Home() {
           <motion.div className="our-app__grid"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
             <motion.div className="our-app__content" variants={fadeUp}>
-              <span className="tag">Vår egen app</span>
-              <AnimatedHeading text="Prøv vår AI-stylist" />
-              <p className="our-app__lead">
-                MyStyler er vår egenutviklede iOS-app — en personlig AI-stylist du kan ha i lommen.
-                Last opp to bilder, beskriv anledningen, og få fire fotorealistiske antrekk
-                som faktisk ser ut som deg.
-              </p>
-              <p className="our-app__sub">
-                Middag i Paris. Jobbintervju. Strandbryllup. Første dag tilbake på kontoret.
-                Uansett hva du skriver inn, kler MyStyler deg opp for det — uten å miste
-                ansiktet, hårfargen eller proporsjonene dine.
-              </p>
+              <span className="tag">{t.app.tag}</span>
+              <AnimatedHeading text={t.app.heading} />
+              <p className="our-app__lead">{t.app.lead}</p>
+              <p className="our-app__sub">{t.app.sub}</p>
 
               <ul className="our-app__features">
-                {[
-                  "Beskriv hvilken som helst anledning på vanlig norsk eller engelsk",
-                  "Garderobe-modus: ta bilde av klærne du allerede eier",
-                  "Lagre favorittene i ditt eget stilbibliotek",
-                  "Generer hele antrekk eller hår + sminke-looks",
-                ].map((item) => (
+                {t.app.features.map((item) => (
                   <li key={item} className="our-app__feature">
                     <span className="our-app__check">&#10003;</span>
                     <span>{item}</span>
@@ -592,9 +505,9 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="btn btn--primary"
                 >
-                  Last ned i App Store <span className="btn__arrow">&rarr;</span>
+                  {t.app.cta} <span className="btn__arrow">&rarr;</span>
                 </a>
-                <span className="our-app__platform">Tilgjengelig for iPhone</span>
+                <span className="our-app__platform">{t.app.platform}</span>
               </div>
             </motion.div>
 
@@ -646,76 +559,12 @@ export default function Home() {
       <section className="cta-section" id="faq">
         <div className="wrap">
           <motion.div className="section__head" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            <motion.span className="tag tag--on-accent" variants={fadeUp}>FAQ</motion.span>
-            <AnimatedHeading text="Ofte stilte spørsmål" className="accent-section__heading" />
+            <motion.span className="tag tag--on-accent" variants={fadeUp}>{t.faq.tag}</motion.span>
+            <AnimatedHeading text={t.faq.heading} className="accent-section__heading" />
           </motion.div>
 
           <motion.div className="faq-layout" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            {[
-              {
-                category: "Om tjenestene",
-                questions: [
-                  {
-                    q: "Hva slags bedrifter jobber dere med?",
-                    a: "Vi jobber med bedrifter i alle størrelser — fra småbedrifter med 5 ansatte til større selskaper med hundrevis. Fellesnevneren er at de har manuelle prosesser som tar for mye tid. Vi har erfaring fra bransjer som subsea, forskning, eiendom, handel og tjenesteyting.",
-                  },
-                  {
-                    q: "Hva er skreddersydd software?",
-                    a: "Skreddersydd software er programvare bygget spesifikt for din bedrift og dine prosesser. I motsetning til hyllevare som Salesforce eller HubSpot, får du et system som passer perfekt til måten du jobber på — uten unødvendige funksjoner eller begrensninger.",
-                  },
-                  {
-                    q: "Hva er en digital assistent?",
-                    a: "En digital assistent er et AI-drevet system som kan håndtere oppgaver som kundeservice, oppfølging, rapportering eller databehandling — automatisk og døgnets alle timer. Tenk på det som en kollega som aldri sover, aldri glemmer, og aldri gjør slurve-feil.",
-                  },
-                  {
-                    q: "Kan dere integrere med systemene vi allerede bruker?",
-                    a: "Ja. Vi spesialiserer oss på å koble sammen eksisterende verktøy. Enten du bruker Tripletex, Visma, Microsoft 365, Google Workspace, Slack eller bransjespesifikke systemer — vi bygger broer mellom dem slik at data flyter automatisk.",
-                  },
-                  {
-                    q: "Trenger vi teknisk kompetanse internt?",
-                    a: "Nei. Vi bygger systemer som er enkle å bruke for alle. Du trenger ikke forstå teknologien — bare resultatene. Vi tar oss av alt det tekniske, og gir grundig opplæring når systemet er klart.",
-                  },
-                ],
-              },
-              {
-                category: "Pris og prosess",
-                questions: [
-                  {
-                    q: "Hva koster det?",
-                    a: "Prisen avhenger av prosjektets omfang og størrelse. Vi gir alltid et fast pristilbud etter en uforpliktende første samtale — slik at du vet nøyaktig hva du betaler før du bestemmer deg.",
-                  },
-                  {
-                    q: "Hvor lang tid tar det?",
-                    a: "De fleste prosjekter leveres innen 4–12 uker. Enkle automatiseringer kan være klare på under to uker. Du ser fremgang fra uke én — vi viser deg demoer underveis slik at du kan gi tilbakemeldinger tidlig.",
-                  },
-                  {
-                    q: "Hva skjer etter lansering?",
-                    a: "Vi tilbyr support og vedlikehold så lenge du trenger det. Alle systemer leveres med dokumentasjon og opplæring. Hvis noe trenger justering eller du vil legge til nye funksjoner senere, er vi tilgjengelige.",
-                  },
-                  {
-                    q: "Er den første samtalen virkelig gratis?",
-                    a: "Ja, helt gratis og uforpliktende. Vi setter oss ned (fysisk eller digitalt) og lytter til utfordringene dine. Etter samtalen får du et konkret forslag til hva vi kan gjøre — uten noen forpliktelser.",
-                  },
-                ],
-              },
-              {
-                category: "Teknologi og sikkerhet",
-                questions: [
-                  {
-                    q: "Er dataene våre trygge?",
-                    a: "Absolutt. Vi følger beste praksis for datasikkerhet og personvern. Alle systemer bygges med kryptering, tilgangskontroll og sikker hosting. Vi er kjent med GDPR-kravene og sørger for at løsningene er i samsvar med norske og europeiske regelverk.",
-                  },
-                  {
-                    q: "Bruker dere kunstig intelligens (AI)?",
-                    a: "Ja, der det gir verdi. Vi bruker AI for oppgaver som tekstforståelse, automatisk kategorisering, chatboter og dataanalyse. Men vi bruker det ikke bare for å være hippe — AI er et verktøy, og vi bruker det kun når det faktisk løser et problem bedre enn alternativene.",
-                  },
-                  {
-                    q: "Kan systemet skalere når vi vokser?",
-                    a: "Ja. Vi bygger med skalering i tankene fra dag én. Enten du dobler antall ansatte, får ti ganger så mange kunder, eller ekspanderer til nye markeder — systemene våre vokser med deg uten at du trenger å bygge på nytt.",
-                  },
-                ],
-              },
-            ].map((cat, ci) => (
+            {t.faq.categories.map((cat, ci) => (
               <motion.div key={cat.category} className="faq-category" variants={fadeUp} custom={ci}>
                 <h2>{cat.category}</h2>
                 <div className="faq-list">
@@ -737,9 +586,9 @@ export default function Home() {
         <div className="wrap">
           <motion.div className="contact" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-25% 0px -25% 0px" }} variants={stagger}>
             <motion.div className="contact__left" variants={fadeUp}>
-              <span className="tag">Kontakt</span>
-              <h2>La oss snakke sammen</h2>
-              <p>Send oss en e-post eller ring. Vi svarer raskt, og første samtale er alltid gratis. Workflows holder til i Haugesund og jobber med bedrifter over hele Norge.</p>
+              <span className="tag">{t.contact.tag}</span>
+              <h2>{t.contact.heading}</h2>
+              <p>{t.contact.body}</p>
             </motion.div>
             <motion.div className="contact__right" variants={fadeUp} custom={1}>
               <a href="mailto:petter@workflows.no" className="contact__card">
@@ -747,7 +596,7 @@ export default function Home() {
                   <div className="contact__avatar">PS</div>
                   <div>
                     <strong>Petter Staveland</strong>
-                    <span>Daglig leder</span>
+                    <span>{t.contact.role}</span>
                   </div>
                 </div>
                 <div className="contact__email-row">

@@ -4,12 +4,16 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLang } from "@/components/LanguageProvider";
+import { translations } from "@/lib/translations";
 
 export default function Nav() {
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const { lang, setLang } = useLang();
+  const t = translations[lang].nav;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -37,29 +41,47 @@ export default function Nav() {
           <div className="nav__links">
             {isHome ? (
               <>
-                <a href="#tjenester">Tjenester</a>
-                <a href="#prosess">Prosess</a>
+                <a href="#tjenester">{t.services}</a>
+                <a href="#prosess">{t.process}</a>
               </>
             ) : (
               <>
-                <Link href="/#tjenester">Tjenester</Link>
-                <Link href="/#prosess">Prosess</Link>
+                <Link href="/#tjenester">{t.services}</Link>
+                <Link href="/#prosess">{t.process}</Link>
               </>
             )}
-            <Link href="/kunder">Kunder</Link>
+            <Link href="/kunder">{t.customers}</Link>
             {isHome ? (
               <>
-                <a href="#faq">FAQ</a>
-                <a href="#om">Om oss</a>
-                <a href="#kontakt" className="nav__cta">Ta kontakt</a>
+                <a href="#faq">{t.faq}</a>
+                <a href="#om">{t.about}</a>
+                <a href="#kontakt" className="nav__cta">{t.contact}</a>
               </>
             ) : (
               <>
-                <Link href="/#faq">FAQ</Link>
-                <Link href="/#om">Om oss</Link>
-                <Link href="/#kontakt" className="nav__cta">Ta kontakt</Link>
+                <Link href="/#faq">{t.faq}</Link>
+                <Link href="/#om">{t.about}</Link>
+                <Link href="/#kontakt" className="nav__cta">{t.contact}</Link>
               </>
             )}
+            <div className="lang-toggle">
+              <button
+                className={`lang-toggle__btn${lang === "no" ? " lang-toggle__btn--active" : ""}`}
+                onClick={() => setLang("no")}
+                aria-label="Norsk"
+                title="Norsk"
+              >
+                🇳🇴
+              </button>
+              <button
+                className={`lang-toggle__btn${lang === "en" ? " lang-toggle__btn--active" : ""}`}
+                onClick={() => setLang("en")}
+                aria-label="English"
+                title="English"
+              >
+                🇬🇧
+              </button>
+            </div>
           </div>
           <button className={`nav__burger${navOpen ? " open" : ""}`} onClick={toggleNav} aria-label="Meny">
             <span /><span /><span />
@@ -70,17 +92,33 @@ export default function Nav() {
       {navOpen && (
         <div className="mobile-overlay">
           {[
-            { label: "Tjenester", href: isHome ? "#tjenester" : "/#tjenester" },
-            { label: "Kunder", href: "/kunder" },
-            { label: "Prosess", href: isHome ? "#prosess" : "/#prosess" },
-            { label: "FAQ", href: isHome ? "#faq" : "/#faq" },
-            { label: "Om oss", href: isHome ? "#om" : "/#om" },
-            { label: "Kontakt", href: isHome ? "#kontakt" : "/#kontakt" },
+            { label: t.services, href: isHome ? "#tjenester" : "/#tjenester" },
+            { label: t.customers, href: "/kunder" },
+            { label: t.process, href: isHome ? "#prosess" : "/#prosess" },
+            { label: t.faq, href: isHome ? "#faq" : "/#faq" },
+            { label: t.about, href: isHome ? "#om" : "/#om" },
+            { label: t.contact, href: isHome ? "#kontakt" : "/#kontakt" },
           ].map((l, i) => (
             <Link key={l.label} href={l.href} onClick={closeNav} style={{ animationDelay: `${i * 0.06}s` }}>
               {l.label}
             </Link>
           ))}
+          <div className="lang-toggle lang-toggle--mobile">
+            <button
+              className={`lang-toggle__btn${lang === "no" ? " lang-toggle__btn--active" : ""}`}
+              onClick={() => { setLang("no"); closeNav(); }}
+              aria-label="Norsk"
+            >
+              🇳🇴 NO
+            </button>
+            <button
+              className={`lang-toggle__btn${lang === "en" ? " lang-toggle__btn--active" : ""}`}
+              onClick={() => { setLang("en"); closeNav(); }}
+              aria-label="English"
+            >
+              🇬🇧 EN
+            </button>
+          </div>
         </div>
       )}
     </>
