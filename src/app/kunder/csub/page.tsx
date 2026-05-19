@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import { buildArticle, buildBreadcrumb } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "CSUB – AI-dashboard og RAG-assistent",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: "CSUB – AI-dashboard og RAG-assistent | Workflows",
     description:
       "Hvordan Workflows bygget et sentralisert dashboard og en AI-drevet chatassistent for CSUB.",
-    url: `${SITE_URL}/kunder/csub`,
+    url: urlFor("/kunder/csub"),
     type: "article",
   },
   keywords: [
@@ -29,29 +29,20 @@ export const metadata: Metadata = {
   ],
 };
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "Kundecaser", item: `${SITE_URL}/kunder` },
-    { "@type": "ListItem", position: 3, name: "CSUB", item: `${SITE_URL}/kunder/csub` },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  { name: "Kundecaser", path: "/kunder" },
+  { name: "CSUB", path: "/kunder/csub" },
+]);
 
-const articleJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Article",
+const articleJsonLd = buildArticle({
   headline: "CSUB – Intelligent dashboard og AI-assistent på sekunder",
   description:
     "Workflows bygget et sentralisert dashboard og en AI-drevet chatassistent med RAG for CSUB som erstattet timevis med manuell leting i Excel-filer.",
-  author: { "@id": `${SITE_URL}/#organization` },
-  publisher: { "@id": `${SITE_URL}/#organization` },
-  image: `${SITE_URL}/kunder-csub.svg`,
-  mainEntityOfPage: `${SITE_URL}/kunder/csub`,
-  inLanguage: "nb-NO",
+  image: "/kunder-csub.svg",
+  slug: "/kunder/csub",
   about: { "@type": "Thing", name: "CSUB" },
-};
+});
 
 export default function CsubCase() {
   return (

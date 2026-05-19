@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import {
+  buildBreadcrumb,
+  buildService,
+  HAUGESUND_AREA_SERVED,
+} from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "Kunstig intelligens i Haugesund — praktisk AI for bedrifter",
@@ -12,7 +16,7 @@ export const metadata: Metadata = {
     title: "Kunstig intelligens i Haugesund | Workflows",
     description:
       "Praktisk AI for bedrifter på Haugalandet. Chatboter, assistenter, dokumentforståelse og automatisering.",
-    url: `${SITE_URL}/kunstig-intelligens-haugesund`,
+    url: urlFor("/kunstig-intelligens-haugesund"),
     type: "article",
   },
   keywords: [
@@ -27,37 +31,22 @@ export const metadata: Metadata = {
   ],
 };
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "Kunstig intelligens i Haugesund",
-      item: `${SITE_URL}/kunstig-intelligens-haugesund`,
-    },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  {
+    name: "Kunstig intelligens i Haugesund",
+    path: "/kunstig-intelligens-haugesund",
+  },
+]);
 
-const serviceJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  serviceType: "Kunstig intelligens",
+const serviceJsonLd = buildService({
   name: "Kunstig intelligens i Haugesund",
+  slug: "/kunstig-intelligens-haugesund",
+  serviceType: "Kunstig intelligens",
   description:
     "Praktiske AI-løsninger for bedrifter: chatboter, RAG-assistenter, dokumentforståelse, automatisert kategorisering og integrerte AI-agenter.",
-  provider: { "@id": `${SITE_URL}/#organization` },
-  areaServed: [
-    { "@type": "City", name: "Haugesund" },
-    { "@type": "AdministrativeArea", name: "Haugalandet" },
-    { "@type": "AdministrativeArea", name: "Rogaland" },
-    { "@type": "Country", name: "Norge" },
-  ],
-  audience: { "@type": "BusinessAudience", name: "Bedrifter" },
-  url: `${SITE_URL}/kunstig-intelligens-haugesund`,
-};
+  areaServed: HAUGESUND_AREA_SERVED,
+});
 
 export default function KunstigIntelligensHaugesundPage() {
   return (

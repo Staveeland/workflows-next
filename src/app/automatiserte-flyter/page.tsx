@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import { buildBreadcrumb, buildService } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "Automatiserte flyter — prosesser som kjører av seg selv",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: "Automatiserte flyter | Workflows",
     description:
       "Prosessautomatisering og systemintegrasjon som fjerner manuelt arbeid.",
-    url: `${SITE_URL}/automatiserte-flyter`,
+    url: urlFor("/automatiserte-flyter"),
     type: "article",
   },
   keywords: [
@@ -27,35 +27,18 @@ export const metadata: Metadata = {
   ],
 };
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "Automatiserte flyter",
-      item: `${SITE_URL}/automatiserte-flyter`,
-    },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  { name: "Automatiserte flyter", path: "/automatiserte-flyter" },
+]);
 
-const serviceJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  serviceType: "Prosessautomatisering",
+const serviceJsonLd = buildService({
   name: "Automatiserte flyter",
+  slug: "/automatiserte-flyter",
+  serviceType: "Prosessautomatisering",
   description:
     "Utvikling av automatiserte flyter og systemintegrasjoner som kobler sammen bedriftens verktøy og fjerner manuelt arbeid.",
-  provider: { "@id": `${SITE_URL}/#organization` },
-  areaServed: [
-    { "@type": "City", name: "Haugesund" },
-    { "@type": "Country", name: "Norge" },
-  ],
-  audience: { "@type": "BusinessAudience", name: "Bedrifter" },
-  url: `${SITE_URL}/automatiserte-flyter`,
-};
+});
 
 export default function AutomatiserteFlyterPage() {
   return (

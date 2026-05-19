@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import { buildBreadcrumb } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "Kundecaser — AI-agenter og skreddersydd software",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: "Kundecaser | Workflows",
     description:
       "Ekte AI- og softwareprosjekter levert av Workflows i Haugesund — CSUB, Festiviteten og ElementLab.",
-    url: `${SITE_URL}/kunder`,
+    url: urlFor("/kunder"),
   },
   keywords: [
     "AI kundecaser",
@@ -53,14 +53,10 @@ const cases = [
   },
 ];
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "Kundecaser", item: `${SITE_URL}/kunder` },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  { name: "Kundecaser", path: "/kunder" },
+]);
 
 const collectionJsonLd = {
   "@context": "https://schema.org",
@@ -68,12 +64,12 @@ const collectionJsonLd = {
   name: "Kundecaser — Workflows Haugesund",
   description:
     "Samling av kundecaser som viser AI-agenter, kunstig intelligens og skreddersydd software levert av Workflows.",
-  url: `${SITE_URL}/kunder`,
+  url: urlFor("/kunder"),
   inLanguage: "nb-NO",
   hasPart: cases.map((c) => ({
     "@type": "CreativeWork",
     name: c.name,
-    url: `${SITE_URL}/kunder/${c.slug}`,
+    url: urlFor(`/kunder/${c.slug}`),
     about: c.industry,
   })),
 };

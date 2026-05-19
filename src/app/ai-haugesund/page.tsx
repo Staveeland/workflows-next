@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import {
+  buildBreadcrumb,
+  buildService,
+  HAUGESUND_AREA_SERVED,
+} from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "AI i Haugesund — lokalt AI-selskap",
@@ -12,7 +16,7 @@ export const metadata: Metadata = {
     title: "AI i Haugesund — lokalt AI-selskap | Workflows",
     description:
       "AI-agenter, kunstig intelligens og skreddersydde systemer bygget av et team i Haugesund.",
-    url: `${SITE_URL}/ai-haugesund`,
+    url: urlFor("/ai-haugesund"),
     type: "article",
   },
   keywords: [
@@ -27,32 +31,19 @@ export const metadata: Metadata = {
   ],
 };
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "AI i Haugesund", item: `${SITE_URL}/ai-haugesund` },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  { name: "AI i Haugesund", path: "/ai-haugesund" },
+]);
 
-const serviceJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  serviceType: "AI-utvikling",
+const serviceJsonLd = buildService({
   name: "AI i Haugesund",
+  slug: "/ai-haugesund",
+  serviceType: "AI-utvikling",
   description:
     "Lokalt AI-selskap i Haugesund som bygger AI-agenter, kunstig intelligens og skreddersydde systemer for bedrifter på Haugalandet og i Norge.",
-  provider: { "@id": `${SITE_URL}/#organization` },
-  areaServed: [
-    { "@type": "City", name: "Haugesund" },
-    { "@type": "AdministrativeArea", name: "Haugalandet" },
-    { "@type": "AdministrativeArea", name: "Rogaland" },
-    { "@type": "Country", name: "Norge" },
-  ],
-  audience: { "@type": "BusinessAudience", name: "Bedrifter" },
-  url: `${SITE_URL}/ai-haugesund`,
-};
+  areaServed: HAUGESUND_AREA_SERVED,
+});
 
 export default function AiHaugesundPage() {
   return (

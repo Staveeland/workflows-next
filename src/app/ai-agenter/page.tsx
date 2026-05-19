@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import { buildBreadcrumb, buildService } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "AI-agenter — autonome assistenter for bedrifter",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: "AI-agenter — autonome assistenter for bedrifter | Workflows",
     description:
       "Autonome AI-agenter som får et mål, lager en plan og utfører handlinger. Bygget av Workflows i Haugesund.",
-    url: `${SITE_URL}/ai-agenter`,
+    url: urlFor("/ai-agenter"),
     type: "article",
   },
   keywords: [
@@ -27,30 +27,18 @@ export const metadata: Metadata = {
   ],
 };
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "AI-agenter", item: `${SITE_URL}/ai-agenter` },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  { name: "AI-agenter", path: "/ai-agenter" },
+]);
 
-const serviceJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  serviceType: "AI-agentutvikling",
+const serviceJsonLd = buildService({
   name: "AI-agenter",
+  slug: "/ai-agenter",
+  serviceType: "AI-agentutvikling",
   description:
     "Utvikling av autonome AI-agenter som planlegger, bruker verktøy og utfører oppgaver på vegne av bedrifter.",
-  provider: { "@id": `${SITE_URL}/#organization` },
-  areaServed: [
-    { "@type": "City", name: "Haugesund" },
-    { "@type": "Country", name: "Norge" },
-  ],
-  audience: { "@type": "BusinessAudience", name: "Bedrifter" },
-  url: `${SITE_URL}/ai-agenter`,
-};
+});
 
 export default function AiAgenterPage() {
   return (

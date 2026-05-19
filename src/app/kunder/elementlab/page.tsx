@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import { buildArticle, buildBreadcrumb } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "ElementLab – AI-chatbot og bookingintegrasjon",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: "ElementLab – AI-chatbot og bookingintegrasjon | Workflows",
     description:
       "Skreddersydd bookingfrontend og AI-chatbot som gir en sømløs kundereise for ElementLab.",
-    url: `${SITE_URL}/kunder/elementlab`,
+    url: urlFor("/kunder/elementlab"),
     type: "article",
   },
   keywords: [
@@ -27,29 +27,20 @@ export const metadata: Metadata = {
   ],
 };
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "Kundecaser", item: `${SITE_URL}/kunder` },
-    { "@type": "ListItem", position: 3, name: "ElementLab", item: `${SITE_URL}/kunder/elementlab` },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  { name: "Kundecaser", path: "/kunder" },
+  { name: "ElementLab", path: "/kunder/elementlab" },
+]);
 
-const articleJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Article",
+const articleJsonLd = buildArticle({
   headline: "ElementLab – AI-chatbot og skreddersydd bookingintegrasjon",
   description:
     "Workflows bygget en skreddersydd booking-frontend og en AI-chatbot trent på behandlingsdata for ElementLab.",
-  author: { "@id": `${SITE_URL}/#organization` },
-  publisher: { "@id": `${SITE_URL}/#organization` },
-  image: `${SITE_URL}/kunder-elementlab.png`,
-  mainEntityOfPage: `${SITE_URL}/kunder/elementlab`,
-  inLanguage: "nb-NO",
+  image: "/kunder-elementlab.png",
+  slug: "/kunder/elementlab",
   about: { "@type": "Thing", name: "ElementLab" },
-};
+});
 
 export default function ElementLabCase() {
   return (

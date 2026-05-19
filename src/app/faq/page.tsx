@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import { buildBreadcrumb } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "Vanlige spørsmål om AI og softwareutvikling",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: "Vanlige spørsmål om AI og softwareutvikling | Workflows",
     description:
       "Svar på vanlige spørsmål om AI-agenter, kunstig intelligens, skreddersydd software og automatisering for norske bedrifter.",
-    url: `${SITE_URL}/faq`,
+    url: urlFor("/faq"),
   },
   keywords: [
     "AI Haugesund spørsmål",
@@ -116,14 +116,10 @@ const faqJsonLd = {
   ),
 };
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "FAQ", item: `${SITE_URL}/faq` },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  { name: "FAQ", path: "/faq" },
+]);
 
 export default function FaqPage() {
   return (

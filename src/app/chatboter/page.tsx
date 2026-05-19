@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import { buildBreadcrumb, buildService } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "Chatboter for bedrifter — AI-drevne assistenter",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: "Chatboter for bedrifter | Workflows",
     description:
       "AI-drevne chatboter som svarer kunder og henter data fra bedriftens egne systemer.",
-    url: `${SITE_URL}/chatboter`,
+    url: urlFor("/chatboter"),
     type: "article",
   },
   keywords: [
@@ -27,30 +27,18 @@ export const metadata: Metadata = {
   ],
 };
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "Chatboter", item: `${SITE_URL}/chatboter` },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  { name: "Chatboter", path: "/chatboter" },
+]);
 
-const serviceJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  serviceType: "Chatbot-utvikling",
+const serviceJsonLd = buildService({
   name: "Chatboter for bedrifter",
+  slug: "/chatboter",
+  serviceType: "Chatbot-utvikling",
   description:
     "Utvikling av AI-drevne chatboter som svarer kunder, håndterer henvendelser og henter data fra interne systemer.",
-  provider: { "@id": `${SITE_URL}/#organization` },
-  areaServed: [
-    { "@type": "City", name: "Haugesund" },
-    { "@type": "Country", name: "Norge" },
-  ],
-  audience: { "@type": "BusinessAudience", name: "Bedrifter" },
-  url: `${SITE_URL}/chatboter`,
-};
+});
 
 export default function ChatboterPage() {
   return (

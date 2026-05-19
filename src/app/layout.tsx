@@ -5,6 +5,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import { ORG_ID, SITE_URL, WEBSITE_ID, urlFor } from "@/lib/site";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -17,8 +18,6 @@ const inter = Inter({
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-inter",
 });
-
-const SITE_URL = "https://workflows.no";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -123,13 +122,13 @@ export const viewport: Viewport = {
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
-  "@id": `${SITE_URL}/#organization`,
+  "@id": ORG_ID,
   name: "Workflows AS",
   alternateName: "Workflows",
   legalName: "Workflows AS",
   url: SITE_URL,
-  logo: `${SITE_URL}/logo-dark.png`,
-  image: `${SITE_URL}/logo-square.jpg`,
+  logo: urlFor("/logo-dark.png"),
+  image: urlFor("/logo-square.jpg"),
   description:
     "Workflows er et AI- og softwareutviklingsselskap i Haugesund som bygger smarte agenter, kunstig intelligens og skreddersydde systemer for norske bedrifter.",
   foundingDate: "2024",
@@ -230,13 +229,13 @@ const organizationJsonLd = {
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "@id": `${SITE_URL}/#website`,
+  "@id": WEBSITE_ID,
   url: SITE_URL,
   name: "Workflows",
   description:
     "AI, smarte agenter og softwareutvikling for bedrifter i Haugesund og Norge.",
   inLanguage: "nb-NO",
-  publisher: { "@id": `${SITE_URL}/#organization` },
+  publisher: { "@id": ORG_ID },
 };
 
 export default function RootLayout({

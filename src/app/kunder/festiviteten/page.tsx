@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import { buildArticle, buildBreadcrumb } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "Festiviteten – AI som styrer billettsalg og annonsering",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: "Festiviteten – AI som styrer billettsalg og annonsering | Workflows",
     description:
       "AI-system med sanntidsoversikt over billettsalg og annonseytelse — koblet direkte til Meta, Google og billettsystem.",
-    url: `${SITE_URL}/kunder/festiviteten`,
+    url: urlFor("/kunder/festiviteten"),
     type: "article",
   },
   keywords: [
@@ -28,29 +28,20 @@ export const metadata: Metadata = {
   ],
 };
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "Kundecaser", item: `${SITE_URL}/kunder` },
-    { "@type": "ListItem", position: 3, name: "Festiviteten", item: `${SITE_URL}/kunder/festiviteten` },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  { name: "Kundecaser", path: "/kunder" },
+  { name: "Festiviteten", path: "/kunder/festiviteten" },
+]);
 
-const articleJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Article",
+const articleJsonLd = buildArticle({
   headline: "Festiviteten – AI for billettsalg og annonsering",
   description:
     "Workflows bygde et AI-system for Festiviteten som holder styr på billettsalg og annonser på Meta, Google og radio — med personlige AI-assistenter koblet direkte til hele økosystemet.",
-  author: { "@id": `${SITE_URL}/#organization` },
-  publisher: { "@id": `${SITE_URL}/#organization` },
-  image: `${SITE_URL}/kunder-festiviteten.png`,
-  mainEntityOfPage: `${SITE_URL}/kunder/festiviteten`,
-  inLanguage: "nb-NO",
+  image: "/kunder-festiviteten.png",
+  slug: "/kunder/festiviteten",
   about: { "@type": "Thing", name: "Festiviteten" },
-};
+});
 
 export default function FestivitetenCase() {
   return (

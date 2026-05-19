@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-
-const SITE_URL = "https://workflows.no";
+import { urlFor } from "@/lib/site";
+import {
+  buildBreadcrumb,
+  buildService,
+  HAUGESUND_AREA_SERVED,
+} from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "Softwareutvikling i Haugesund — skreddersydd programvare",
@@ -12,7 +16,7 @@ export const metadata: Metadata = {
     title: "Softwareutvikling i Haugesund | Workflows",
     description:
       "Skreddersydd programvareutvikling for norske bedrifter, levert av et team i Haugesund.",
-    url: `${SITE_URL}/software-utvikling-haugesund`,
+    url: urlFor("/software-utvikling-haugesund"),
     type: "article",
   },
   keywords: [
@@ -27,37 +31,22 @@ export const metadata: Metadata = {
   ],
 };
 
-const breadcrumbJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Hjem", item: SITE_URL },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "Softwareutvikling i Haugesund",
-      item: `${SITE_URL}/software-utvikling-haugesund`,
-    },
-  ],
-};
+const breadcrumbJsonLd = buildBreadcrumb([
+  { name: "Hjem", path: "/" },
+  {
+    name: "Softwareutvikling i Haugesund",
+    path: "/software-utvikling-haugesund",
+  },
+]);
 
-const serviceJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Service",
-  serviceType: "Softwareutvikling",
+const serviceJsonLd = buildService({
   name: "Softwareutvikling i Haugesund",
+  slug: "/software-utvikling-haugesund",
+  serviceType: "Softwareutvikling",
   description:
     "Skreddersydd programvareutvikling for bedrifter. Interne verktøy, kundeportaler, dashbord, integrasjoner og komplette forretningssystemer.",
-  provider: { "@id": `${SITE_URL}/#organization` },
-  areaServed: [
-    { "@type": "City", name: "Haugesund" },
-    { "@type": "AdministrativeArea", name: "Haugalandet" },
-    { "@type": "AdministrativeArea", name: "Rogaland" },
-    { "@type": "Country", name: "Norge" },
-  ],
-  audience: { "@type": "BusinessAudience", name: "Bedrifter" },
-  url: `${SITE_URL}/software-utvikling-haugesund`,
-};
+  areaServed: HAUGESUND_AREA_SERVED,
+});
 
 export default function SoftwareUtviklingHaugesundPage() {
   return (

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL, urlFor } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -9,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/_next/"],
       },
     ],
-    sitemap: "https://workflows.no/sitemap.xml",
-    host: "https://workflows.no",
+    sitemap: urlFor("/sitemap.xml"),
+    host: SITE_URL,
   };
 }

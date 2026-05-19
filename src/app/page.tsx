@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import HomeClient from "@/components/HomeClient";
-
-const SITE_URL = "https://workflows.no";
+import { ORG_ID, SITE_URL, WEBSITE_ID, urlFor } from "@/lib/site";
+import { DEFAULT_AREA_SERVED } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "AI-agenter og softwareutvikling i Haugesund",
@@ -78,9 +78,9 @@ const webPageJsonLd = {
   description:
     "Workflows er et AI- og softwareutviklingsselskap i Haugesund. Vi bygger AI-agenter, kunstig intelligens og skreddersydde systemer for norske bedrifter.",
   inLanguage: "nb-NO",
-  isPartOf: { "@id": `${SITE_URL}/#website` },
-  about: { "@id": `${SITE_URL}/#organization` },
-  primaryImageOfPage: `${SITE_URL}/logo-square.jpg`,
+  isPartOf: { "@id": WEBSITE_ID },
+  about: { "@id": ORG_ID },
+  primaryImageOfPage: urlFor("/logo-square.jpg"),
 };
 
 const faqJsonLd = {
@@ -106,11 +106,8 @@ const servicesJsonLd = {
       name: "AI-agenter og smarte agenter i Haugesund",
       description:
         "Autonome AI-agenter som får et mål, lager sin egen plan, henter data, bruker verktøy og utfører handlinger på vegne av bedriften din.",
-      provider: { "@id": `${SITE_URL}/#organization` },
-      areaServed: [
-        { "@type": "City", name: "Haugesund" },
-        { "@type": "Country", name: "Norge" },
-      ],
+      provider: { "@id": ORG_ID },
+      areaServed: DEFAULT_AREA_SERVED,
       audience: { "@type": "BusinessAudience", name: "Bedrifter" },
     },
     {
@@ -120,11 +117,8 @@ const servicesJsonLd = {
       name: "Kunstig intelligens og AI-løsninger i Haugesund",
       description:
         "Chatboter, RAG-assistenter, dokumentforståelse og AI-integrasjoner bygget på OpenAI, Anthropic Claude og Google Cloud.",
-      provider: { "@id": `${SITE_URL}/#organization` },
-      areaServed: [
-        { "@type": "City", name: "Haugesund" },
-        { "@type": "Country", name: "Norge" },
-      ],
+      provider: { "@id": ORG_ID },
+      areaServed: DEFAULT_AREA_SERVED,
     },
     {
       "@type": "Service",
@@ -133,11 +127,8 @@ const servicesJsonLd = {
       name: "Skreddersydd softwareutvikling i Haugesund",
       description:
         "Skreddersydd programvareutvikling for norske bedrifter. Interne verktøy, kundeportaler og komplette forretningssystemer.",
-      provider: { "@id": `${SITE_URL}/#organization` },
-      areaServed: [
-        { "@type": "City", name: "Haugesund" },
-        { "@type": "Country", name: "Norge" },
-      ],
+      provider: { "@id": ORG_ID },
+      areaServed: DEFAULT_AREA_SERVED,
     },
     {
       "@type": "Service",
@@ -146,11 +137,8 @@ const servicesJsonLd = {
       name: "Automatisering og systemintegrasjon",
       description:
         "Automatiserte flyter som kobler sammen verktøyene dine (Tripletex, Visma, Microsoft 365, Google Workspace, Slack) og fjerner dobbeltarbeid.",
-      provider: { "@id": `${SITE_URL}/#organization` },
-      areaServed: [
-        { "@type": "City", name: "Haugesund" },
-        { "@type": "Country", name: "Norge" },
-      ],
+      provider: { "@id": ORG_ID },
+      areaServed: DEFAULT_AREA_SERVED,
     },
   ],
 };
