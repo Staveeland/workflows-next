@@ -14,11 +14,32 @@ export default function Nav() {
   const isHome = pathname === "/";
   const { lang, setLang } = useLang();
   const t = translations[lang].nav;
+  const a11y = translations[lang].a11y;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Close menu on Escape key
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setNavOpen(false);
+        document.body.style.overflow = "";
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navOpen]);
+
+  // Ensure body overflow is always restored on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, []);
 
   const toggleNav = () => {
@@ -38,7 +59,7 @@ export default function Nav() {
           <Link href="/" className="nav__logo">
             <Image src="/logo-dark.png" alt="Workflows" width={140} height={40} priority style={{ width: "auto", height: "26px" }} />
           </Link>
-          <div className="nav__links">
+          <nav className="nav__links" aria-label={a11y.mainMenu}>
             {isHome ? (
               <>
                 <a href="#tjenester">{t.services}</a>
@@ -82,15 +103,21 @@ export default function Nav() {
                 🇬🇧
               </button>
             </div>
-          </div>
-          <button className={`nav__burger${navOpen ? " open" : ""}`} onClick={toggleNav} aria-label="Meny">
+          </nav>
+          <button
+            className={`nav__burger${navOpen ? " open" : ""}`}
+            onClick={toggleNav}
+            aria-label="Meny"
+            aria-expanded={navOpen}
+            aria-controls="mobile-nav"
+          >
             <span /><span /><span />
           </button>
         </div>
       </header>
 
       {navOpen && (
-        <div className="mobile-overlay">
+        <div className="mobile-overlay" id="mobile-nav">
           {[
             { label: t.services, href: isHome ? "#tjenester" : "/#tjenester" },
             { label: t.customers, href: "/kunder" },

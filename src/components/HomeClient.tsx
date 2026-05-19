@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import { motion, useScroll, useTransform, useInView, useReducedMotion } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
 import { translations } from "@/lib/translations";
 
 /* ─── Typewriter ─── */
 function Typewriter({ words }: { words: readonly string[] }) {
+  const reduceMotion = useReducedMotion();
   const [idx, setIdx] = useState(0);
   const [chars, setChars] = useState(0);
   const [del, setDel] = useState(false);
@@ -21,6 +22,7 @@ function Typewriter({ words }: { words: readonly string[] }) {
   }, [words]);
 
   useEffect(() => {
+    if (reduceMotion) return;
     if (!del && chars === word.length) {
       const t = setTimeout(() => setDel(true), 2200);
       return () => clearTimeout(t);
@@ -32,7 +34,11 @@ function Typewriter({ words }: { words: readonly string[] }) {
     }
     const t = setTimeout(() => setChars((p) => p + (del ? -1 : 1)), del ? 45 : 90);
     return () => clearTimeout(t);
-  }, [chars, del, word, words]);
+  }, [chars, del, word, words, reduceMotion]);
+
+  if (reduceMotion) {
+    return <span className="hero__accent">{words[0]}</span>;
+  }
 
   return (
     <span className="hero__accent typewriter">
@@ -94,6 +100,7 @@ function useCounter(end: number, dur: number, active: boolean) {
 export default function Home() {
   const { lang } = useLang();
   const t = translations[lang];
+  const reduceMotion = useReducedMotion();
 
   const statsRef = useRef(null);
   const statsInView = useInView(statsRef, { once: true, margin: "0px 0px -10% 0px" });
@@ -102,8 +109,10 @@ export default function Home() {
   const s2 = useCounter(12, 2000, statsInView);
 
   const { scrollYProgress } = useScroll();
-  const heroY = useTransform(scrollYProgress, [0, 0.25], [0, -80]);
-  const heroOp = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const heroYRaw = useTransform(scrollYProgress, [0, 0.25], [0, -80]);
+  const heroOpRaw = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const heroY = reduceMotion ? 0 : heroYRaw;
+  const heroOp = reduceMotion ? 1 : heroOpRaw;
 
   return (
     <>

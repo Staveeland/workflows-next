@@ -2,6 +2,10 @@ export type Lang = 'no' | 'en';
 
 export const translations = {
   no: {
+    a11y: {
+      skipToMain: 'Hopp til hovedinnhold',
+      mainMenu: 'Hovedmeny',
+    },
     nav: {
       services: 'Tjenester',
       process: 'Prosess',
@@ -251,6 +255,10 @@ export const translations = {
     },
   },
   en: {
+    a11y: {
+      skipToMain: 'Skip to main content',
+      mainMenu: 'Main menu',
+    },
     nav: {
       services: 'Services',
       process: 'Process',

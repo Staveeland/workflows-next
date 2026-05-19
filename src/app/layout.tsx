@@ -4,6 +4,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
+import SkipLink from "@/components/SkipLink";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { ORG_ID, SITE_URL, WEBSITE_ID, urlFor } from "@/lib/site";
 
@@ -257,8 +258,9 @@ export default function RootLayout({
       </head>
       <body className={`${lora.variable} ${inter.variable} ${lora.className}`}>
         <LanguageProvider>
+          <SkipLink />
           <Nav />
-          <main>{children}</main>
+          <main id="main">{children}</main>
           <Footer />
           <ChatWidget />
         </LanguageProvider>
