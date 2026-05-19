@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { urlFor } from "@/lib/site";
 import { buildBreadcrumb, buildService } from "@/lib/jsonLd";
+import Timeline from "@/components/visuals/Timeline";
+import IntegrationCloud from "@/components/visuals/IntegrationCloud";
+import BeforeAfter from "@/components/visuals/BeforeAfter";
+import { IconBolt, IconBuild, IconCheck } from "@/components/icons/ServiceIcons";
 
 export const metadata: Metadata = {
   title: "Automatiserte flyter — prosesser som kjører av seg selv",
@@ -69,11 +73,36 @@ export default function AutomatiserteFlyterPage() {
           <article className="longform">
             <h2>Hva er en automatisert flyt?</h2>
             <p>
-              En flyt består av tre deler: en <strong>trigger</strong> (noe som skjer),
-              en rekke <strong>steg</strong> (data behandles, systemer oppdateres,
-              varsler sendes), og et <strong>resultat</strong> (noe er ferdig). Flyten kjører
-              samme vei hver gang — det er det som gjør den forutsigbar og pålitelig.
+              En flyt består av tre deler som kjører samme vei hver gang. Det er det som gjør
+              den forutsigbar og pålitelig.
             </p>
+
+            <Timeline
+              steps={[
+                {
+                  icon: <IconBolt size={22} />,
+                  title: "Trigger",
+                  body:
+                    "Noe skjer — en e-post, et skjema, en ny ordre, en tidsplan eller et webhook fra et annet system.",
+                  meta: "Steg 1",
+                },
+                {
+                  icon: <IconBuild size={22} />,
+                  title: "Steg",
+                  body:
+                    "Data behandles, systemer oppdateres, varsler sendes. AI brukes bare der reglene er uklare og forståelse trengs.",
+                  meta: "Steg 2",
+                },
+                {
+                  icon: <IconCheck size={22} />,
+                  title: "Resultat",
+                  body:
+                    "Oppgaven er ferdig — fakturaen er bokført, kunden er fulgt opp, rapporten er sendt.",
+                  meta: "Steg 3",
+                },
+              ]}
+            />
+
             <p>
               Forskjellen på en flyt og en <Link href="/ai-agenter">AI-agent</Link> er at flyten
               følger en bestemt plan, mens agenten lager sin egen. Flyter er billigere, mer
@@ -81,6 +110,21 @@ export default function AutomatiserteFlyterPage() {
               testing og overvåking. De fleste bedrifter bør starte med flyter og bruke agenter
               der kompleksiteten faktisk krever det.
             </p>
+
+            <BeforeAfter
+              beforeTitle="Uten flyt"
+              before={[
+                { label: "Manuell kopiering mellom systemer" },
+                { label: "Glemte oppfølginger og misforståelser" },
+                { label: "Ingen oversikt over hva som er gjort" },
+              ]}
+              afterTitle="Med flyt"
+              after={[
+                { label: "Data flyter automatisk dit den skal" },
+                { label: "Hver hendelse følges opp, hver gang" },
+                { label: "Logg og varsling ved feil" },
+              ]}
+            />
 
             <h2>Typiske triggere</h2>
             <ul>
@@ -133,11 +177,31 @@ export default function AutomatiserteFlyterPage() {
 
             <h2>Systemer vi integrerer med</h2>
             <p>
-              Vi kobler sammen de aller fleste verktøy: Tripletex, Visma, PowerOffice, 24SevenOffice,
-              Microsoft 365, Google Workspace, Slack, Teams, HubSpot, Salesforce, Shopify, WooCommerce,
-              Airtable, Notion, Monday.com — og hvilket som helst system med et API eller webhook.
-              Også bransjespesifikke systemer innen subsea, offshore, eiendom, helse og logistikk.
+              Vi kobler sammen de aller fleste verktøy — fra regnskap og CRM til samhandling og
+              e-handel. Og hvilket som helst system med et API eller webhook, inkludert
+              bransjespesifikke løsninger innen subsea, offshore, eiendom, helse og logistikk.
             </p>
+
+            <IntegrationCloud
+              items={[
+                "Tripletex",
+                "Visma",
+                "PowerOffice",
+                "24SevenOffice",
+                "Microsoft 365",
+                "Google Workspace",
+                "Slack",
+                "Teams",
+                "HubSpot",
+                "Salesforce",
+                "Shopify",
+                "WooCommerce",
+                "Airtable",
+                "Notion",
+                "Monday.com",
+                "Webhook / API",
+              ]}
+            />
 
             <h2>Teknologi</h2>
             <p>
