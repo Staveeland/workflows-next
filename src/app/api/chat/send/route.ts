@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-import { escapeMarkdown, sendTelegramToPetter } from "@/lib/telegram";
+import { sendTelegramToPetter } from "@/lib/telegram";
+import { getClientIp, rateLimit, tooManyRequests } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,21 @@ type Body = { email?: string; text?: string };
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_LEN = 4000;
 
+// 30 requests / minute per IP — generous enough for an engaged conversation,
+// strict enough to make spam-flood unattractive.
+const RL_MAX = 30;
+const RL_WINDOW_MS = 60_000;
+
 export async function POST(req: Request) {
+  const ip = getClientIp(req);
+  const rl = rateLimit({
+    key: "chat:send",
+    identifier: ip,
+    max: RL_MAX,
+    windowMs: RL_WINDOW_MS,
+  });
+  if (!rl.ok) return tooManyRequests(rl, RL_MAX);
+
   let body: Body;
   try {
     body = (await req.json()) as Body;
@@ -45,8 +60,8 @@ export async function POST(req: Request) {
     .limit(1)
     .maybeSingle();
 
-  const namePart = escapeMarkdown(user.name || email);
-  const tgText = `💬 *${namePart}:*\n${escapeMarkdown(text)}`;
+  const namePart = user.name || email;
+  const tgText = `💬 ${namePart}:\n${text}`;
   const tg = await sendTelegramToPetter({
     text: tgText,
     replyToMessageId: anchor?.telegram_message_id ?? undefined,

@@ -1,7 +1,41 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+
+// Strict sanitization schema: only the inline + block elements we actually
+// want to render in chat bubbles. Links are forced to http(s) only and open
+// in a new tab with rel="noopener noreferrer".
+const sanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [
+    "p",
+    "br",
+    "strong",
+    "em",
+    "ul",
+    "ol",
+    "li",
+    "a",
+    "code",
+    "pre",
+    "blockquote",
+  ],
+  attributes: {
+    ...defaultSchema.attributes,
+    a: [
+      ["href", /^https?:\/\//i],
+      ["title"],
+    ],
+  },
+  protocols: {
+    ...defaultSchema.protocols,
+    href: ["http", "https"],
+  },
+};
 
 type Role = "user" | "assistant" | "petter";
 type Msg = { role: Role; text: string; createdAt?: string };
@@ -20,54 +54,33 @@ const WELCOME: Msg = {
     "Hei! 😊 Jeg er Workflows sin AI-assistent. Spør meg om AI-agenter, automatisering eller hva vi har bygget for andre — eller trykk «Snakk med Petter» nedenfor for direkte samtale.",
 };
 
-function escapeHtml(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-function renderInline(s: string) {
-  return escapeHtml(s)
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/(?<!\*)\*(?!\*)([^\*\n]+?)\*(?!\*)/g, "<em>$1</em>")
-    .replace(
-      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
-    );
-}
-function renderMessage(text: string) {
-  const lines = text.split("\n");
-  const blocks: string[] = [];
-  let listBuffer: string[] = [];
-  const flushList = () => {
-    if (listBuffer.length) {
-      blocks.push(
-        `<ul>${listBuffer.map((li) => `<li>${renderInline(li)}</li>`).join("")}</ul>`
-      );
-      listBuffer = [];
-    }
-  };
-  for (const raw of lines) {
-    const line = raw.trimEnd();
-    const m = line.match(/^\s*[-•]\s+(.*)$/);
-    if (m) listBuffer.push(m[1]);
-    else {
-      flushList();
-      if (line === "") blocks.push("<br />");
-      else blocks.push(`<p>${renderInline(line)}</p>`);
-    }
-  }
-  flushList();
-  return blocks.join("");
-}
-
 function ChatMessage({ role, text }: { role: Role; text: string }) {
-  const html = useMemo(() => renderMessage(text), [text]);
   return (
     <motion.div
       className={`chat-msg chat-msg--${role}`}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    >
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[[rehypeSanitize, sanitizeSchema]]}
+        components={{
+          a: ({ href, children, ...props }) => (
+            <a
+              {...props}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+            >
+              {children}
+            </a>
+          ),
+        }}
+      >
+        {text}
+      </ReactMarkdown>
+    </motion.div>
   );
 }
 

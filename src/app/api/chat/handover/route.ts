@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-import { escapeMarkdown, sendTelegramToPetter } from "@/lib/telegram";
+import { sendTelegramToPetter } from "@/lib/telegram";
+import { getClientIp, rateLimit, tooManyRequests } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -13,7 +14,22 @@ type Body = {
 
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Handover is the *expensive* endpoint: it pings Telegram, upserts a user,
+// inserts history rows. 3 per 10 minutes per IP — plenty for legitimate users
+// (incl. retries), brutal for spammers.
+const RL_MAX = 3;
+const RL_WINDOW_MS = 10 * 60_000;
+
 export async function POST(req: Request) {
+  const ip = getClientIp(req);
+  const rl = rateLimit({
+    key: "chat:handover",
+    identifier: ip,
+    max: RL_MAX,
+    windowMs: RL_WINDOW_MS,
+  });
+  if (!rl.ok) return tooManyRequests(rl, RL_MAX);
+
   let body: Body;
   try {
     body = (await req.json()) as Body;
@@ -68,17 +84,14 @@ export async function POST(req: Request) {
   }
 
   // Notify Petter on Telegram. The message_id we send is the "anchor" he replies to.
-  const safeName = escapeMarkdown(name);
-  const safeEmail = escapeMarkdown(email);
-  const safeReq = initialRequest
-    ? "\n\n_" + escapeMarkdown(initialRequest) + "_"
-    : "";
+  // Plain text (no parse_mode) — sidesteps Markdown injection / escaping bugs.
+  const reqPart = initialRequest ? `\n\n${initialRequest}` : "";
   const text =
-    `🟢 *Ny direkte-chat fra workflows.no*\n` +
-    `👤 ${safeName}\n` +
-    `📧 ${safeEmail}` +
-    safeReq +
-    `\n\n_Svar med Telegram «Reply» på denne meldingen — eller på en hvilken som helst melding fra denne kunden — så havner svaret direkte i chatten på siden._`;
+    `🟢 Ny direkte-chat fra workflows.no\n` +
+    `👤 ${name}\n` +
+    `📧 ${email}` +
+    reqPart +
+    `\n\nSvar med Telegram «Reply» på denne meldingen — eller på en hvilken som helst melding fra denne kunden — så havner svaret direkte i chatten på siden.`;
 
   const tg = await sendTelegramToPetter({ text });
   // Save a system message that anchors the Telegram conversation

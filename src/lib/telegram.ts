@@ -3,6 +3,14 @@ type SendArgs = {
   replyToMessageId?: number;
 };
 
+/**
+ * Send a plain-text message to Petter on Telegram.
+ *
+ * We deliberately do NOT use Markdown / MarkdownV2 parse modes — the
+ * home-rolled escape was incomplete and the cost of getting it wrong
+ * (broken messages, or worse, injected formatting from user-controlled
+ * fields) outweighed the benefit of a few bold words.
+ */
 export async function sendTelegramToPetter({
   text,
   replyToMessageId,
@@ -15,7 +23,6 @@ export async function sendTelegramToPetter({
   const body: Record<string, unknown> = {
     chat_id: chatId,
     text,
-    parse_mode: "Markdown",
     disable_web_page_preview: true,
   };
   if (replyToMessageId) body.reply_to_message_id = replyToMessageId;
@@ -38,8 +45,4 @@ export async function sendTelegramToPetter({
       error: e instanceof Error ? e.message : "Unknown error",
     };
   }
-}
-
-export function escapeMarkdown(s: string) {
-  return s.replace(/([_*`\[\]])/g, "\\$1");
 }
