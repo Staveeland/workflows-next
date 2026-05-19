@@ -2,11 +2,30 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { urlFor } from "@/lib/site";
 import { buildBreadcrumb, buildService } from "@/lib/jsonLd";
+import PageHero from "@/components/visuals/PageHero";
+import Timeline from "@/components/visuals/Timeline";
+import HighlightGrid from "@/components/visuals/HighlightGrid";
+import BeforeAfter from "@/components/visuals/BeforeAfter";
+import UseCaseGrid from "@/components/visuals/UseCaseGrid";
+import {
+  IconAgent,
+  IconEye,
+  IconBrain,
+  IconBolt,
+  IconCheck,
+  IconShield,
+  IconSearch,
+  IconMail,
+  IconChart,
+  IconHandshake,
+  IconDoc,
+  IconSpark,
+} from "@/components/icons/ServiceIcons";
 
 export const metadata: Metadata = {
   title: "AI-agenter — autonome assistenter for bedrifter",
   description:
-    "Vi bygger AI-agenter som planlegger, bruker verktøy og utfører oppgaver på egen hånd. Fra idé til ferdig agent, tilpasset din bedrift.",
+    "Autonome AI-agenter som oppfatter, planlegger, handler og verifiserer. Multi-step workflows med beslutninger — fra research og salg til kundestøtte. Bygget trygt og testet for din bedrift.",
   alternates: { canonical: "/ai-agenter" },
   openGraph: {
     title: "AI-agenter — autonome assistenter for bedrifter | Workflows",
@@ -18,12 +37,12 @@ export const metadata: Metadata = {
   keywords: [
     "AI-agenter",
     "AI agenter",
-    "smarte agenter",
+    "autonome agenter",
     "autonome AI-agenter",
+    "agentic AI",
     "AI agent bedrift",
     "AI-agent Norge",
     "AI-agent Haugesund",
-    "agentic AI",
   ],
 };
 
@@ -37,8 +56,92 @@ const serviceJsonLd = buildService({
   slug: "/ai-agenter",
   serviceType: "AI-agentutvikling",
   description:
-    "Utvikling av autonome AI-agenter som planlegger, bruker verktøy og utfører oppgaver på vegne av bedrifter.",
+    "Utvikling av autonome AI-agenter (agentic AI) som oppfatter, planlegger, handler og verifiserer — multi-step workflows som tar beslutninger og utfører oppgaver på vegne av bedrifter.",
 });
+
+const heroHighlights = [
+  { icon: <IconBrain size={22} />, text: "Planlegger og handler — ikke bare svarer" },
+  { icon: <IconShield size={22} />, text: "Begrensede tilganger og menneske i løkken" },
+  { icon: <IconCheck size={22} />, text: "Loggføring og verifisering på hvert steg" },
+];
+
+const agentLoop = [
+  {
+    icon: <IconEye size={22} />,
+    title: "Oppfatte",
+    body: "Leser konteksten — e-post, oppgave, sanntidsdata — og forstår hva som har skjedd.",
+    meta: "Steg 1",
+  },
+  {
+    icon: <IconBrain size={22} />,
+    title: "Planlegge",
+    body: "Bryter målet ned i konkrete steg og velger riktige verktøy. Kan revidere planen underveis.",
+    meta: "Steg 2",
+  },
+  {
+    icon: <IconBolt size={22} />,
+    title: "Handle",
+    body: "Kaller APIer, oppretter ordrer, sender e-post, oppdaterer CRM. Godkjenning der det trengs.",
+    meta: "Steg 3",
+  },
+  {
+    icon: <IconCheck size={22} />,
+    title: "Verifisere",
+    body: "Sjekker resultatet, logger hva som ble gjort, rapporterer tilbake. Feil oppdages tidlig.",
+    meta: "Steg 4",
+  },
+];
+
+const agentTypes = [
+  {
+    icon: <IconSearch size={22} />,
+    title: "Research-agent",
+    body: "Graver frem og kryssjekker informasjon fra interne og eksterne kilder.",
+  },
+  {
+    icon: <IconHandshake size={22} />,
+    title: "Salgs- og lead-agent",
+    body: "Kvalifiserer leads, beriker dem og oppretter oppgaver i CRM.",
+  },
+  {
+    icon: <IconMail size={22} />,
+    title: "Innboks-agent",
+    body: "Klassifiserer e-post, trekker ut data, legger inn i riktig system.",
+  },
+  {
+    icon: <IconChart size={22} />,
+    title: "Rapport-agent",
+    body: "Henter tall fra flere systemer og leverer ferdig presentasjon.",
+  },
+  {
+    icon: <IconDoc size={22} />,
+    title: "Dokument-agent",
+    body: "Leser kontrakter og tilbud, validerer mot regler, fyller ut maler.",
+  },
+  {
+    icon: <IconSpark size={22} />,
+    title: "Overvåkings-agent",
+    body: "Varsler eller handler når data eller hendelser avviker fra normalt.",
+  },
+];
+
+const agentUseCases = [
+  {
+    icon: <IconChart size={22} />,
+    title: "Kvartalsrapport på minutter",
+    body: "Henter tall fra ERP, regnskap og CRM, leverer ferdig presentasjon.",
+  },
+  {
+    icon: <IconHandshake size={22} />,
+    title: "Kundestøtte som løser saker",
+    body: "Oppretter ordrer, booker møter, oppdaterer kontoer — ikke bare svarer.",
+  },
+  {
+    icon: <IconSearch size={22} />,
+    title: "Markeds- og konkurrentanalyse",
+    body: "Leser nettsider og rapporter, leverer oppdatert konkurransebilde hver uke.",
+  },
+];
 
 export default function AiAgenterPage() {
   return (
@@ -52,129 +155,84 @@ export default function AiAgenterPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
       />
 
-      <section className="page-hero">
+      <PageHero
+        tag="Nivå 3 — AI-agenter"
+        title="Autonome AI-agenter som gjør jobben"
+        sub="En AI-agent får et mål, lager en plan, bruker verktøy og utfører handlinger — ikke bare svarer. Agentic AI med begrensede tilganger og menneske i løkken der det trengs."
+        visual="agent"
+        highlights={heroHighlights}
+      />
+
+      <section className="section">
         <div className="wrap">
-          <span className="tag">AI-agenter</span>
-          <h1>AI-agenter</h1>
-          <p className="page-hero__sub">
-            En AI-agent får et mål, lager sin egen plan, henter data, bruker verktøy og utfører
-            handlinger. Vi bygger agenter som faktisk gjør jobben for deg — trygt, testet og
-            tilpasset din bedrift.
-          </p>
+          <header className="section__header">
+            <span className="tag">Slik jobber en agent</span>
+            <h2>Oppfatte → planlegge → handle → verifisere</h2>
+          </header>
+          <Timeline steps={agentLoop} />
+        </div>
+      </section>
+
+      <section className="section section--alt">
+        <div className="wrap">
+          <header className="section__header">
+            <span className="tag">Uten vs Med</span>
+            <h2>Timer manuelt — minutter med agent</h2>
+          </header>
+          <BeforeAfter
+            beforeTitle="Manuell prosess"
+            before={[
+              { label: "Hopper mellom 5 systemer for å samle data" },
+              { label: "Bygger rapporter fra bunnen hver gang" },
+              { label: "Glemmer steg når dagen blir hektisk" },
+              { label: "Tar timer, gjøres ulikt av ulike personer" },
+            ]}
+            afterTitle="Med AI-agent"
+            after={[
+              { label: "Henter og kobler data automatisk" },
+              { label: "Standardisert utkast ferdig på minutter" },
+              { label: "Alle steg logges og kan revurderes" },
+              { label: "Du godkjenner kun det som krever vurdering" },
+            ]}
+          />
         </div>
       </section>
 
       <section className="section">
         <div className="wrap">
-          <article className="longform">
-            <h2>Hva er en AI-agent?</h2>
+          <header className="section__header">
+            <span className="tag">Typer agenter</span>
+            <h2>Agentic AI tilpasset rollen</h2>
+          </header>
+          <HighlightGrid items={agentTypes} columns={3} />
+        </div>
+      </section>
+
+      <section className="section section--alt">
+        <div className="wrap">
+          <header className="section__header">
+            <span className="tag">Bruksområder</span>
+            <h2>Hvor en agent virkelig betaler seg</h2>
+          </header>
+          <UseCaseGrid items={agentUseCases} />
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="wrap">
+          <article className="longform longform--center">
+            <h2>Når er det riktig med en agent?</h2>
             <p>
-              En AI-agent er et system som er koblet til en språkmodell og til verktøy og data
-              i bedriften din. I stedet for å bare svare på spørsmål, kan agenten ta beslutninger
-              og utføre handlinger. Du forteller agenten hva målet er, og den finner ut resten
-              på egen hånd.
+              Skal systemet bare <em>svare</em>, er en{" "}
+              <Link href="/chatboter">chatbot</Link> raskere. Er prosessen helt forutsigbar,
+              passer en <Link href="/automatiserte-flyter">automatisert flyt</Link>. AI-agenter
+              kommer til sin rett der oppgaven krever <strong>beslutninger</strong>, flere steg
+              og skjønn.
             </p>
             <p>
-              Hvis du ber en vanlig chatbot om å «lage en kvartalsrapport for Q1», svarer den
-              kanskje med et forslag til hvordan rapporten kan se ut. En agent derimot henter
-              faktiske tall fra systemene dine, analyserer trender, lager grafer, skriver
-              sammendraget og leverer deg en ferdig presentasjon.
-            </p>
-
-            <h2>Forskjellen på chatbot, automatisering og agent</h2>
-            <ul>
-              <li>
-                <strong>Chatbot:</strong> Svarer på spørsmål basert på tilgjengelig data.
-                Reaktiv — venter på at du skal spørre om noe.
-              </li>
-              <li>
-                <strong>Automatisert flyt:</strong> Kjører en fast sekvens av steg når noe
-                trigger den. Forutsigbar — gjør det samme hver gang.
-              </li>
-              <li>
-                <strong>AI-agent:</strong> Får et mål og velger selv hvilke steg som trengs.
-                Dynamisk — tilpasser seg situasjonen.
-              </li>
-            </ul>
-            <p>
-              De tre nivåene utelukker ikke hverandre. Ofte er den beste løsningen en
-              kombinasjon: automatiserte flyter for det som er forutsigbart, og agenter der
-              det kreves skjønn eller variasjon.
-            </p>
-
-            <h2>Hva en AI-agent kan gjøre for bedriften din</h2>
-            <p>Noen typiske bruksområder vi bygger agenter for:</p>
-            <ul>
-              <li>
-                Lese innkommende e-post, klassifisere dem, trekke ut data og legge det inn i
-                riktig system.
-              </li>
-              <li>
-                Overvåke data kontinuerlig og varsle når det skjer noe som krever oppmerksomhet.
-              </li>
-              <li>
-                Forberede rapporter ved å hente tall fra flere systemer, analysere og oppsummere.
-              </li>
-              <li>
-                Kundestøtte som ikke bare svarer, men også faktisk løser saker — oppretter
-                ordrer, booker møter, oppdaterer kontoer.
-              </li>
-              <li>
-                Research-oppgaver: grave frem informasjon fra interne dokumenter og eksterne
-                kilder, kryssjekke og levere et sammendrag.
-              </li>
-            </ul>
-
-            <h2>Slik bygger vi AI-agenter</h2>
-            <p>
-              En agent som får tilgang til produksjonssystemer er et alvorlig ansvar. Vi følger
-              noen grunnprinsipper:
-            </p>
-            <ul>
-              <li>
-                <strong>Begrensede tilganger.</strong> Agenten får bare verktøyene og dataene
-                den faktisk trenger. Ingen generell tilgang.
-              </li>
-              <li>
-                <strong>Menneske i løkken der det trengs.</strong> Handlinger med konsekvenser
-                krever ofte godkjenning før de utføres.
-              </li>
-              <li>
-                <strong>Logging og sporing.</strong> Alle beslutninger og handlinger logges,
-                slik at du kan se nøyaktig hva agenten har gjort og hvorfor.
-              </li>
-              <li>
-                <strong>Testing.</strong> Agenter testes mot realistiske scenarier før de
-                settes i produksjon.
-              </li>
-              <li>
-                <strong>Iterasjon.</strong> Vi starter med et smalt scope, lar agenten bevise
-                seg, og utvider først når den fungerer trygt.
-              </li>
-            </ul>
-
-            <h2>Teknologi vi bruker</h2>
-            <p>
-              Vi bygger på de beste tilgjengelige språkmodellene: OpenAI (GPT-serien), Anthropic
-              (Claude), og Google (Gemini). Vi er teknologi-agnostiske og velger det som passer
-              best for hvert prosjekt. Agentene kjøres typisk på Vercel, Microsoft Azure eller
-              Google Cloud — ofte innenfor EU for å følge norske og europeiske personvernkrav.
-            </p>
-
-            <h2>Eksempler fra våre prosjekter</h2>
-            <p>
-              Vi har bygget agent-lignende systemer for flere kunder. Les om{" "}
-              <Link href="/kunder/csub">CSUB</Link> — der en RAG-assistent henter frem
-              prosjektdata og genererer rapporter — eller{" "}
-              <Link href="/kunder/festiviteten">Festiviteten</Link>, der AI overvåker
-              billettsalg og annonseytelse i sanntid og rådgir 24/7.
-            </p>
-
-            <h2>Kom i gang</h2>
-            <p>
-              Ikke alle problemer trenger en agent. Noen ganger er en enkel automatisering bedre.
-              I en første samtale finner vi ut sammen hva som passer din bedrift — og om en
-              AI-agent er riktig verktøy.
+              Se hvordan vi har bygget agent-lignende systemer for{" "}
+              <Link href="/kunder/csub">CSUB</Link> og{" "}
+              <Link href="/kunder/festiviteten">Festiviteten</Link>.
             </p>
           </article>
         </div>

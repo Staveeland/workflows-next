@@ -2,11 +2,26 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { urlFor } from "@/lib/site";
 import { buildBreadcrumb, buildService } from "@/lib/jsonLd";
+import PageHero from "@/components/visuals/PageHero";
+import HighlightGrid from "@/components/visuals/HighlightGrid";
+import BeforeAfter from "@/components/visuals/BeforeAfter";
+import UseCaseGrid from "@/components/visuals/UseCaseGrid";
+import IntegrationCloud from "@/components/visuals/IntegrationCloud";
+import {
+  IconChatbot,
+  IconDoc,
+  IconSearch,
+  IconHandshake,
+  IconBolt,
+  IconShield,
+  IconMail,
+  IconBrain,
+} from "@/components/icons/ServiceIcons";
 
 export const metadata: Metadata = {
   title: "Chatboter for bedrifter — AI-drevne assistenter",
   description:
-    "Vi bygger chatboter som svarer kunder, henter data fra interne systemer og håndterer henvendelser døgnet rundt. Bygget med språkmodeller, trent på bedriftens egen data.",
+    "Vi bygger chatboter som svarer kunder 24/7, henter svar fra dine egne dokumenter (RAG) og integrerer med Slack, Teams, CRM og nettside. Kundeservice som er på når du ikke er.",
   alternates: { canonical: "/chatboter" },
   openGraph: {
     title: "Chatboter for bedrifter | Workflows",
@@ -19,10 +34,11 @@ export const metadata: Metadata = {
     "chatbot",
     "chatbot bedrift",
     "AI chatbot",
-    "chatbot Haugesund",
-    "chatbot Norge",
+    "AI-assistent",
     "kundeservice chatbot",
     "RAG chatbot",
+    "chatbot Haugesund",
+    "chatbot Norge",
     "språkmodell chatbot",
   ],
 };
@@ -37,8 +53,72 @@ const serviceJsonLd = buildService({
   slug: "/chatboter",
   serviceType: "Chatbot-utvikling",
   description:
-    "Utvikling av AI-drevne chatboter som svarer kunder, håndterer henvendelser og henter data fra interne systemer.",
+    "Utvikling av AI-drevne chatboter og AI-assistenter som svarer kunder 24/7, henter data fra interne systemer via RAG, og integrerer med Slack, Teams, CRM og nettside.",
 });
+
+const heroHighlights = [
+  { icon: <IconBolt size={22} />, text: "Svarer på sekunder, døgnet rundt" },
+  { icon: <IconBrain size={22} />, text: "RAG mot dine egne dokumenter — ikke gjetting" },
+  { icon: <IconShield size={22} />, text: "EU-region og GDPR for sensitive data" },
+];
+
+const chatbotTypes = [
+  {
+    icon: <IconHandshake size={22} />,
+    title: "Kundeservice-bot",
+    body: "Svarer om produkter, ordrer og retur. Eskalerer til menneske med full kontekst.",
+  },
+  {
+    icon: <IconDoc size={22} />,
+    title: "Intern kunnskapsbot",
+    body: "Hjelper ansatte å finne svar i rutiner, håndbøker og HR-dokumenter.",
+  },
+  {
+    icon: <IconSearch size={22} />,
+    title: "Dokumentsøk med RAG",
+    body: "Presise, sporbare svar fra dine egne kontrakter, manualer og prosedyrer.",
+  },
+  {
+    icon: <IconMail size={22} />,
+    title: "Lead-kvalifisering",
+    body: "Sorterer besøkende, varsler selger med en oppsummering.",
+  },
+];
+
+const chatbotUseCases = [
+  {
+    icon: <IconChatbot size={22} />,
+    title: "24/7 kundeservice",
+    body: "Bot tar enkle henvendelser, mennesker tar resten.",
+  },
+  {
+    icon: <IconDoc size={22} />,
+    title: "Onboarding av nye ansatte",
+    body: "Lavere terskel for å spørre om alt fra ferie-rutiner til blanketter.",
+  },
+  {
+    icon: <IconSearch size={22} />,
+    title: "Teknisk dokumentasjon",
+    body: "Manualer blir søkbare på naturlig språk i Slack, Teams eller på mobil.",
+  },
+];
+
+const chatbotIntegrations = [
+  "Nettside-widget",
+  "Slack",
+  "Microsoft Teams",
+  "WhatsApp",
+  "Messenger",
+  "Telegram",
+  "HubSpot",
+  "Salesforce",
+  "Tripletex",
+  "Microsoft 365",
+  "Google Workspace",
+  "OpenAI",
+  "Anthropic Claude",
+  "Webhook / API",
+];
 
 export default function ChatboterPage() {
   return (
@@ -52,120 +132,84 @@ export default function ChatboterPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
       />
 
-      <section className="page-hero">
+      <PageHero
+        tag="Nivå 1 — Chatboter"
+        title="Chatboter og AI-assistenter for bedrifter"
+        sub="En moderne chatbot svarer kunder 24/7 — på nettsiden, i Slack eller Teams — og henter svar fra dine egne dokumenter via RAG. Ikke skript, ikke gjetting."
+        visual="chatbot"
+        highlights={heroHighlights}
+      />
+
+      <section className="section">
         <div className="wrap">
-          <span className="tag">Nivå 1 — Chatboter</span>
-          <h1>Chatboter for bedrifter</h1>
-          <p className="page-hero__sub">
-            En chatbot er en digital assistent som svarer på spørsmål i et samtalegrensesnitt.
-            Vi bygger chatboter som er koblet til språkmodeller og bedriftens egne data —
-            slik at de faktisk kan være nyttige, ikke bare skript-styrte.
-          </p>
+          <header className="section__header">
+            <span className="tag">Typer chatboter</span>
+            <h2>En AI-assistent for hver rolle</h2>
+          </header>
+          <HighlightGrid items={chatbotTypes} columns={2} />
+        </div>
+      </section>
+
+      <section className="section section--alt">
+        <div className="wrap">
+          <header className="section__header">
+            <span className="tag">Uten vs Med</span>
+            <h2>Fra ventekø til selvbetjening</h2>
+          </header>
+          <BeforeAfter
+            beforeTitle="Manuell kundesupport"
+            before={[
+              { label: "Samme spørsmål besvares dusinvis av ganger" },
+              { label: "Henvendelser etter åpningstid mister momentum" },
+              { label: "Svar varierer mellom ansatte" },
+              { label: "Support brukes opp på enkle saker" },
+            ]}
+            afterTitle="AI-bot med handover"
+            after={[
+              { label: "Bot svarer 24/7 fra dine dokumenter" },
+              { label: "Komplekse saker eskaleres med full kontekst" },
+              { label: "Konsistent tone og brand-stemme" },
+              { label: "Support jobber bare med det som krever menneske" },
+            ]}
+          />
         </div>
       </section>
 
       <section className="section">
         <div className="wrap">
-          <article className="longform">
-            <h2>Hva er en moderne chatbot?</h2>
+          <header className="section__header">
+            <span className="tag">Bruksområder</span>
+            <h2>Hvor en chatbot gjør størst forskjell</h2>
+          </header>
+          <UseCaseGrid items={chatbotUseCases} />
+        </div>
+      </section>
+
+      <section className="section section--alt">
+        <div className="wrap">
+          <header className="section__header">
+            <span className="tag">Integrasjoner</span>
+            <h2>Der kundene og kollegene allerede er</h2>
+          </header>
+          <IntegrationCloud items={chatbotIntegrations} />
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="wrap">
+          <article className="longform longform--center">
+            <h2>Når er en chatbot riktig — og når er det noe annet?</h2>
             <p>
-              De gamle chatbotene var i praksis beslutningstrær — «velg 1 for ordre, 2 for
-              support». Moderne chatboter er koblet på språkmodeller som GPT eller Claude, og
-              kan føre en naturlig samtale. De kan også kobles på bedriftens egen dokumentasjon
-              og data, slik at de svarer ut fra reell informasjon — ikke bare hva de ble trent
-              på generelt.
+              En chatbot passer når jobben er å <em>svare</em>. Skal systemet også{" "}
+              <em>handle</em> — opprette ordrer, oppdatere data, bestille møter — trenger du en{" "}
+              <Link href="/ai-agenter">AI-agent</Link>. Er prosessen helt forutsigbar, er en{" "}
+              <Link href="/automatiserte-flyter">automatisert flyt</Link> enklere.
             </p>
             <p>
-              Denne tilnærmingen kalles ofte <strong>RAG</strong> (retrieval-augmented
-              generation). Chatboten henter frem relevante utdrag fra dine dokumenter og bruker
-              dem som grunnlag for svaret. Det gjør svarene presise og sporbare — og reduserer
-              risikoen for at den finner på ting.
+              Se hvordan vi har bygget AI-assistenter for{" "}
+              <Link href="/kunder/csub">CSUB</Link> og{" "}
+              <Link href="/kunder/festiviteten">Festiviteten</Link>.
             </p>
-
-            <h2>Når er en chatbot riktig verktøy?</h2>
-            <p>En chatbot passer godt når du har:</p>
-            <ul>
-              <li>
-                Mange repeterende spørsmål fra kunder eller ansatte som egentlig har standardsvar
-                i dokumentasjon noen må lete seg frem til.
-              </li>
-              <li>
-                En stor mengde informasjon — produkter, behandlinger, regler, prosedyrer — som
-                er vanskelig å navigere via meny eller søk.
-              </li>
-              <li>Behov for støtte døgnet rundt, uten å bemanne utenom åpningstid.</li>
-              <li>
-                En ønsket tone og brand-stemme som må være konsistent på tvers av henvendelser.
-              </li>
-            </ul>
-            <p>
-              Trenger du noe som gjør mer enn å svare — for eksempel opprette ordrer, oppdatere
-              data eller ta handlinger — er det ofte en{" "}
-              <Link href="/ai-agenter">AI-agent</Link> du trenger, ikke en chatbot. Og hvis
-              oppgaven er strukturert og forutsigbar, kan en{" "}
-              <Link href="/automatiserte-flyter">automatisert flyt</Link> være enklere og
-              rimeligere.
-            </p>
-
-            <h2>Typer chatboter vi bygger</h2>
-            <ul>
-              <li>
-                <strong>Kundeservice-chatboter</strong> — svarer kunder på spørsmål om
-                produkter, ordrer, retur, levering.
-              </li>
-              <li>
-                <strong>Interne kunnskapsassistenter</strong> — hjelper ansatte med å finne
-                frem i rutiner, håndbøker, tekniske manualer, HR-dokumenter.
-              </li>
-              <li>
-                <strong>Lead-kvalifisering</strong> — fører en innledende samtale med besøkende
-                på nettsiden og sorterer mellom reelle interessenter og generelle spørsmål.
-              </li>
-              <li>
-                <strong>Support-chatboter med eskalering</strong> — håndterer enkle saker selv,
-                og sender komplekse saker videre til et menneske med full kontekst.
-              </li>
-            </ul>
-
-            <h2>Hvordan vi bygger en chatbot</h2>
-            <ol>
-              <li>
-                <strong>Kartlegging.</strong> Vi ser på hvilke spørsmål chatboten skal kunne
-                svare på, og hvilken data den trenger tilgang til.
-              </li>
-              <li>
-                <strong>Datagrunnlag.</strong> Vi samler, strukturerer og indekserer
-                dokumentasjonen. Dårlig datagrunnlag gir dårlig chatbot — uansett hvor god
-                modellen er.
-              </li>
-              <li>
-                <strong>Prompt og tone.</strong> Vi skreddersyr hvordan chatboten skal snakke
-                — formell eller uformell, fag-språk eller forenklet.
-              </li>
-              <li>
-                <strong>Testing og iterasjon.</strong> Vi tester mot realistiske spørsmål, og
-                justerer til den svarer slik du vil.
-              </li>
-              <li>
-                <strong>Publisering.</strong> Integreres på nettsiden, i Slack, Teams, WhatsApp,
-                eller et eget grensesnitt.
-              </li>
-            </ol>
-
-            <h2>Integrasjon med eksisterende kanaler</h2>
-            <p>
-              Chatboten trenger ikke å leve i et eget vindu på nettsiden din. Vi kan bygge den
-              inn i Slack eller Microsoft Teams for interne team, i WhatsApp eller Messenger
-              for kundehenvendelser, eller som et API andre systemer kan kalle.
-            </p>
-
-            <h2>Personvern og datasikkerhet</h2>
-            <p>
-              For sensitive data kjører vi innenfor EU og følger GDPR. Du bestemmer selv hva
-              chatboten har tilgang til, hva som logges, og hvor lenge samtaler lagres. Vi kan
-              også sette opp versjoner der ingen data sendes ut av din egen infrastruktur.
-            </p>
-
           </article>
         </div>
       </section>
