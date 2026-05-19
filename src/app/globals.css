@@ -1985,6 +1985,19 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   max-width: 640px;
 }
 
+/* Featured FAQ list on the home page */
+.faq-list--featured {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.faq-see-all {
+  max-width: 760px;
+  margin: 32px auto 0;
+  display: flex;
+  justify-content: center;
+}
+
 /* ═══════════════════════ */
 /*    OUR APP (MyStyler)   */
 /* ═══════════════════════ */

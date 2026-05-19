@@ -495,20 +495,19 @@ export default function Home() {
             <AnimatedHeading text={t.faq.heading} className="accent-section__heading" />
           </motion.div>
 
-          <motion.div className="faq-layout" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            {t.faq.categories.map((cat, ci) => (
-              <motion.div key={cat.category} className="faq-category" variants={fadeUp} custom={ci}>
-                <h2>{cat.category}</h2>
-                <div className="faq-list">
-                  {cat.questions.map((faq) => (
-                    <details key={faq.q} className="faq-item">
-                      <summary>{faq.q}</summary>
-                      <p>{faq.a}</p>
-                    </details>
-                  ))}
-                </div>
-              </motion.div>
+          <motion.div className="faq-list faq-list--featured" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
+            {t.faq.featured.map((faq, fi) => (
+              <motion.details key={faq.q} className="faq-item" variants={fadeUp} custom={fi}>
+                <summary>{faq.q}</summary>
+                <p>{faq.a}</p>
+              </motion.details>
             ))}
+          </motion.div>
+
+          <motion.div className="faq-see-all" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={fadeUp}>
+            <Link href={t.faq.seeAllHref} className="btn btn--dark">
+              {t.faq.seeAllLabel} <span className="btn__arrow">&rarr;</span>
+            </Link>
           </motion.div>
         </div>
       </section>

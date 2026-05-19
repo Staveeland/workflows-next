@@ -231,6 +231,15 @@ export const translations = {
     faq: {
       tag: 'FAQ',
       heading: 'Ofte stilte spørsmål',
+      seeAllLabel: 'Se alle vanlige spørsmål',
+      seeAllHref: '/faq',
+      featured: [
+        { q: 'Hva koster det?', a: 'Prisen avhenger av prosjektets omfang og størrelse. Vi gir alltid et fast pristilbud etter en uforpliktende første samtale — slik at du vet nøyaktig hva du betaler før du bestemmer deg.' },
+        { q: 'Hvor lang tid tar det?', a: 'De fleste prosjekter leveres innen 4–12 uker. Enkle automatiseringer kan være klare på under to uker. Du ser fremgang fra uke én — vi viser deg demoer underveis slik at du kan gi tilbakemeldinger tidlig.' },
+        { q: 'Eier vi koden og systemet?', a: 'Ja, alltid. Du eier alt vi bygger for deg — kildekode, design, data. Det er ingen innlåsing og ingen skjulte kostnader. Hvis du en dag vil bytte leverandør eller ta over driften selv, har du full frihet til det.' },
+        { q: 'Er dataene våre trygge?', a: 'Absolutt. Vi følger beste praksis for datasikkerhet og personvern. Alle systemer bygges med kryptering, tilgangskontroll og sikker hosting. Vi er kjent med GDPR-kravene og sørger for at løsningene er i samsvar med norske og europeiske regelverk.' },
+        { q: 'Er den første samtalen virkelig gratis?', a: 'Ja, helt gratis og uforpliktende. Vi setter oss ned (fysisk eller digitalt) og lytter til utfordringene dine. Etter samtalen får du et konkret forslag til hva vi kan gjøre — uten noen forpliktelser.' },
+      ],
       categories: [
         {
           category: 'Om tjenestene',
@@ -521,6 +530,15 @@ export const translations = {
     faq: {
       tag: 'FAQ',
       heading: 'Frequently asked questions',
+      seeAllLabel: 'See all FAQs',
+      seeAllHref: '/faq',
+      featured: [
+        { q: 'What does it cost?', a: "The price depends on the scope and size of the project. We always provide a fixed quote after a non-binding initial conversation — so you know exactly what you'll pay before you decide." },
+        { q: 'How long does it take?', a: 'Most projects are delivered within 4–12 weeks. Simple automations can be ready in under two weeks. You see progress from week one — we show you demos along the way so you can give early feedback.' },
+        { q: 'Do we own the code and the system?', a: 'Yes, always. You own everything we build for you — source code, design, data. There is no lock-in and no hidden costs. If you ever want to switch vendors or take over operations yourself, you have full freedom to do so.' },
+        { q: 'Is our data safe?', a: 'Absolutely. We follow best practices for data security and privacy. All systems are built with encryption, access control, and secure hosting. We are familiar with GDPR requirements and ensure that solutions comply with Norwegian and European regulations.' },
+        { q: 'Is the first conversation really free?', a: 'Yes, completely free and non-binding. We sit down (physically or digitally) and listen to your challenges. After the conversation, you get a concrete proposal for what we can do — with no obligations.' },
+      ],
       categories: [
         {
           category: 'About our services',
