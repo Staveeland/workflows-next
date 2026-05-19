@@ -152,9 +152,9 @@ export default function Home() {
             <a href="#kontakt" className="btn btn--primary">
               {t.hero.cta} <span className="btn__arrow">&rarr;</span>
             </a>
-            <a href="#tjenester" className="btn btn--ghost">
+            <Link href="/kunder" className="btn btn--ghost">
               {t.hero.ctaSecondary}
-            </a>
+            </Link>
           </motion.div>
         </motion.div>
 
@@ -481,83 +481,6 @@ export default function Home() {
                   <p>{c.desc}</p>
                   <span className="client-card__link">{t.clientsSection.readMore} &rarr;</span>
                 </Link>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ──── OUR APP (MyStyler) ──── */}
-      <section className="our-app" id="vaar-app">
-        <div className="wrap">
-          <motion.div className="our-app__grid"
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-20% 0px -20% 0px" }} variants={stagger}>
-            <motion.div className="our-app__content" variants={fadeUp}>
-              <span className="tag">{t.app.tag}</span>
-              <AnimatedHeading text={t.app.heading} />
-              <p className="our-app__lead">{t.app.lead}</p>
-              <p className="our-app__sub">{t.app.sub}</p>
-
-              <ul className="our-app__features">
-                {t.app.features.map((item) => (
-                  <li key={item} className="our-app__feature">
-                    <span className="our-app__check">&#10003;</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="our-app__cta">
-                <a
-                  href="https://apps.apple.com/no/app/mystyler-ai/id6763133918"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn--primary"
-                >
-                  {t.app.cta} <span className="btn__arrow">&rarr;</span>
-                </a>
-                <span className="our-app__platform">{t.app.platform}</span>
-              </div>
-            </motion.div>
-
-            <motion.div className="our-app__visual" variants={fadeUp} custom={1}>
-              <div className="our-app__logo-wrap">
-                <Image
-                  src="/mystyler-logo.png"
-                  alt="MyStyler — AI stylist app"
-                  width={520}
-                  height={520}
-                  className="our-app__logo"
-                  priority={false}
-                />
-              </div>
-              <div className="our-app__badge">
-                <span className="our-app__badge-spark">&#10022;</span>
-                <div>
-                  <strong>Real outfits.</strong>
-                  <span>Made for you. By AI.</span>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          <motion.div className="our-app__shots"
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-15% 0px -15% 0px" }} variants={stagger}>
-            {[
-              { src: "/mystyler-1.png", alt: "Build a style library — favourite looks you love" },
-              { src: "/mystyler-2.png", alt: "Use the clothes you own — wardrobe mode" },
-              { src: "/mystyler-3.png", alt: "Photorealistic, unmistakably you — four variations per prompt" },
-              { src: "/mystyler-4.png", alt: "Dinner, interview, beach — describe any moment, MyStyler dresses you for it" },
-            ].map((shot, i) => (
-              <motion.div key={shot.src} className="our-app__shot" variants={fadeUp} custom={i}>
-                <Image
-                  src={shot.src}
-                  alt={shot.alt}
-                  width={420}
-                  height={910}
-                  sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 240px"
-                  className="our-app__shot-img"
-                />
               </motion.div>
             ))}
           </motion.div>

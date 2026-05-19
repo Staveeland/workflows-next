@@ -19,6 +19,7 @@ const urls = [
   `https://${HOST}/kunder/festiviteten`,
   `https://${HOST}/kunder/elementlab`,
   `https://${HOST}/faq`,
+  `https://${HOST}/mystyler`,
 ];
 
 const endpoints = [

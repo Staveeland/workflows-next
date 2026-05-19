@@ -37,6 +37,7 @@ export default function Footer() {
             <h4>{t.resources}</h4>
             <Link href="/kunder">{t.links.cases}</Link>
             <Link href="/#faq">{t.links.faq}</Link>
+            <Link href="/mystyler">{t.links.mystyler}</Link>
           </div>
           <div className="footer__col">
             <h4>{t.clients}</h4>
