@@ -30,8 +30,6 @@ export default function Footer() {
             <Link href="/ai-agenter">{t.links.aiAgents}</Link>
             <Link href="/chatboter">{t.links.chatbots}</Link>
             <Link href="/automatiserte-flyter">{t.links.automatedFlows}</Link>
-            <Link href="/kunstig-intelligens-haugesund">{t.links.ai}</Link>
-            <Link href="/software-utvikling-haugesund">{t.links.software}</Link>
           </div>
           <div className="footer__col">
             <h4>{t.resources}</h4>

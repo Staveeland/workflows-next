@@ -7,6 +7,20 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,
   },
+  async redirects() {
+    return [
+      {
+        source: "/kunstig-intelligens-haugesund",
+        destination: "/ai-haugesund",
+        permanent: true,
+      },
+      {
+        source: "/software-utvikling-haugesund",
+        destination: "/ai-haugesund",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

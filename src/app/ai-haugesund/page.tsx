@@ -6,16 +6,23 @@ import {
   buildService,
   HAUGESUND_AREA_SERVED,
 } from "@/lib/jsonLd";
+import PageHero from "@/components/visuals/PageHero";
+import HighlightGrid from "@/components/visuals/HighlightGrid";
+import BeforeAfter from "@/components/visuals/BeforeAfter";
+import IntegrationCloud from "@/components/visuals/IntegrationCloud";
+import Timeline from "@/components/visuals/Timeline";
+import UseCaseGrid from "@/components/visuals/UseCaseGrid";
 
 export const metadata: Metadata = {
-  title: "AI i Haugesund — lokalt AI-selskap",
+  title: "AI i Haugesund — kunstig intelligens og skreddersydd software",
   description:
-    "Workflows er et lokalt AI-selskap i Haugesund som bygger AI-agenter, chatboter og automatisering for bedrifter på Haugalandet og i resten av Norge.",
+    "Workflows er et lokalt AI- og softwareutviklingsselskap i Haugesund. Vi bygger kunstig intelligens, AI-agenter og skreddersydd programvare for bedrifter på Haugalandet, i Rogaland og i resten av Norge.",
   alternates: { canonical: "/ai-haugesund" },
   openGraph: {
-    title: "AI i Haugesund — lokalt AI-selskap | Workflows",
+    title:
+      "AI i Haugesund — kunstig intelligens og skreddersydd software | Workflows",
     description:
-      "AI-agenter, kunstig intelligens og skreddersydde systemer bygget av et team i Haugesund.",
+      "Praktisk AI, kunstig intelligens og skreddersydd software bygget av et team i Haugesund. For bedrifter på Haugalandet og i hele Norge.",
     url: urlFor("/ai-haugesund"),
     type: "article",
   },
@@ -23,11 +30,23 @@ export const metadata: Metadata = {
     "AI Haugesund",
     "AI-selskap Haugesund",
     "AI-byrå Haugesund",
-    "kunstig intelligens Haugesund",
-    "AI-agenter Haugesund",
     "AI-konsulent Haugesund",
+    "AI-agenter Haugesund",
+    "kunstig intelligens Haugesund",
+    "KI Haugesund",
+    "AI-løsninger Haugesund",
+    "maskinlæring Haugesund",
+    "software utvikling Haugesund",
+    "softwareutvikling Haugesund",
+    "programvareutvikling Haugesund",
+    "skreddersydd software Haugesund",
+    "systemutvikling Haugesund",
+    "utviklingsselskap Haugesund",
     "AI Haugalandet",
     "AI Rogaland",
+    "kunstig intelligens Haugalandet",
+    "kunstig intelligens Rogaland",
+    "software Haugalandet",
   ],
 };
 
@@ -37,13 +56,176 @@ const breadcrumbJsonLd = buildBreadcrumb([
 ]);
 
 const serviceJsonLd = buildService({
-  name: "AI i Haugesund",
+  name: "AI, kunstig intelligens og softwareutvikling i Haugesund",
   slug: "/ai-haugesund",
-  serviceType: "AI-utvikling",
+  serviceType: "AI- og softwareutvikling",
   description:
-    "Lokalt AI-selskap i Haugesund som bygger AI-agenter, kunstig intelligens og skreddersydde systemer for bedrifter på Haugalandet og i Norge.",
+    "Lokalt AI- og softwareutviklingsselskap i Haugesund. Vi bygger kunstig intelligens, AI-agenter, chatboter, RAG-assistenter, dokumentforståelse, integrasjoner og skreddersydd programvare for bedrifter på Haugalandet, i Rogaland og i resten av Norge.",
   areaServed: HAUGESUND_AREA_SERVED,
 });
+
+// Inline SVG icons used by the visuals on this page.
+const IconChat = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12Z" />
+  </svg>
+);
+const IconFlow = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="3" y="4" width="6" height="6" rx="1.5" />
+    <rect x="15" y="4" width="6" height="6" rx="1.5" />
+    <rect x="9" y="14" width="6" height="6" rx="1.5" />
+    <path d="M6 10v2h12v-2M12 10v4" />
+  </svg>
+);
+const IconAgent = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+    <path d="M9 8h6" />
+  </svg>
+);
+const IconDoc = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+    <path d="M14 3v6h6M8 13h8M8 17h6" />
+  </svg>
+);
+const IconDash = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M3 9h18M9 21V9" />
+  </svg>
+);
+const IconPortal = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M3 9h18M8 14h4" />
+  </svg>
+);
+const IconPin = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M12 22s7-7.6 7-13a7 7 0 1 0-14 0c0 5.4 7 13 7 13Z" />
+    <circle cx="12" cy="9" r="2.5" />
+  </svg>
+);
+const IconShield = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M12 3 4 6v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V6z" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+);
+const IconSpark = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" />
+  </svg>
+);
+
+const services = [
+  {
+    icon: IconChat,
+    title: "Chatboter og AI-assistenter",
+    body:
+      "AI-drevne assistenter som svarer kunder, sorterer henvendelser og henter data fra systemene dine — døgnet rundt.",
+  },
+  {
+    icon: IconDoc,
+    title: "RAG og dokumentforståelse",
+    body:
+      "Henter svar fra interne dokumenter, fakturaer, kontrakter og rapporter. Trekker ut nøkkeldata automatisk.",
+  },
+  {
+    icon: IconFlow,
+    title: "Automatiserte flyter med AI",
+    body:
+      "Prosesser som kjører av seg selv. AI tar seg av stegene som krever forståelse — kategorisering, tekstanalyse, beslutninger.",
+  },
+  {
+    icon: IconAgent,
+    title: "AI-agenter",
+    body:
+      "Autonome systemer som får et mål, lager en plan og utfører handlinger. Trygt, testet og koblet til verktøyene dine.",
+  },
+  {
+    icon: IconDash,
+    title: "Interne verktøy og dashbord",
+    body:
+      "Samler data fra flere kilder i ett grensesnitt. Slutt på å hoppe mellom Excel, e-post og fem ulike systemer.",
+  },
+  {
+    icon: IconPortal,
+    title: "Kundeportaler og forretningssystemer",
+    body:
+      "Skreddersydde portaler, ordrehåndtering, prosjektstyring og rapportering — bygget for hvordan dere faktisk jobber.",
+  },
+];
+
+const useCases = [
+  {
+    icon: IconDash,
+    title: "CSUB — dashboard og AI-assistent",
+    body:
+      "Intelligent dashboard og RAG-basert AI-assistent som gir subsea-prosjektledere svar fra Excel og interne systemer på sekunder.",
+  },
+  {
+    icon: IconSpark,
+    title: "Festiviteten — AI for billettsalg",
+    body:
+      "AI som overvåker salg og annonser på Meta, Google og radio, med personlige assistenter tilgjengelig 24/7.",
+  },
+  {
+    icon: IconPortal,
+    title: "ElementLab — bookingintegrasjon",
+    body:
+      "Skreddersydd bookingintegrasjon som sitter direkte i nettsiden og snakker med backend-systemene.",
+  },
+];
+
+const processSteps = [
+  {
+    title: "Vi snakker sammen",
+    body:
+      "Gratis førstesamtale — fysisk i Haugesund eller digitalt. Du forteller hva som tar for mye tid, vi finner ut om og hvordan AI eller skreddersydd software hjelper.",
+  },
+  {
+    title: "Vi bygger, du ser",
+    body:
+      "Demo hver uke. Du gir tidlige tilbakemeldinger, vi justerer raskt. Ingen overraskelser ved leveranse.",
+  },
+  {
+    title: "Vi setter i drift sammen",
+    body:
+      "Opplæring er inkludert. Vi lander løsningen godt i organisasjonen og er tilgjengelige når dere har spørsmål.",
+  },
+  {
+    title: "Vi videreutvikler",
+    body:
+      "Gode systemer vokser med bedriften. Vi fortsetter å forbedre og utvide etter behov — eller overlater til dere når dere er klare.",
+  },
+];
+
+const integrations = [
+  "Tripletex",
+  "Visma",
+  "Microsoft 365",
+  "Google Workspace",
+  "Slack",
+  "Teams",
+  "HubSpot",
+  "Salesforce",
+  "Shopify",
+  "Supabase",
+  "Azure",
+  "OpenAI",
+  "Anthropic Claude",
+  "Webhook",
+];
+
+const heroHighlights = [
+  { icon: IconPin, text: "Basert i Haugesund — møtes fysisk når det gir mening" },
+  { icon: IconShield, text: "GDPR-tilpasset, EU-region for sensitive data" },
+  { icon: IconSpark, text: "Riktig verktøy for jobben — AI når det gir verdi, software når det ikke gjør det" },
+];
 
 export default function AiHaugesundPage() {
   return (
@@ -57,100 +239,121 @@ export default function AiHaugesundPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
       />
 
-      <section className="page-hero">
+      <PageHero
+        tag="AI Haugesund"
+        title="AI, kunstig intelligens og skreddersydd software i Haugesund"
+        sub="Workflows er et lokalt AI- og softwareutviklingsselskap i Haugesund. Vi bygger kunstig intelligens, AI-agenter og skreddersydd programvare for bedrifter på Haugalandet, i Rogaland og i resten av Norge."
+        visual="haugesund"
+        highlights={heroHighlights}
+      />
+
+      <section className="section">
         <div className="wrap">
-          <span className="tag">AI Haugesund</span>
-          <h1>AI i Haugesund</h1>
-          <p className="page-hero__sub">
-            Workflows er et lokalt AI-selskap basert i Haugesund. Vi bygger AI-agenter,
-            kunstig intelligens og skreddersydde systemer for bedrifter på Haugalandet
-            og i resten av Norge.
-          </p>
+          <header className="section__header">
+            <span className="tag">Hva vi tilbyr lokalt</span>
+            <h2>Praktisk AI og skreddersydd software</h2>
+            <p className="section__sub">
+              AI er ikke alltid svaret — og er alltid en del av svaret når det gir reell verdi.
+              Vi jobber både med kunstig intelligens, automatisering og tradisjonell
+              programvareutvikling, og velger riktig verktøy for hvert problem.
+            </p>
+          </header>
+          <HighlightGrid items={services} columns={3} />
+        </div>
+      </section>
+
+      <section className="section section--alt">
+        <div className="wrap">
+          <header className="section__header">
+            <span className="tag">Når hyllevare ikke strekker til</span>
+            <h2>Fra Excel og workarounds til et system som passer</h2>
+            <p className="section__sub">
+              Mange bedrifter på Haugalandet har vokst forbi hyllevaren sin. Skreddersydd
+              software og AI lar dere jobbe slik dere faktisk gjør — uten kompromisser eller
+              dyre lisenser dere knapt bruker.
+            </p>
+          </header>
+          <BeforeAfter
+            beforeTitle="I dag"
+            before={[
+              { label: "Excel og Sheets brukes som system" },
+              { label: "Data spredt på fem systemer som ikke snakker sammen" },
+              { label: "Workarounds og manuell kopiering tar timer hver uke" },
+              { label: "Dyre SaaS-lisenser med 20 % utnyttelse" },
+              { label: "Kundeservice mister henvendelser i e-postkøen" },
+            ]}
+            afterTitle="Med Workflows"
+            after={[
+              { label: "Ett samlet dashboard for hele teamet" },
+              { label: "Integrasjoner som lar data flyte automatisk" },
+              { label: "AI tar tekstanalyse, kategorisering og dokumentlesing" },
+              { label: "Skreddersydd software dere eier — ingen innlåsing" },
+              { label: "AI-assistent som svarer kunder døgnet rundt" },
+            ]}
+          />
         </div>
       </section>
 
       <section className="section">
         <div className="wrap">
-          <article className="longform">
-            <h2>Lokalt AI-miljø på Haugalandet</h2>
-            <p>
-              Det skjer mye spennende innen kunstig intelligens akkurat nå — men det meste av støyen
-              kommer fra Oslo, San Francisco og sosiale medier. På Haugalandet finnes det bedrifter
-              som driver med alt fra subsea-operasjoner og industri til helse, handel og
-              tjenesteyting. Alle har de prosesser som kan gjøres bedre med AI. Vi mener at
-              teknologien bør være tilgjengelig lokalt, med folk du kan møte ansikt til ansikt.
+          <header className="section__header">
+            <span className="tag">Systemer vi integrerer</span>
+            <h2>Vi kobler oss på verktøyene dere allerede bruker</h2>
+            <p className="section__sub">
+              Vi bygger på moderne, velprøvde teknologier — TypeScript, React, Next.js,
+              Python — og integrerer med de systemene dere har. For sensitive data kjører vi
+              innenfor EU. Du eier alltid koden og dataene.
             </p>
-            <p>
-              Workflows er basert i Haugesund, og vi kjenner næringslivet i regionen. Vi snakker
-              samme språk som deg — både bokstavelig og om hvordan bedrifter faktisk fungerer.
-              Du trenger ikke forstå teknologien; vår jobb er å oversette behovene dine til noe
-              som fungerer i praksis.
-            </p>
+          </header>
+          <IntegrationCloud items={integrations} />
+        </div>
+      </section>
 
-            <h2>Hva vi bygger av AI-løsninger</h2>
-            <p>
-              AI er ikke én ting. Vi jobber på tre nivåer, avhengig av hva som passer bedriften
-              din best:
+      <section className="section section--alt">
+        <div className="wrap">
+          <header className="section__header">
+            <span className="tag">Eksempler fra Haugaland-bedrifter</span>
+            <h2>Hva vi har bygget</h2>
+            <p className="section__sub">
+              Tre konkrete leveranser til bedrifter i regionen. Se alle{" "}
+              <Link href="/kunder">kundecaser</Link> for flere eksempler.
             </p>
-            <ul>
-              <li>
-                <strong>Chatboter og digitale assistenter</strong> — AI-drevne assistenter som
-                svarer kunder, sorterer henvendelser og henter frem data fra systemene dine.
-              </li>
-              <li>
-                <strong>Automatiserte flyter med AI innebygd</strong> — prosesser som kjører av
-                seg selv, der AI tar seg av stegene som krever forståelse (kategorisering,
-                tekstanalyse, dokumentbehandling).
-              </li>
-              <li>
-                <strong>AI-agenter</strong> — autonome systemer som får et mål, lager en plan,
-                bruker verktøy og utfører handlinger. Les mer på{" "}
-                <Link href="/ai-agenter">vår side om AI-agenter</Link>.
-              </li>
-            </ul>
+          </header>
+          <UseCaseGrid items={useCases} />
+        </div>
+      </section>
 
-            <h2>AI-prosjekter fra Haugesund-regionen</h2>
-            <p>
-              Vi har levert konkrete AI-prosjekter til bedrifter i regionen. Her er tre eksempler:
+      <section className="section">
+        <div className="wrap">
+          <header className="section__header">
+            <span className="tag">Slik jobber vi</span>
+            <h2>Fra første samtale til ferdig system</h2>
+            <p className="section__sub">
+              Tett samarbeid, korte iterasjoner og ingen lange kravspesifikasjoner. Du ser
+              fremdrift hver uke.
             </p>
-            <ul>
-              <li>
-                <Link href="/kunder/csub"><strong>CSUB</strong></Link> — intelligent dashboard
-                og RAG-basert AI-assistent som gir prosjektledere svar på sekunder.
-              </li>
-              <li>
-                <Link href="/kunder/festiviteten"><strong>Festiviteten</strong></Link> — AI som
-                styrer billettsalg og annonser på Meta, Google og radio, med personlige
-                AI-assistenter tilgjengelig 24/7.
-              </li>
-              <li>
-                <Link href="/kunder/elementlab"><strong>ElementLab</strong></Link> — skreddersydd
-                bookingintegrasjon som sitter direkte på nettsiden.
-              </li>
-            </ul>
-            <p>
-              Se alle <Link href="/kunder">kundecaser</Link>.
-            </p>
+          </header>
+          <Timeline steps={processSteps} />
+        </div>
+      </section>
 
-            <h2>Hvorfor velge et lokalt AI-selskap</h2>
+      <section className="section section--alt">
+        <div className="wrap">
+          <article className="longform longform--center">
+            <h2>Hvorfor et lokalt AI-selskap i Haugesund?</h2>
             <p>
-              AI-prosjekter krever tett samarbeid. De beste løsningene kommer av mange korte
-              samtaler, ikke en lang kravspesifikasjon. Når vi holder til i Haugesund, kan vi
-              møte deg på kontoret ditt, forstå hvordan dere faktisk jobber og gjøre raske
-              iterasjoner underveis. Ingen tidssoner, ingen språkbarrierer, ingen lange
-              reiseregninger.
+              AI- og softwareprosjekter krever tett samarbeid. De beste løsningene kommer av
+              mange korte samtaler, ikke en lang kravspesifikasjon. Når vi holder til i
+              Haugesund, kan vi møte deg på kontoret ditt, forstå hvordan dere faktisk jobber
+              og iterere raskt. Vi kjenner lokale bransjer — subsea og offshore, industri,
+              handel, eiendom, helse og tjenesteyting — og vet at en god løsning må passe inn
+              i hvordan bedriften allerede fungerer.
             </p>
             <p>
-              Du får et team som kjenner lokale bransjer — subsea og offshore, handel, eiendom,
-              helse — og som forstår at en god løsning må passe inn i hvordan bedriften din
-              allerede fungerer.
-            </p>
-
-            <h2>Slik kommer vi i gang</h2>
-            <p>
-              Første samtale er uforpliktende. Vi møtes (fysisk i Haugesund eller digitalt),
-              du forteller hva som tar for mye tid, og vi finner ut om og hvordan AI kan hjelpe.
-              Etter samtalen får du et konkret forslag du kan ta stilling til.
+              Vil du dykke dypere i én av tjenestene? Les mer om{" "}
+              <Link href="/ai-agenter">AI-agenter</Link>,{" "}
+              <Link href="/chatboter">chatboter</Link> og{" "}
+              <Link href="/automatiserte-flyter">automatiserte flyter</Link>.
             </p>
           </article>
         </div>
@@ -159,8 +362,11 @@ export default function AiHaugesundPage() {
       <section className="cta-section">
         <div className="wrap">
           <div className="cta">
-            <h2>Snakk med oss om AI i Haugesund</h2>
-            <p>Ta kontakt for en uforpliktende samtale om hva AI kan gjøre for din bedrift.</p>
+            <h2>Snakk med oss om AI og software i Haugesund</h2>
+            <p>
+              Ta kontakt for en uforpliktende samtale om hva AI eller skreddersydd software
+              kan gjøre for din bedrift.
+            </p>
             <Link href="/#kontakt" className="btn btn--dark">
               Start samtalen <span className="btn__arrow">&rarr;</span>
             </Link>
