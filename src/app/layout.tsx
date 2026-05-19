@@ -256,7 +256,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
       </head>
-      <body className={`${lora.variable} ${inter.variable} ${lora.className}`}>
+      <body className={`${lora.variable} ${inter.variable} ${inter.className} antialiased`}>
         <LanguageProvider>
           <SkipLink />
           <Nav />

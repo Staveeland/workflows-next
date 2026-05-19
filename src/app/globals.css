@@ -32,14 +32,62 @@ button { font: inherit; }
   --accent-dark: #c4872a;
   --accent-bg: #fdf6e7;
 
-  /* System */
-  --font: var(--font-lora, 'Lora'), Georgia, 'Times New Roman', serif;
+  /* System — font stack
+     Sprint 2.1: Inter is body, Lora is reserved for h1/h2/blockquote (display).
+     Both `--font` (body) and `--font-body` resolve to Inter so existing
+     `var(--font-body)` rules keep working; `--font-display` is Lora.
+     Buttons / chat avatar / timeline num previously used `var(--font)` for
+     a serif accent — they now inherit Inter, which is intentional for UI. */
+  --font: var(--font-inter, 'Inter'), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-body: var(--font-inter, 'Inter'), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-display: var(--font-lora, 'Lora'), Georgia, 'Times New Roman', serif;
   --container: 1100px;
+  --container-narrow: 800px;
   --space: clamp(100px, 12vw, 160px);
+  --section-pad: clamp(80px, 12vw, 160px);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Radius (legacy --radius/--radius-lg kept for back-compat) */
   --radius: 16px;
   --radius-lg: 24px;
+  --r-sm: 8px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  /* Elevation */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-2: 0 4px 8px rgba(0, 0, 0, 0.06), 0 8px 16px rgba(0, 0, 0, 0.08);
+  --shadow-3: 0 12px 24px rgba(0, 0, 0, 0.10), 0 24px 48px rgba(0, 0, 0, 0.12);
+
+  /* Spacing — 4px grid */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+
+  /* Type scale */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-display: clamp(42px, 6vw, 76px);
+
+  /* Motion */
+  --dur-fast: 180ms;
+  --dur: 280ms;
+  --dur-slow: 480ms;
 }
 
 /* ─── A11y: focus-visible ─── */
@@ -125,6 +173,12 @@ h1, h2, h3, h4 {
   color: var(--text);
   letter-spacing: -0.035em;
   line-height: 1.1;
+}
+
+/* Display font (Lora) is reserved for editorial moments:
+   the main page headings and pull-quotes. h3–h6 inherit Inter from body. */
+h1, h2, blockquote {
+  font-family: var(--font-display);
 }
 
 h1 { font-size: clamp(42px, 6vw, 76px); font-weight: 650; line-height: 1.05; letter-spacing: -0.04em; }
