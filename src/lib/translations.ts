@@ -13,6 +13,31 @@ export const translations = {
       faq: 'FAQ',
       about: 'Om oss',
       contact: 'Ta kontakt',
+      servicesMenu: {
+        toggleLabel: 'Åpne tjenester-meny',
+        items: [
+          {
+            label: 'Chatboter',
+            description: 'AI-drevne chatboter som svarer kunder døgnet rundt — koblet til dine data.',
+            href: '/chatboter',
+            icon: 'chatbot',
+          },
+          {
+            label: 'Automatiserte flyter',
+            description: 'Systemer som kjører automatisk og fjerner repetitivt arbeid mellom verktøyene dine.',
+            href: '/automatiserte-flyter',
+            icon: 'flow',
+          },
+          {
+            label: 'AI-agenter',
+            description: 'Autonome agenter som planlegger, beslutter og utfører oppgaver på dine vegne.',
+            href: '/ai-agenter',
+            icon: 'agent',
+          },
+        ],
+        seeAll: 'Se alle tjenester',
+        seeAllHref: '/#tjenester',
+      },
     },
     hero: {
       title: 'Vi bygger AI-løsninger for norske bedrifter',
@@ -278,6 +303,31 @@ export const translations = {
       faq: 'FAQ',
       about: 'About us',
       contact: 'Get in touch',
+      servicesMenu: {
+        toggleLabel: 'Open services menu',
+        items: [
+          {
+            label: 'Chatbots',
+            description: 'AI chatbots that answer customers around the clock — connected to your data.',
+            href: '/chatboter',
+            icon: 'chatbot',
+          },
+          {
+            label: 'Automated flows',
+            description: 'Systems that run automatically and remove repetitive work between your tools.',
+            href: '/automatiserte-flyter',
+            icon: 'flow',
+          },
+          {
+            label: 'AI agents',
+            description: 'Autonomous agents that plan, decide, and act on your behalf.',
+            href: '/ai-agenter',
+            icon: 'agent',
+          },
+        ],
+        seeAll: 'See all services',
+        seeAllHref: '/#tjenester',
+      },
     },
     hero: {
       title: 'We build AI solutions for Norwegian businesses',
