@@ -128,6 +128,45 @@ button { font: inherit; }
   outline-offset: 3px;
 }
 
+/* ─── A11y: visually-hidden utility (for screen-reader-only labels) ─── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── A11y: stretched-link pattern (whole card clickable, SR reads only link) ─── */
+.card-link {
+  text-decoration: none;
+  color: inherit;
+}
+.card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+.card-link:focus-visible {
+  outline: none;
+}
+.card-link:focus-visible::after {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+/* Interactive elements inside a stretched-link card stay above the overlay */
+.card-link-host > *:not(.card-link)
+  :is(button, a:not(.card-link), input, select, textarea, label) {
+  position: relative;
+  z-index: 2;
+}
+
 /* ─── A11y: prefers-reduced-motion ─── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -516,12 +555,21 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px 7px;
+  padding: 4px 9px;
   border-radius: 7px;
-  font-size: 18px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-family: var(--font-body);
+  color: var(--text);
   line-height: 1;
   transition: background 0.2s, transform 0.15s;
-  opacity: 0.45;
+  opacity: 0.5;
+}
+.lang-toggle__flag {
+  font-size: 14px;
+  line-height: 1;
+  margin-right: 4px;
 }
 .lang-toggle__btn:hover { opacity: 0.75; transform: scale(1.1); }
 .lang-toggle__btn--active {
@@ -1725,6 +1773,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 }
 
 .client-card {
+  position: relative;
   display: block;
   padding: 36px 28px;
   background: var(--bg);
@@ -1732,6 +1781,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   border-radius: var(--radius-lg);
   transition: all 0.4s var(--ease);
   text-decoration: none;
+  color: inherit;
 }
 .client-card:hover {
   border-color: var(--border);
@@ -1981,12 +2031,15 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   gap: 16px;
 }
 .case-other__card {
+  position: relative;
   display: block;
   padding: 28px;
   background: var(--bg);
   border: 1px solid var(--border-light);
   border-radius: var(--radius);
   transition: all 0.3s var(--ease);
+  text-decoration: none;
+  color: inherit;
 }
 .case-other__card:hover {
   border-color: var(--border);
@@ -2016,12 +2069,15 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 }
 
 .case-card {
+  position: relative;
   display: block;
   padding: 40px;
   background: var(--bg-elevated);
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
   transition: all 0.4s var(--ease);
+  text-decoration: none;
+  color: inherit;
 }
 .case-card:hover {
   border-color: var(--border);
@@ -2475,11 +2531,8 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .longform a:hover { color: var(--accent, #0a3d2e); }
 .longform strong { color: var(--text); font-weight: 600; }
 
-/* Clickable level cards */
+/* Clickable level cards (stretched-link pattern — heading link covers card) */
 .level__link {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
   color: inherit;
   text-decoration: none;
 }

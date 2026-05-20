@@ -107,22 +107,26 @@ export default function KunderPage() {
         <div className="wrap">
           <div className="cases-grid">
             {cases.map((c) => (
-              <Link key={c.slug} href={`/kunder/${c.slug}`} className="case-card">
+              <article key={c.slug} className="case-card card-link-host">
                 <div className="case-card__header">
                   <div className="case-card__logo">
                     <Image src={c.logo} alt={c.name} width={200} height={70} style={{ width: "auto", height: "44px", objectFit: "contain" }} />
                   </div>
                   <span className="case-card__industry">{c.industry}</span>
                 </div>
-                <h2>{c.name}</h2>
+                <h2>
+                  <Link href={`/kunder/${c.slug}`} className="card-link">
+                    {c.name}
+                  </Link>
+                </h2>
                 <p>{c.summary}</p>
                 <div className="case-card__results">
                   {c.results.map((r) => (
                     <span key={r} className="case-card__result">{r}</span>
                   ))}
                 </div>
-                <span className="case-card__link">Les hele casen &rarr;</span>
-              </Link>
+                <span className="case-card__link" aria-hidden="true">Les hele casen &rarr;</span>
+              </article>
             ))}
           </div>
         </div>

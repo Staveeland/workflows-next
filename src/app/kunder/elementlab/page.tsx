@@ -143,16 +143,20 @@ export default function ElementLabCase() {
           <div className="case-other">
             <h2>Andre kundecaser</h2>
             <div className="case-other__grid">
-              <Link href="/kunder/csub" className="case-other__card">
+              <article className="case-other__card card-link-host">
                 <Image src="/kunder-csub.svg" alt="CSUB" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
-                <h3>CSUB</h3>
+                <h3>
+                  <Link href="/kunder/csub" className="card-link">CSUB</Link>
+                </h3>
                 <p>Intelligent dashboard og AI-assistent</p>
-              </Link>
-              <Link href="/kunder/festiviteten" className="case-other__card">
+              </article>
+              <article className="case-other__card card-link-host">
                 <Image src="/kunder-festiviteten.png" alt="Festiviteten" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
-                <h3>Festiviteten</h3>
+                <h3>
+                  <Link href="/kunder/festiviteten" className="card-link">Festiviteten</Link>
+                </h3>
                 <p>AI for billettsalg og annonsering</p>
-              </Link>
+              </article>
             </div>
           </div>
         </div>

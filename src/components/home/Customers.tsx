@@ -33,7 +33,7 @@ export function Customers() {
 
         <div className="clients-grid">
           {t.clientsSection.clients.map((c) => (
-            <Link key={c.slug} href={`/kunder/${c.slug}`} className="client-card">
+            <article key={c.slug} className="client-card card-link-host">
               <div className="client-card__logo">
                 <Image
                   src={c.logo}
@@ -43,10 +43,16 @@ export function Customers() {
                   style={{ width: "auto", height: "40px", objectFit: "contain" }}
                 />
               </div>
-              <h3>{c.name}</h3>
+              <h3>
+                <Link href={`/kunder/${c.slug}`} className="card-link">
+                  {c.name}
+                </Link>
+              </h3>
               <p>{c.desc}</p>
-              <span className="client-card__link">{t.clientsSection.readMore} &rarr;</span>
-            </Link>
+              <span className="client-card__link" aria-hidden="true">
+                {t.clientsSection.readMore} &rarr;
+              </span>
+            </article>
           ))}
         </div>
       </div>

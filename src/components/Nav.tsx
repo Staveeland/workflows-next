@@ -28,6 +28,8 @@ export default function Nav() {
 
   const servicesWrapRef = useRef<HTMLDivElement | null>(null);
   const servicesBtnRef = useRef<HTMLButtonElement | null>(null);
+  const burgerBtnRef = useRef<HTMLButtonElement | null>(null);
+  const mobileOverlayRef = useRef<HTMLDivElement | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Reset dropdown state when the route changes. Done during render via the
@@ -47,17 +49,70 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close burger menu on Escape
+  // Close burger menu on Escape + focus-trap (Tab cycles within overlay).
+  // Returns focus to the burger button when Esc closes the menu.
   useEffect(() => {
     if (!navOpen) return;
+
+    const getFocusable = (): HTMLElement[] => {
+      const root = mobileOverlayRef.current;
+      if (!root) return [];
+      const selector =
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+      return Array.from(root.querySelectorAll<HTMLElement>(selector)).filter(
+        (el) => el.offsetParent !== null
+      );
+    };
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setNavOpen(false);
+        setMobileServicesOpen(false);
         document.body.style.overflow = "";
+        requestAnimationFrame(() => burgerBtnRef.current?.focus());
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      const overlayHasFocus = mobileOverlayRef.current?.contains(active);
+      // Include the burger button as part of the trap so Shift+Tab from first
+      // overlay item lands back on it rather than rolling out of the page.
+      if (!overlayHasFocus && active !== burgerBtnRef.current) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [navOpen]);
+
+  // When the overlay opens, move focus into it (first link) so SR + keyboard
+  // users land inside the modal context.
+  useEffect(() => {
+    if (!navOpen) return;
+    const t = setTimeout(() => {
+      const first =
+        mobileOverlayRef.current?.querySelector<HTMLElement>(
+          'a[href], button:not([disabled])'
+        );
+      first?.focus();
+    }, 50);
+    return () => clearTimeout(t);
   }, [navOpen]);
 
   // Close services dropdown on Escape (returns focus to button)
@@ -233,26 +288,33 @@ export default function Nav() {
                 <Link href="/#kontakt" className="nav__cta">{t.contact}</Link>
               </>
             )}
-            <div className="lang-toggle">
+            <div className="lang-toggle" role="group" aria-label="Velg språk">
               <button
                 className={`lang-toggle__btn${lang === "no" ? " lang-toggle__btn--active" : ""}`}
                 onClick={() => setLang("no")}
-                aria-label="Norsk"
+                aria-label="Bytt til norsk"
+                aria-pressed={lang === "no"}
                 title="Norsk"
+                type="button"
               >
-                🇳🇴
+                <span className="lang-toggle__flag" aria-hidden="true">🇳🇴</span>
+                NO
               </button>
               <button
                 className={`lang-toggle__btn${lang === "en" ? " lang-toggle__btn--active" : ""}`}
                 onClick={() => setLang("en")}
-                aria-label="English"
+                aria-label="Switch to English"
+                aria-pressed={lang === "en"}
                 title="English"
+                type="button"
               >
-                🇬🇧
+                <span className="lang-toggle__flag" aria-hidden="true">🇬🇧</span>
+                EN
               </button>
             </div>
           </nav>
           <button
+            ref={burgerBtnRef}
             className={`nav__burger${navOpen ? " open" : ""}`}
             onClick={toggleNav}
             aria-label="Meny"
@@ -265,7 +327,14 @@ export default function Nav() {
       </header>
 
       {navOpen && (
-        <div className="mobile-overlay" id="mobile-nav">
+        <div
+          ref={mobileOverlayRef}
+          className="mobile-overlay"
+          id="mobile-nav"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Meny"
+        >
           <div className="mobile-overlay__services" style={{ animationDelay: "0s" }}>
             <button
               type="button"
@@ -327,20 +396,26 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          <div className="lang-toggle lang-toggle--mobile">
+          <div className="lang-toggle lang-toggle--mobile" role="group" aria-label="Velg språk">
             <button
               className={`lang-toggle__btn${lang === "no" ? " lang-toggle__btn--active" : ""}`}
               onClick={() => { setLang("no"); closeNav(); }}
-              aria-label="Norsk"
+              aria-label="Bytt til norsk"
+              aria-pressed={lang === "no"}
+              type="button"
             >
-              🇳🇴 NO
+              <span className="lang-toggle__flag" aria-hidden="true">🇳🇴</span>
+              NO
             </button>
             <button
               className={`lang-toggle__btn${lang === "en" ? " lang-toggle__btn--active" : ""}`}
               onClick={() => { setLang("en"); closeNav(); }}
-              aria-label="English"
+              aria-label="Switch to English"
+              aria-pressed={lang === "en"}
+              type="button"
             >
-              🇬🇧 EN
+              <span className="lang-toggle__flag" aria-hidden="true">🇬🇧</span>
+              EN
             </button>
           </div>
         </div>

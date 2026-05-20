@@ -113,6 +113,14 @@ export default function ChatWidget() {
   const justOpenedRef = useRef(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const closeChat = useCallback(() => {
+    setOpen(false);
+    // Return focus to launcher (toggle button) for SR/keyboard users
+    requestAnimationFrame(() => launcherRef.current?.focus());
+  }, []);
 
   const loadHistory = useCallback(async (e: string) => {
     try {
@@ -168,6 +176,55 @@ export default function ChatWidget() {
       setTimeout(() => inputRef.current?.focus(), 250);
     }
   }, [open, mode]);
+
+  // Focus-trap + Esc-to-close while dialog is open.
+  // Tab / Shift+Tab cycle through focusable elements inside the panel only.
+  useEffect(() => {
+    if (!open) return;
+
+    const getFocusable = (): HTMLElement[] => {
+      const root = panelRef.current;
+      if (!root) return [];
+      const selector =
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+      return Array.from(root.querySelectorAll<HTMLElement>(selector)).filter(
+        (el) => !el.hasAttribute("aria-hidden") && el.offsetParent !== null
+      );
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        closeChat();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      // If focus has escaped the panel (e.g., shifted to body), pull it back.
+      if (!panelRef.current?.contains(active)) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, mode, closeChat]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -376,8 +433,11 @@ export default function ChatWidget() {
   return (
     <>
       <motion.button
+        ref={launcherRef}
         className="chat-launcher"
         aria-label={open ? "Lukk chat" : "Åpne chat"}
+        aria-expanded={open}
+        aria-controls="chat-dialog"
         onClick={() => setOpen((v) => !v)}
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -431,12 +491,15 @@ export default function ChatWidget() {
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={panelRef}
+            id="chat-dialog"
             className="chat-panel"
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             role="dialog"
+            aria-modal="true"
             aria-label="Chat med Workflows"
           >
             <header className="chat-panel__head">
@@ -502,27 +565,55 @@ export default function ChatWidget() {
                   onSubmit={submitHandover}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
+                  aria-describedby={formError ? "chat-handover-err" : undefined}
                 >
                   <p className="chat-handover__lead">
                     Skriv inn navn og e-post, så kobler jeg deg direkte til Petter. ✉️
                   </p>
+                  <label htmlFor="chat-handover-name" className="sr-only">
+                    Navn
+                  </label>
                   <input
+                    id="chat-handover-name"
                     type="text"
                     placeholder="Navn"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     autoComplete="name"
                     disabled={formBusy}
+                    aria-invalid={
+                      formError && !name.trim() ? true : undefined
+                    }
+                    aria-describedby={formError ? "chat-handover-err" : undefined}
                   />
+                  <label htmlFor="chat-handover-email" className="sr-only">
+                    E-post
+                  </label>
                   <input
+                    id="chat-handover-email"
                     type="email"
                     placeholder="E-post"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
                     disabled={formBusy}
+                    aria-invalid={
+                      formError && !EMAIL_RX.test(email.trim().toLowerCase())
+                        ? true
+                        : undefined
+                    }
+                    aria-describedby={formError ? "chat-handover-err" : undefined}
                   />
-                  {formError && <p className="chat-handover__err">{formError}</p>}
+                  {formError && (
+                    <p
+                      id="chat-handover-err"
+                      className="chat-handover__err"
+                      role="alert"
+                      aria-live="assertive"
+                    >
+                      {formError}
+                    </p>
+                  )}
                   <div className="chat-handover__row">
                     <button
                       type="button"

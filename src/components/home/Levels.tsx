@@ -38,32 +38,34 @@ export function Levels() {
           variants={stagger}
         >
           {t.levels.items.map((level, i) => (
-            <motion.div
+            <motion.article
               key={level.title}
-              className={`level level--${i + 1}`}
+              className={`level level--${i + 1} card-link-host`}
               variants={fadeUp}
               custom={i}
             >
-              <Link href={level.href} className="level__link">
-                <div className="level__header">
-                  <span className="level__num">
-                    {level.levelLabel} {i + 1}
-                  </span>
-                  <h3 className="level__title">{level.title}</h3>
-                </div>
-                <ul className="level__points">
-                  {level.points.map((p, j) => (
-                    <li key={j}>
-                      <span className="level__arrow">&rarr;</span> {p}
-                    </li>
-                  ))}
-                </ul>
-                <p className="level__example">
-                  <span className="level__think">{t.levels.think}</span> {level.example}
-                </p>
-                <span className="level__cta">{t.levels.readMore} &rarr;</span>
-              </Link>
-            </motion.div>
+              <div className="level__header">
+                <span className="level__num">
+                  {level.levelLabel} {i + 1}
+                </span>
+                <h3 className="level__title">
+                  <Link href={level.href} className="level__link card-link">
+                    {level.title}
+                  </Link>
+                </h3>
+              </div>
+              <ul className="level__points">
+                {level.points.map((p, j) => (
+                  <li key={j}>
+                    <span className="level__arrow">&rarr;</span> {p}
+                  </li>
+                ))}
+              </ul>
+              <p className="level__example">
+                <span className="level__think">{t.levels.think}</span> {level.example}
+              </p>
+              <span className="level__cta" aria-hidden="true">{t.levels.readMore} &rarr;</span>
+            </motion.article>
           ))}
         </motion.div>
 
