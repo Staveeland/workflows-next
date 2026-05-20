@@ -114,41 +114,6 @@ export default function ChatWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Init: session id + restore identity if present
-  useEffect(() => {
-    sessionIdRef.current = getSessionId();
-    const savedEmail = localStorage.getItem("wf_chat_email");
-    const savedName = localStorage.getItem("wf_chat_name") || "";
-    if (savedEmail && EMAIL_RX.test(savedEmail)) {
-      setEmail(savedEmail);
-      setName(savedName);
-      setMode("direct");
-      void loadHistory(savedEmail);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (open) {
-      setUnread(false);
-      justOpenedRef.current = true;
-      setTimeout(() => inputRef.current?.focus(), 250);
-    }
-  }, [open, mode]);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const jump = justOpenedRef.current;
-    requestAnimationFrame(() => {
-      el.scrollTo({
-        top: el.scrollHeight,
-        behavior: jump ? "auto" : "smooth",
-      });
-    });
-    justOpenedRef.current = false;
-  }, [msgs, busy, mode, open]);
-
   const loadHistory = useCallback(async (e: string) => {
     try {
       const res = await fetch(`/api/chat/history?email=${encodeURIComponent(e)}`);
@@ -180,6 +145,42 @@ export default function ChatWidget() {
       /* ignore */
     }
   }, []);
+
+  // Init: session id + restore identity if present.
+  // `loadHistory` is a stable useCallback (empty deps), so this effect still
+  // runs only on mount even though we list it as a dependency.
+  useEffect(() => {
+    sessionIdRef.current = getSessionId();
+    const savedEmail = localStorage.getItem("wf_chat_email");
+    const savedName = localStorage.getItem("wf_chat_name") || "";
+    if (savedEmail && EMAIL_RX.test(savedEmail)) {
+      setEmail(savedEmail);
+      setName(savedName);
+      setMode("direct");
+      void loadHistory(savedEmail);
+    }
+  }, [loadHistory]);
+
+  useEffect(() => {
+    if (open) {
+      setUnread(false);
+      justOpenedRef.current = true;
+      setTimeout(() => inputRef.current?.focus(), 250);
+    }
+  }, [open, mode]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const jump = justOpenedRef.current;
+    requestAnimationFrame(() => {
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: jump ? "auto" : "smooth",
+      });
+    });
+    justOpenedRef.current = false;
+  }, [msgs, busy, mode, open]);
 
   // Polling for Petter's replies in direct mode
   useEffect(() => {
