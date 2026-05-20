@@ -26,7 +26,14 @@ export const metadata: Metadata = {
   title: "AI-agenter — autonome assistenter for bedrifter",
   description:
     "Autonome AI-agenter som oppfatter, planlegger, handler og verifiserer. Multi-step workflows med beslutninger — fra research og salg til kundestøtte. Bygget trygt og testet for din bedrift.",
-  alternates: { canonical: "/ai-agenter" },
+  alternates: {
+    canonical: "/ai-agenter",
+    languages: {
+      "nb-NO": "/ai-agenter",
+      "en": "/ai-agenter",
+      "x-default": "/ai-agenter",
+    },
+  },
   openGraph: {
     title: "AI-agenter — autonome assistenter for bedrifter | Workflows",
     description:

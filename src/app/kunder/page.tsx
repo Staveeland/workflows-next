@@ -8,7 +8,14 @@ export const metadata: Metadata = {
   title: "Kundecaser — AI-agenter og skreddersydd software",
   description:
     "Workflows i Haugesund bygger AI-agenter, kunstig intelligens og skreddersydd software. Les kundecasene fra CSUB, Festiviteten og ElementLab.",
-  alternates: { canonical: "/kunder" },
+  alternates: {
+    canonical: "/kunder",
+    languages: {
+      "nb-NO": "/kunder",
+      "en": "/kunder",
+      "x-default": "/kunder",
+    },
+  },
   openGraph: {
     title: "Kundecaser | Workflows",
     description:

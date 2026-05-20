@@ -11,7 +11,14 @@ export const metadata: Metadata = {
   title: "Automatiserte flyter — prosesser som kjører av seg selv",
   description:
     "Vi bygger automatiserte flyter som triggeres av hendelser og kjører uten manuell inngripen. Koble sammen systemer, flytt data, og la AI ta stegene som krever forståelse.",
-  alternates: { canonical: "/automatiserte-flyter" },
+  alternates: {
+    canonical: "/automatiserte-flyter",
+    languages: {
+      "nb-NO": "/automatiserte-flyter",
+      "en": "/automatiserte-flyter",
+      "x-default": "/automatiserte-flyter",
+    },
+  },
   openGraph: {
     title: "Automatiserte flyter | Workflows",
     description:

@@ -223,31 +223,6 @@ export const translations = {
         { name: 'ElementLab', logo: '/kunder-elementlab.png', slug: 'elementlab', desc: 'Søkbar kunnskapsbase som erstatter manuell leting. 80% raskere rapporter — frigjør hundrevis av timer årlig.' },
       ],
     },
-    app: {
-      tag: 'Vår egen app',
-      heading: 'Prøv vår AI-stylist',
-      lead: 'MyStyler er vår egenutviklede iOS-app — en personlig AI-stylist du kan ha i lommen. Last opp to bilder, beskriv anledningen, og få fire fotorealistiske antrekk som faktisk ser ut som deg.',
-      sub: 'Middag i Paris. Jobbintervju. Strandbryllup. Første dag tilbake på kontoret. Uansett hva du skriver inn, kler MyStyler deg opp for det — uten å miste ansiktet, hårfargen eller proporsjonene dine.',
-      features: [
-        'Beskriv hvilken som helst anledning på vanlig norsk eller engelsk',
-        'Garderobe-modus: ta bilde av klærne du allerede eier',
-        'Lagre favorittene i ditt eget stilbibliotek',
-        'Generer hele antrekk eller hår + sminke-looks',
-      ],
-      cta: 'Last ned i App Store',
-      platform: 'Tilgjengelig for iPhone',
-      whatIsHeading: 'Hva er MyStyler?',
-      whatIsBody1: 'MyStyler er Workflows sitt eget forbrukerprodukt — et lite sideprosjekt vi bygget for å vise hva moderne bildemodeller kan brukes til. Appen kombinerer to bilder av deg med en tekstbeskrivelse av en anledning, og genererer fire fotorealistiske antrekksforslag i løpet av sekunder.',
-      whatIsBody2: 'Du beholder ansiktstrekkene, hårfargen og proporsjonene dine — den endrer kun klærne. Tenk på det som å prøve seg fram foran et speil, uten å måtte ta på et eneste plagg.',
-      howHeading: 'Slik fungerer det',
-      howSteps: [
-        { title: 'Last opp to bilder', desc: 'Ett ansiktsbilde og ett helkroppsbilde. Det er nok for at MyStyler skal forstå hvem du er.' },
-        { title: 'Beskriv anledningen', desc: '«Middag på en italiensk restaurant» eller «første dag tilbake på kontoret». Skriv på norsk eller engelsk.' },
-        { title: 'Få fire antrekk', desc: 'Fire fotorealistiske bilder av deg i ulike antrekk. Lagre favorittene i ditt eget stilbibliotek.' },
-      ],
-      shotsHeading: 'Se MyStyler i bruk',
-      backToHome: 'Tilbake til Workflows',
-    },
     faq: {
       tag: 'FAQ',
       heading: 'Ofte stilte spørsmål',
@@ -259,35 +234,6 @@ export const translations = {
         { q: 'Eier vi koden og systemet?', a: 'Ja, alltid. Du eier alt vi bygger for deg — kildekode, design, data. Det er ingen innlåsing og ingen skjulte kostnader. Hvis du en dag vil bytte leverandør eller ta over driften selv, har du full frihet til det.' },
         { q: 'Er dataene våre trygge?', a: 'Absolutt. Vi følger beste praksis for datasikkerhet og personvern. Alle systemer bygges med kryptering, tilgangskontroll og sikker hosting. Vi er kjent med GDPR-kravene og sørger for at løsningene er i samsvar med norske og europeiske regelverk.' },
         { q: 'Er den første samtalen virkelig gratis?', a: 'Ja, helt gratis og uforpliktende. Vi setter oss ned (fysisk eller digitalt) og lytter til utfordringene dine. Etter samtalen får du et konkret forslag til hva vi kan gjøre — uten noen forpliktelser.' },
-      ],
-      categories: [
-        {
-          category: 'Om tjenestene',
-          questions: [
-            { q: 'Hva slags bedrifter jobber dere med?', a: 'Vi jobber med bedrifter i alle størrelser — fra småbedrifter med 5 ansatte til større selskaper med hundrevis. Fellesnevneren er at de har manuelle prosesser som tar for mye tid. Vi har erfaring fra bransjer som subsea, forskning, eiendom, handel og tjenesteyting.' },
-            { q: 'Hva er skreddersydd software?', a: 'Skreddersydd software er programvare bygget spesifikt for din bedrift og dine prosesser. I motsetning til hyllevare som Salesforce eller HubSpot, får du et system som passer perfekt til måten du jobber på — uten unødvendige funksjoner eller begrensninger.' },
-            { q: 'Hva er en digital assistent?', a: 'En digital assistent er et AI-drevet system som kan håndtere oppgaver som kundeservice, oppfølging, rapportering eller databehandling — automatisk og døgnets alle timer. Tenk på det som en kollega som aldri sover, aldri glemmer, og aldri gjør slurve-feil.' },
-            { q: 'Kan dere integrere med systemene vi allerede bruker?', a: 'Ja. Vi spesialiserer oss på å koble sammen eksisterende verktøy. Enten du bruker Tripletex, Visma, Microsoft 365, Google Workspace, Slack eller bransjespesifikke systemer — vi bygger broer mellom dem slik at data flyter automatisk.' },
-            { q: 'Trenger vi teknisk kompetanse internt?', a: 'Nei. Vi bygger systemer som er enkle å bruke for alle. Du trenger ikke forstå teknologien — bare resultatene. Vi tar oss av alt det tekniske, og gir grundig opplæring når systemet er klart.' },
-          ],
-        },
-        {
-          category: 'Pris og prosess',
-          questions: [
-            { q: 'Hva koster det?', a: 'Prisen avhenger av prosjektets omfang og størrelse. Vi gir alltid et fast pristilbud etter en uforpliktende første samtale — slik at du vet nøyaktig hva du betaler før du bestemmer deg.' },
-            { q: 'Hvor lang tid tar det?', a: 'De fleste prosjekter leveres innen 4–12 uker. Enkle automatiseringer kan være klare på under to uker. Du ser fremgang fra uke én — vi viser deg demoer underveis slik at du kan gi tilbakemeldinger tidlig.' },
-            { q: 'Hva skjer etter lansering?', a: 'Vi tilbyr support og vedlikehold så lenge du trenger det. Alle systemer leveres med dokumentasjon og opplæring. Hvis noe trenger justering eller du vil legge til nye funksjoner senere, er vi tilgjengelige.' },
-            { q: 'Er den første samtalen virkelig gratis?', a: 'Ja, helt gratis og uforpliktende. Vi setter oss ned (fysisk eller digitalt) og lytter til utfordringene dine. Etter samtalen får du et konkret forslag til hva vi kan gjøre — uten noen forpliktelser.' },
-          ],
-        },
-        {
-          category: 'Teknologi og sikkerhet',
-          questions: [
-            { q: 'Er dataene våre trygge?', a: 'Absolutt. Vi følger beste praksis for datasikkerhet og personvern. Alle systemer bygges med kryptering, tilgangskontroll og sikker hosting. Vi er kjent med GDPR-kravene og sørger for at løsningene er i samsvar med norske og europeiske regelverk.' },
-            { q: 'Bruker dere kunstig intelligens (AI)?', a: 'Ja, der det gir verdi. Vi bruker AI for oppgaver som tekstforståelse, automatisk kategorisering, chatboter og dataanalyse. Men vi bruker det ikke bare for å være hippe — AI er et verktøy, og vi bruker det kun når det faktisk løser et problem bedre enn alternativene.' },
-            { q: 'Kan systemet skalere når vi vokser?', a: 'Ja. Vi bygger med skalering i tankene fra dag én. Enten du dobler antall ansatte, får ti ganger så mange kunder, eller ekspanderer til nye markeder — systemene våre vokser med deg uten at du trenger å bygge på nytt.' },
-          ],
-        },
       ],
     },
     contact: {
@@ -311,8 +257,6 @@ export const translations = {
         aiAgents: 'AI-agenter',
         chatbots: 'Chatboter',
         automatedFlows: 'Automatiserte flyter',
-        ai: 'Kunstig intelligens',
-        software: 'Softwareutvikling',
         cases: 'Kundecaser',
         faq: 'Ofte stilte spørsmål',
         mystyler: 'MyStyler — vår AI-stylist',
@@ -542,31 +486,6 @@ export const translations = {
         { name: 'ElementLab', logo: '/kunder-elementlab.png', slug: 'elementlab', desc: 'Searchable knowledge base replacing manual searching. Reports 80% faster — freeing up hundreds of hours annually.' },
       ],
     },
-    app: {
-      tag: 'Our app',
-      heading: 'Try our AI stylist',
-      lead: 'MyStyler is our own iOS app — a personal AI stylist you can have in your pocket. Upload two photos, describe the occasion, and get four photorealistic outfits that actually look like you.',
-      sub: 'Dinner in Paris. Job interview. Beach wedding. First day back at the office. Whatever you type in, MyStyler dresses you for it — without losing your face, hair color, or proportions.',
-      features: [
-        'Describe any occasion in plain English or Norwegian',
-        'Wardrobe mode: take photos of the clothes you already own',
-        'Save favorites to your own style library',
-        'Generate full outfits or hair + makeup looks',
-      ],
-      cta: 'Download on App Store',
-      platform: 'Available for iPhone',
-      whatIsHeading: 'What is MyStyler?',
-      whatIsBody1: 'MyStyler is the Workflows team\'s own consumer product — a small side project we built to show what modern image models can do. The app combines two photos of you with a text description of an occasion, and generates four photorealistic outfit suggestions in seconds.',
-      whatIsBody2: "You keep your facial features, hair color, and proportions — it only changes the clothes. Think of it as trying things on in front of a mirror, without ever putting on a single garment.",
-      howHeading: 'How it works',
-      howSteps: [
-        { title: 'Upload two photos', desc: "One headshot and one full-body shot. That's enough for MyStyler to understand who you are." },
-        { title: 'Describe the occasion', desc: '"Dinner at an Italian restaurant" or "first day back at the office." Write in English or Norwegian.' },
-        { title: 'Get four outfits', desc: 'Four photorealistic images of you in different outfits. Save the ones you like to your own style library.' },
-      ],
-      shotsHeading: 'See MyStyler in action',
-      backToHome: 'Back to Workflows',
-    },
     faq: {
       tag: 'FAQ',
       heading: 'Frequently asked questions',
@@ -578,35 +497,6 @@ export const translations = {
         { q: 'Do we own the code and the system?', a: 'Yes, always. You own everything we build for you — source code, design, data. There is no lock-in and no hidden costs. If you ever want to switch vendors or take over operations yourself, you have full freedom to do so.' },
         { q: 'Is our data safe?', a: 'Absolutely. We follow best practices for data security and privacy. All systems are built with encryption, access control, and secure hosting. We are familiar with GDPR requirements and ensure that solutions comply with Norwegian and European regulations.' },
         { q: 'Is the first conversation really free?', a: 'Yes, completely free and non-binding. We sit down (physically or digitally) and listen to your challenges. After the conversation, you get a concrete proposal for what we can do — with no obligations.' },
-      ],
-      categories: [
-        {
-          category: 'About our services',
-          questions: [
-            { q: 'What kinds of businesses do you work with?', a: 'We work with businesses of all sizes — from small companies with 5 employees to larger ones with hundreds. The common thread is that they have manual processes that take too much time. We have experience in industries such as subsea, research, real estate, retail, and services.' },
-            { q: 'What is custom software?', a: 'Custom software is software built specifically for your business and processes. Unlike off-the-shelf products like Salesforce or HubSpot, you get a system that fits perfectly with how you work — without unnecessary features or limitations.' },
-            { q: 'What is a digital assistant?', a: "A digital assistant is an AI-powered system that can handle tasks like customer service, follow-up, reporting, or data processing — automatically and around the clock. Think of it as a colleague who never sleeps, never forgets, and never makes careless mistakes." },
-            { q: 'Can you integrate with the systems we already use?', a: 'Yes. We specialize in connecting existing tools. Whether you use Tripletex, Visma, Microsoft 365, Google Workspace, Slack, or industry-specific systems — we build bridges between them so data flows automatically.' },
-            { q: 'Do we need technical expertise internally?', a: "No. We build systems that are easy for everyone to use. You don't need to understand the technology — just the results. We handle all the technical aspects and provide thorough training when the system is ready." },
-          ],
-        },
-        {
-          category: 'Price and process',
-          questions: [
-            { q: 'What does it cost?', a: "The price depends on the scope and size of the project. We always provide a fixed quote after a non-binding initial conversation — so you know exactly what you'll pay before you decide." },
-            { q: 'How long does it take?', a: 'Most projects are delivered within 4–12 weeks. Simple automations can be ready in under two weeks. You see progress from week one — we show you demos along the way so you can give early feedback.' },
-            { q: 'What happens after launch?', a: "We offer support and maintenance for as long as you need it. All systems come with documentation and training. If something needs adjustment or you want to add new features later, we're available." },
-            { q: 'Is the first conversation really free?', a: 'Yes, completely free and non-binding. We sit down (physically or digitally) and listen to your challenges. After the conversation, you get a concrete proposal for what we can do — with no obligations.' },
-          ],
-        },
-        {
-          category: 'Technology and security',
-          questions: [
-            { q: 'Is our data safe?', a: 'Absolutely. We follow best practices for data security and privacy. All systems are built with encryption, access control, and secure hosting. We are familiar with GDPR requirements and ensure that solutions comply with Norwegian and European regulations.' },
-            { q: 'Do you use artificial intelligence (AI)?', a: "Yes, where it adds value. We use AI for tasks like text understanding, automatic categorization, chatbots, and data analysis. But we don't use it just to be trendy — AI is a tool, and we only use it when it actually solves a problem better than the alternatives." },
-            { q: 'Can the system scale as we grow?', a: 'Yes. We build with scaling in mind from day one. Whether you double your staff, get ten times as many customers, or expand to new markets — our systems grow with you without needing to be rebuilt.' },
-          ],
-        },
       ],
     },
     contact: {
@@ -630,8 +520,6 @@ export const translations = {
         aiAgents: 'AI agents',
         chatbots: 'Chatbots',
         automatedFlows: 'Automated flows',
-        ai: 'Artificial intelligence',
-        software: 'Software development',
         cases: 'Client cases',
         faq: 'Frequently asked questions',
         mystyler: 'MyStyler — our AI stylist',

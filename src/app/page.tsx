@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     "AI-agenter, kunstig intelligens og skreddersydd software for bedrifter i Haugesund og Norge. Gratis første samtale, ingen forpliktelser.",
   alternates: {
     canonical: "/",
+    languages: {
+      "nb-NO": "/",
+      "en": "/",
+      "x-default": "/",
+    },
   },
   openGraph: {
     url: SITE_URL,

@@ -8,7 +8,13 @@ export const metadata: Metadata = {
   title: "Festiviteten – AI som styrer billettsalg og annonsering",
   description:
     "Kundecase: Workflows bygde et AI-system som overvåker billettsalg og annonsering på Meta, Google og radio for Festiviteten — med personlige AI-assistenter som rådgir 24/7.",
-  alternates: { canonical: "/kunder/festiviteten" },
+  alternates: {
+    canonical: "/kunder/festiviteten",
+    languages: {
+      "nb-NO": "/kunder/festiviteten",
+      "x-default": "/kunder/festiviteten",
+    },
+  },
   openGraph: {
     title: "Festiviteten – AI som styrer billettsalg og annonsering | Workflows",
     description:

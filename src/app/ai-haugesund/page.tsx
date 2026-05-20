@@ -17,7 +17,13 @@ export const metadata: Metadata = {
   title: "AI i Haugesund — kunstig intelligens og skreddersydd software",
   description:
     "Workflows er et lokalt AI- og softwareutviklingsselskap i Haugesund. Vi bygger kunstig intelligens, AI-agenter og skreddersydd programvare for bedrifter på Haugalandet, i Rogaland og i resten av Norge.",
-  alternates: { canonical: "/ai-haugesund" },
+  alternates: {
+    canonical: "/ai-haugesund",
+    languages: {
+      "nb-NO": "/ai-haugesund",
+      "x-default": "/ai-haugesund",
+    },
+  },
   openGraph: {
     title:
       "AI i Haugesund — kunstig intelligens og skreddersydd software | Workflows",

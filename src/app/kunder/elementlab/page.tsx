@@ -8,7 +8,13 @@ export const metadata: Metadata = {
   title: "ElementLab – AI-chatbot og bookingintegrasjon",
   description:
     "Kundecase: Workflows integrerte bookingsystemet i nettsiden og bygget en AI-chatbot trent på behandlingsdata for ElementLab.",
-  alternates: { canonical: "/kunder/elementlab" },
+  alternates: {
+    canonical: "/kunder/elementlab",
+    languages: {
+      "nb-NO": "/kunder/elementlab",
+      "x-default": "/kunder/elementlab",
+    },
+  },
   openGraph: {
     title: "ElementLab – AI-chatbot og bookingintegrasjon | Workflows",
     description:

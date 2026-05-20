@@ -7,7 +7,13 @@ export const metadata: Metadata = {
   title: "Vanlige spørsmål om AI og softwareutvikling",
   description:
     "Svar på vanlige spørsmål om AI-agenter, kunstig intelligens, skreddersydd software, automatisering, priser og prosess hos Workflows i Haugesund.",
-  alternates: { canonical: "/faq" },
+  alternates: {
+    canonical: "/faq",
+    languages: {
+      "nb-NO": "/faq",
+      "x-default": "/faq",
+    },
+  },
   openGraph: {
     title: "Vanlige spørsmål om AI og softwareutvikling | Workflows",
     description:

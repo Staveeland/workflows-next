@@ -22,7 +22,14 @@ export const metadata: Metadata = {
   title: "Chatboter for bedrifter — AI-drevne assistenter",
   description:
     "Vi bygger chatboter som svarer kunder 24/7, henter svar fra dine egne dokumenter (RAG) og integrerer med Slack, Teams, CRM og nettside. Kundeservice som er på når du ikke er.",
-  alternates: { canonical: "/chatboter" },
+  alternates: {
+    canonical: "/chatboter",
+    languages: {
+      "nb-NO": "/chatboter",
+      "en": "/chatboter",
+      "x-default": "/chatboter",
+    },
+  },
   openGraph: {
     title: "Chatboter for bedrifter | Workflows",
     description:

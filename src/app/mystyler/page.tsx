@@ -8,7 +8,13 @@ export const metadata: Metadata = {
   title: "MyStyler — AI-stylist i lommen | Workflows",
   description:
     "MyStyler er Workflows sin egenutviklede iOS-app. Last opp to bilder, beskriv anledningen, og få fire fotorealistiske antrekksforslag av deg selv på sekunder.",
-  alternates: { canonical: "/mystyler" },
+  alternates: {
+    canonical: "/mystyler",
+    languages: {
+      "nb-NO": "/mystyler",
+      "x-default": "/mystyler",
+    },
+  },
   openGraph: {
     title: "MyStyler — AI-stylist i lommen",
     description:

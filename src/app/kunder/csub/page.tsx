@@ -8,7 +8,13 @@ export const metadata: Metadata = {
   title: "CSUB – AI-dashboard og RAG-assistent",
   description:
     "Kundecase: Workflows bygget et intelligent dashboard med AI-assistent (RAG) som samler prosjektdata og genererer rapporter for CSUB på sekunder.",
-  alternates: { canonical: "/kunder/csub" },
+  alternates: {
+    canonical: "/kunder/csub",
+    languages: {
+      "nb-NO": "/kunder/csub",
+      "x-default": "/kunder/csub",
+    },
+  },
   openGraph: {
     title: "CSUB – AI-dashboard og RAG-assistent | Workflows",
     description:
