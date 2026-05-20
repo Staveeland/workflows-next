@@ -616,11 +616,15 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 32px;
+  justify-content: flex-start;
+  gap: 22px;
+  padding: 96px 20px 96px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .mobile-overlay a {
-  font-size: 28px; font-weight: 600;
+  font-size: 24px; font-weight: 600;
   color: var(--text);
   letter-spacing: -0.03em;
   animation: fadeSlideUp 0.5s var(--ease) both;
@@ -629,8 +633,8 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
-  width: min(420px, 88vw);
+  gap: 14px;
+  width: min(420px, 92vw);
   animation: fadeSlideUp 0.5s var(--ease) both;
 }
 .mobile-overlay__services-toggle {
@@ -641,7 +645,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   border: none;
   cursor: pointer;
   font-family: inherit;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.03em;
@@ -653,22 +657,22 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 .mobile-overlay__services-list a {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-  padding: 14px;
+  padding: 10px 14px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-light);
-  border-radius: 14px;
+  border-radius: 12px;
   text-align: left;
   animation: none;
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--text);
 }
 .mobile-overlay__services-icon {
@@ -676,9 +680,9 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background: #fff;
   color: var(--accent-dark);
   border: 1px solid var(--border-light);
@@ -691,13 +695,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   letter-spacing: -0.01em;
 }
 .mobile-overlay__services-desc {
-  display: block;
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--text-tertiary);
-  line-height: 1.5;
-  margin-top: 2px;
-  letter-spacing: 0;
+  display: none;
 }
 .mobile-overlay__services-seeall {
   justify-content: center;
@@ -706,6 +704,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   color: var(--accent-dark) !important;
   background: transparent !important;
   border-style: dashed !important;
+  padding: 10px 14px !important;
 }
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(16px); }
