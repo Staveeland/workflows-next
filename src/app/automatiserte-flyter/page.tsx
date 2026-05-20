@@ -45,7 +45,7 @@ const breadcrumbJsonLd = buildBreadcrumb([
 
 const serviceJsonLd = buildService({
   name: "Automatiserte flyter",
-  slug: "/automatiserte-flyter",
+  path: "/automatiserte-flyter",
   serviceType: "Prosessautomatisering",
   description:
     "Utvikling av automatiserte flyter og systemintegrasjoner som kobler sammen bedriftens verktøy og fjerner manuelt arbeid.",

@@ -57,7 +57,7 @@ const breadcrumbJsonLd = buildBreadcrumb([
 
 const serviceJsonLd = buildService({
   name: "Chatboter for bedrifter",
-  slug: "/chatboter",
+  path: "/chatboter",
   serviceType: "Chatbot-utvikling",
   description:
     "Utvikling av AI-drevne chatboter og AI-assistenter som svarer kunder 24/7, henter data fra interne systemer via RAG, og integrerer med Slack, Teams, CRM og nettside.",

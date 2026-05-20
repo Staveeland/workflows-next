@@ -1,39 +1,53 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
 import { translations } from "@/lib/translations";
 import { DEFAULT_EASE } from "./_shared";
 
+type TypewriterState = { idx: number; chars: number; del: boolean };
+type TypewriterAction = { type: "tick"; wordsLen: number; wordLen: number } | { type: "reset" };
+
+const INITIAL_STATE: TypewriterState = { idx: 0, chars: 0, del: false };
+
+function typewriterReducer(state: TypewriterState, action: TypewriterAction): TypewriterState {
+  if (action.type === "reset") return INITIAL_STATE;
+  // tick: advance the typewriter by one logical step.
+  const { wordsLen, wordLen } = action;
+  if (!state.del && state.chars === wordLen) {
+    // Finished typing: flip to deleting after a pause (handled by timer).
+    return { ...state, del: true };
+  }
+  if (state.del && state.chars === 0) {
+    // Finished deleting: move to next word, start typing again.
+    return { idx: (state.idx + 1) % wordsLen, chars: 0, del: false };
+  }
+  return { ...state, chars: state.chars + (state.del ? -1 : 1) };
+}
+
 function Typewriter({ words }: { words: readonly string[] }) {
   const reduceMotion = useReducedMotion();
-  const [idx, setIdx] = useState(0);
-  const [chars, setChars] = useState(0);
-  const [del, setDel] = useState(false);
-  const word = words[idx];
+  const [state, dispatch] = useReducer(typewriterReducer, INITIAL_STATE);
+  const word = words[state.idx];
 
+  // Reset when the word set changes (e.g. language switch).
+  // useMemo gives a stable identity so the effect below doesn't re-trigger every render.
+  const wordsKey = useMemo(() => words.join("|"), [words]);
   useEffect(() => {
-    setIdx(0);
-    setChars(0);
-    setDel(false);
-  }, [words]);
+    dispatch({ type: "reset" });
+  }, [wordsKey]);
 
   useEffect(() => {
     if (reduceMotion) return;
-    if (!del && chars === word.length) {
-      const t = setTimeout(() => setDel(true), 2200);
-      return () => clearTimeout(t);
-    }
-    if (del && chars === 0) {
-      setDel(false);
-      setIdx((p) => (p + 1) % words.length);
-      return;
-    }
-    const t = setTimeout(() => setChars((p) => p + (del ? -1 : 1)), del ? 45 : 90);
+    const finishedTyping = !state.del && state.chars === word.length;
+    const delay = finishedTyping ? 2200 : state.del ? 45 : 90;
+    const t = setTimeout(() => {
+      dispatch({ type: "tick", wordsLen: words.length, wordLen: word.length });
+    }, delay);
     return () => clearTimeout(t);
-  }, [chars, del, word, words, reduceMotion]);
+  }, [state.chars, state.del, word, words.length, reduceMotion]);
 
   if (reduceMotion) {
     return <span className="hero__accent">{words[0]}</span>;
@@ -41,7 +55,7 @@ function Typewriter({ words }: { words: readonly string[] }) {
 
   return (
     <span className="hero__accent typewriter">
-      {word.slice(0, chars)}
+      {word.slice(0, state.chars)}
       <span className="typewriter__cursor" />
     </span>
   );

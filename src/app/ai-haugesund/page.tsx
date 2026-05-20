@@ -63,7 +63,7 @@ const breadcrumbJsonLd = buildBreadcrumb([
 
 const serviceJsonLd = buildService({
   name: "AI, kunstig intelligens og softwareutvikling i Haugesund",
-  slug: "/ai-haugesund",
+  path: "/ai-haugesund",
   serviceType: "AI- og softwareutvikling",
   description:
     "Lokalt AI- og softwareutviklingsselskap i Haugesund. Vi bygger kunstig intelligens, AI-agenter, chatboter, RAG-assistenter, dokumentforståelse, integrasjoner og skreddersydd programvare for bedrifter på Haugalandet, i Rogaland og i resten av Norge.",

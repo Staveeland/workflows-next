@@ -45,7 +45,7 @@ const articleJsonLd = buildArticle({
   description:
     "Workflows bygde et AI-system for Festiviteten som holder styr på billettsalg og annonser på Meta, Google og radio — med personlige AI-assistenter koblet direkte til hele økosystemet.",
   image: "/kunder-festiviteten.png",
-  slug: "/kunder/festiviteten",
+  path: "/kunder/festiviteten",
   about: { "@type": "Thing", name: "Festiviteten" },
 });
 

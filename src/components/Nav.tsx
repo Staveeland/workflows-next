@@ -30,6 +30,17 @@ export default function Nav() {
   const servicesBtnRef = useRef<HTMLButtonElement | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Reset dropdown state when the route changes. Done during render via the
+  // "store-and-compare-prev-prop" pattern recommended by React docs — avoids
+  // the cascading-renders cost of setting state in an effect.
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    if (servicesOpen) setServicesOpen(false);
+    if (mobileServicesOpen) setMobileServicesOpen(false);
+  }
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -73,12 +84,6 @@ export default function Nav() {
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, [servicesOpen]);
-
-  // Close services dropdown on route change
-  useEffect(() => {
-    setServicesOpen(false);
-    setMobileServicesOpen(false);
-  }, [pathname]);
 
   // Ensure body overflow is always restored on unmount
   useEffect(() => {

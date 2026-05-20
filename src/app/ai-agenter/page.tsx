@@ -8,7 +8,6 @@ import HighlightGrid from "@/components/visuals/HighlightGrid";
 import BeforeAfter from "@/components/visuals/BeforeAfter";
 import UseCaseGrid from "@/components/visuals/UseCaseGrid";
 import {
-  IconAgent,
   IconEye,
   IconBrain,
   IconBolt,
@@ -60,7 +59,7 @@ const breadcrumbJsonLd = buildBreadcrumb([
 
 const serviceJsonLd = buildService({
   name: "AI-agenter",
-  slug: "/ai-agenter",
+  path: "/ai-agenter",
   serviceType: "AI-agentutvikling",
   description:
     "Utvikling av autonome AI-agenter (agentic AI) som oppfatter, planlegger, handler og verifiserer — multi-step workflows som tar beslutninger og utfører oppgaver på vegne av bedrifter.",

@@ -44,7 +44,7 @@ const articleJsonLd = buildArticle({
   description:
     "Workflows bygget en skreddersydd booking-frontend og en AI-chatbot trent på behandlingsdata for ElementLab.",
   image: "/kunder-elementlab.png",
-  slug: "/kunder/elementlab",
+  path: "/kunder/elementlab",
   about: { "@type": "Thing", name: "ElementLab" },
 });
 

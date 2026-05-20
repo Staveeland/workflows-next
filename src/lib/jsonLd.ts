@@ -52,7 +52,7 @@ export interface ServiceParams {
   /** Display name of the service. */
   name: string;
   /** Path to the canonical page for the service, e.g. "/chatboter". */
-  slug: string;
+  path: string;
   /** schema.org serviceType value. */
   serviceType: string;
   description: string;
@@ -71,7 +71,7 @@ const DEFAULT_AUDIENCE: JsonLdObject = {
  */
 export function buildService({
   name,
-  slug,
+  path,
   serviceType,
   description,
   areaServed = DEFAULT_AREA_SERVED,
@@ -87,7 +87,7 @@ export function buildService({
     areaServed,
   };
   if (audience) result.audience = audience;
-  result.url = urlFor(slug);
+  result.url = urlFor(path);
   return result;
 }
 
@@ -97,7 +97,7 @@ export interface ArticleParams {
   /** Path to the image, e.g. "/kunder-csub.svg". */
   image: string;
   /** Path to the canonical page for the article, e.g. "/kunder/csub". */
-  slug: string;
+  path: string;
   /** Defaults to "nb-NO". */
   inLanguage?: string;
   /** Optional `about` subject, e.g. `{ "@type": "Thing", name: "CSUB" }`. */
@@ -112,7 +112,7 @@ export function buildArticle({
   headline,
   description,
   image,
-  slug,
+  path,
   inLanguage = "nb-NO",
   about,
 }: ArticleParams): JsonLdObject {
@@ -124,7 +124,7 @@ export function buildArticle({
     author: { "@id": ORG_ID },
     publisher: { "@id": ORG_ID },
     image: urlFor(image),
-    mainEntityOfPage: urlFor(slug),
+    mainEntityOfPage: urlFor(path),
     inLanguage,
   };
   if (about) result.about = about;

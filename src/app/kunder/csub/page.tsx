@@ -46,7 +46,7 @@ const articleJsonLd = buildArticle({
   description:
     "Workflows bygget et sentralisert dashboard og en AI-drevet chatassistent med RAG for CSUB som erstattet timevis med manuell leting i Excel-filer.",
   image: "/kunder-csub.svg",
-  slug: "/kunder/csub",
+  path: "/kunder/csub",
   about: { "@type": "Thing", name: "CSUB" },
 });
 
