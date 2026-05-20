@@ -1175,6 +1175,14 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .stats__item {
   text-align: center;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: var(--r-md, 14px);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s var(--ease), background 0.3s var(--ease);
 }
 .stats__item::after {
   content: '';
@@ -1183,6 +1191,18 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   background: var(--border);
 }
 .stats__item:last-child::after { display: none; }
+
+.stats__item--link { cursor: pointer; }
+.stats__item--link:hover {
+  background: var(--accent-soft);
+  transform: translateY(-3px);
+}
+.stats__item--link:hover .stats__cta { color: var(--accent-dark); }
+.stats__item--link:hover .stats__cta svg { transform: translateX(3px); }
+.stats__item--link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
 
 .stats__num {
   display: block;
@@ -1201,6 +1221,22 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   font-size: 14px;
   color: var(--text-tertiary);
   line-height: 1.5;
+  max-width: 28ch;
+}
+
+.stats__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.005em;
+  transition: color 0.25s var(--ease);
+}
+.stats__cta svg {
+  transition: transform 0.25s var(--ease);
 }
 
 /* ═══════════════════════ */
@@ -1472,6 +1508,57 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   line-height: 1.7;
 }
 
+/* About founder card — adds a human anchor under the bio paragraphs. */
+.about__founder {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-light);
+}
+
+.about__portrait {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg-elevated);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.about__portrait--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--accent-soft) 0%, var(--accent-bg) 100%);
+  border: 1px solid var(--accent-soft);
+}
+
+.about__portrait-mark {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 30px;
+  color: var(--accent-dark);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.about__founder-meta strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.about__founder-meta span {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
 /* ═══════════════════════ */
 /*          CTA            */
 /* ═══════════════════════ */
@@ -1559,13 +1646,26 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .contact__avatar {
   width: 48px; height: 48px;
   border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0.03em;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.contact__avatar--photo {
+  object-fit: cover;
+  background: var(--bg-elevated);
+}
+
+.contact__avatar--fallback {
+  background: linear-gradient(135deg, var(--accent-soft) 0%, var(--accent-bg) 100%);
+  border: 1px solid var(--accent-soft);
+  color: var(--accent-dark);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .contact__person strong {

@@ -98,9 +98,29 @@ export const translations = {
       body: 'Uansett om du trenger en chatbot som svarer kunder, automatiserte flyter som fjerner dobbeltarbeid, eller en AI-agent som jobber for deg — vi finner ut hva som passer, og bygger det.',
     },
     stats: {
-      s1Label: 'mindre tid på repeterende oppgaver',
-      s2Label: 'norske bedrifter bruker systemene våre daglig',
-      s3Label: 'systemene jobber — også når du ikke gjør det',
+      items: [
+        {
+          value: '80',
+          unit: '%',
+          label: 'raskere rapporter — ElementLab frigjorde hundrevis av timer årlig',
+          href: '/kunder/elementlab',
+          cta: 'Se ElementLab-saken',
+        },
+        {
+          value: '6',
+          unit: '+',
+          label: 'norske bedrifter bruker systemene våre daglig',
+          href: '/kunder',
+          cta: 'Se kundene våre',
+        },
+        {
+          value: '24',
+          unit: '/7',
+          label: 'systemene jobber — også når du ikke gjør det',
+          href: null,
+          cta: null,
+        },
+      ],
     },
     features: {
       tag: 'Hva vi gjør',
@@ -397,9 +417,29 @@ export const translations = {
       body: "Whether you need a chatbot that answers customers, automated flows that eliminate duplicate work, or an AI agent that works for you — we figure out what fits, and build it.",
     },
     stats: {
-      s1Label: 'less time on repetitive tasks',
-      s2Label: 'Norwegian companies use our systems daily',
-      s3Label: 'systems work — even when you don\'t',
+      items: [
+        {
+          value: '80',
+          unit: '%',
+          label: 'faster reports — ElementLab freed hundreds of hours annually',
+          href: '/kunder/elementlab',
+          cta: 'See the ElementLab case',
+        },
+        {
+          value: '6',
+          unit: '+',
+          label: 'Norwegian companies use our systems daily',
+          href: '/kunder',
+          cta: 'See our clients',
+        },
+        {
+          value: '24',
+          unit: '/7',
+          label: "systems run — even when you don't",
+          href: null,
+          cta: null,
+        },
+      ],
     },
     features: {
       tag: 'What we do',

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
 import { translations } from "@/lib/translations";
@@ -8,6 +9,11 @@ import { fadeUp, stagger, SCROLL_VIEWPORT } from "./_shared";
 export function Contact() {
   const { lang } = useLang();
   const t = translations[lang];
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const avatarAlt =
+    lang === "no"
+      ? "Petter Staveland, grunnlegger av Workflows AS"
+      : "Petter Staveland, founder of Workflows AS";
 
   return (
     <section className="section" id="kontakt">
@@ -27,7 +33,23 @@ export function Contact() {
           <motion.div className="contact__right" variants={fadeUp} custom={1}>
             <a href="mailto:petter@workflows.no" className="contact__card">
               <div className="contact__person">
-                <div className="contact__avatar">PS</div>
+                {avatarFailed ? (
+                  <div className="contact__avatar contact__avatar--fallback" aria-label={avatarAlt} role="img">
+                    <span aria-hidden="true">PS</span>
+                  </div>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src="/petter.jpg"
+                    alt={avatarAlt}
+                    className="contact__avatar contact__avatar--photo"
+                    width={48}
+                    height={48}
+                    loading="lazy"
+                    decoding="async"
+                    onError={() => setAvatarFailed(true)}
+                  />
+                )}
                 <div>
                   <strong>Petter Staveland</strong>
                   <span>{t.contact.role}</span>
