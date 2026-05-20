@@ -545,7 +545,20 @@ export default function ChatWidget() {
               )}
             </header>
 
-            <div className="chat-panel__scroll" ref={scrollRef}>
+            <div
+              className="chat-panel__scroll"
+              ref={scrollRef}
+              /* WCAG 4.1.3 Status Messages: announce new assistant/petter
+                 replies to screen readers as they arrive. role="log" implies
+                 aria-live=polite; we keep aria-live explicit for clarity and
+                 ensure aria-atomic=false so only new appended messages are
+                 read, not the full transcript on every change. */
+              role="log"
+              aria-live="polite"
+              aria-atomic="false"
+              aria-relevant="additions text"
+              aria-label="Chat-samtale"
+            >
               {msgs.map((m, i) => (
                 <ChatMessage key={i} role={m.role} text={m.text} />
               ))}
@@ -554,6 +567,7 @@ export default function ChatWidget() {
                   className="chat-msg chat-msg--assistant chat-msg--typing"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  aria-label="Assistenten skriver"
                 >
                   <span /> <span /> <span />
                 </motion.div>

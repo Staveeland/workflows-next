@@ -31,6 +31,12 @@ button { font: inherit; }
   --accent-glow: rgba(226, 158, 51, 0.15);
   --accent-dark: #c4872a;
   --accent-bg: #fdf6e7;
+  /* Sprint 4.2 — text-safe amber. #8a5d1a passes WCAG AA (4.5:1) on
+     --bg (#faf8f5 ≈ 5.6:1), --bg-elevated (#f2efe9 ≈ 5.1:1), --bg-warm
+     (#f5f0e6 ≈ 5.2:1) and --accent-soft tint. Use for any amber-colored
+     text on light backgrounds. Keep --accent for backgrounds, icons,
+     large display moments where AA is satisfied or the role is decorative. */
+  --accent-text: #8a5d1a;
 
   /* System — font stack
      Sprint 2.1: Inter is body, Lora is reserved for h1/h2/blockquote (display).
@@ -239,7 +245,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-soft);
   padding: 7px 16px;
   border-radius: 100px;
@@ -250,7 +256,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   background: rgba(255, 255, 255, 0.06);
 }
 .tag--on-accent {
-  color: var(--accent-dark);
+  color: var(--accent-text);
   background: rgba(0, 0, 0, 0.06);
 }
 
@@ -519,17 +525,22 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 }
 .nav__services-seeall:hover,
 .nav__services-seeall:focus-visible {
-  color: var(--accent) !important;
+  color: var(--accent-text) !important;
 }
 
 .nav__burger {
   display: none;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 5px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  /* WCAG 2.5.8: 44x44 target for mobile burger */
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px;
   z-index: 1001;
 }
 .nav__burger span {
@@ -555,7 +566,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px 9px;
+  padding: 6px 10px;
   border-radius: 7px;
   font-size: 12px;
   font-weight: 600;
@@ -565,6 +576,12 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   line-height: 1;
   transition: background 0.2s, transform 0.15s;
   opacity: 0.5;
+  /* WCAG 2.5.8 AA: ≥24x24 target */
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .lang-toggle__flag {
   font-size: 14px;
@@ -833,7 +850,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 }
 
 .hero__accent {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* Typewriter */
@@ -1024,7 +1041,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 }
 
 .level__arrow {
-  color: var(--accent);
+  color: var(--accent-text);
   flex-shrink: 0;
   font-weight: 600;
   font-size: 13px;
@@ -1196,7 +1213,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   height: 22px;
   border-radius: 50%;
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1245,7 +1262,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   background: var(--accent-soft);
   transform: translateY(-3px);
 }
-.stats__item--link:hover .stats__cta { color: var(--accent-dark); }
+.stats__item--link:hover .stats__cta { color: var(--accent-text); }
 .stats__item--link:hover .stats__cta svg { transform: translateX(3px); }
 .stats__item--link:focus-visible {
   outline: 2px solid var(--accent);
@@ -1263,7 +1280,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   font-variant-numeric: tabular-nums;
 }
 
-.stats__pct { color: var(--accent); }
+.stats__pct { color: var(--accent-text); }
 
 .stats__label {
   font-size: 14px;
@@ -1279,7 +1296,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   margin-top: 12px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   letter-spacing: -0.005em;
   transition: color 0.25s var(--ease);
 }
@@ -1488,7 +1505,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   display: block;
   font-size: 48px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   letter-spacing: -0.05em;
   line-height: 1;
   margin-bottom: 20px;
@@ -1549,7 +1566,10 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   box-shadow: 0 0 16px rgba(226, 158, 51, 0.25);
 }
 
-.val h4 { margin-bottom: 6px; }
+/* Was .val h4. Bumped to h3 in Sprint 4.2 for correct heading hierarchy
+   (h1 → h2 [About title] → h3 [value]). Visual size kept at 17px to match
+   the previous editorial weight of these items. */
+.val h3 { margin-bottom: 6px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .val p {
   font-size: 14px;
   color: var(--text-secondary);
@@ -1737,7 +1757,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .contact__email-label {
   font-size: 16px;
   font-weight: 500;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .contact__email-row svg {
@@ -1818,7 +1838,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .client-card__link {
   font-size: 13px;
   font-weight: 500;
-  color: var(--accent);
+  color: var(--accent-text);
   transition: gap 0.3s var(--ease);
 }
 .client-card:hover .client-card__link { text-decoration: underline; }
@@ -2120,7 +2140,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   display: inline-block;
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent-dark);
+  color: var(--accent-text);
   background: var(--accent-soft);
   padding: 5px 14px;
   border-radius: 100px;
@@ -2128,7 +2148,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .case-card__link {
   font-size: 14px;
   font-weight: 500;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .case-card:hover .case-card__link { text-decoration: underline; }
 
@@ -2172,7 +2192,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   align-items: center;
   transition: color 0.25s;
 }
-.faq-item summary:hover { color: var(--accent); }
+.faq-item summary:hover { color: var(--accent-text); }
 .faq-item summary::after {
   content: '+';
   font-size: 20px;
@@ -2289,7 +2309,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   height: 24px;
   border-radius: 50%;
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3122,7 +3142,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   content: "•";
   position: absolute;
   left: 2px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
 }
 .chat-msg strong { font-weight: 600; color: inherit; }
@@ -3207,7 +3227,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   height: 40px;
   border-radius: 12px;
   border: none;
-  background: var(--accent);
+  background: var(--text);
   color: #fff;
   cursor: pointer;
   display: flex;
@@ -3217,7 +3237,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   flex-shrink: 0;
 }
 .chat-panel__form button:hover:not(:disabled) {
-  background: var(--accent-dark);
+  background: #333;
   transform: translateY(-1px);
 }
 .chat-panel__form button:disabled {
@@ -3235,8 +3255,8 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 }
 .chat-panel__foot a,
 .chat-panel__forget {
-  color: var(--accent);
-  text-decoration: none;
+  color: var(--accent-text);
+  text-decoration: underline;
   background: none;
   border: none;
   padding: 0;
@@ -3305,11 +3325,11 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 }
 .chat-handover__cancel:hover { color: var(--text); border-color: var(--border); }
 .chat-handover__submit {
-  background: var(--accent);
+  background: var(--text);
   color: #fff;
 }
 .chat-handover__submit:hover:not(:disabled) {
-  background: var(--accent-dark);
+  background: #333;
 }
 .chat-handover__submit:disabled {
   opacity: 0.6;
@@ -3429,12 +3449,17 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   font-weight: 500;
   color: var(--text-on-dark-secondary);
   background: rgba(255, 255, 255, 0.06);
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 100px;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
   font-family: var(--font-body);
+  /* WCAG 2.5.8 AA: ≥24x24 target */
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .chat-panel__end:hover { color: #fff; background: rgba(255, 255, 255, 0.12); }
 

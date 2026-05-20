@@ -79,7 +79,10 @@ export function About() {
               <motion.div key={i} className="val" variants={fadeUp} custom={i}>
                 <div className="val__bar" />
                 <div>
-                  <h4>{title}</h4>
+                  {/* h3 (was h4) — matches sibling sections (Levels, Process,
+                     Customers etc. all use h3 for card-level subheads under
+                     the section h2). Sprint 4.2. */}
+                  <h3>{title}</h3>
                   <p>{desc}</p>
                 </div>
               </motion.div>
