@@ -31,12 +31,12 @@ button { font: inherit; }
   --accent-glow: rgba(226, 158, 51, 0.15);
   --accent-dark: #c4872a;
   --accent-bg: #fdf6e7;
-  /* Sprint 4.2 — text-safe amber. #8a5d1a passes WCAG AA (4.5:1) on
-     --bg (#faf8f5 ≈ 5.6:1), --bg-elevated (#f2efe9 ≈ 5.1:1), --bg-warm
-     (#f5f0e6 ≈ 5.2:1) and --accent-soft tint. Use for any amber-colored
-     text on light backgrounds. Keep --accent for backgrounds, icons,
-     large display moments where AA is satisfied or the role is decorative. */
-  --accent-text: #8a5d1a;
+  /* Text-safe amber tokens.
+     --accent-text:    #946420 ≈ 4.6:1 on --bg — passes AA for normal text (<18px).
+     --accent-text-lg: #b07a2a ≈ 3.4:1 on --bg — passes AA for large text (≥18px / ≥14px bold)
+                       and decorative roles. Closer to brand --accent (#e29e33) for hero / stats / display. */
+  --accent-text: #946420;
+  --accent-text-lg: #b07a2a;
 
   /* System — font stack
      Sprint 2.1: Inter is body, Lora is reserved for h1/h2/blockquote (display).
@@ -850,7 +850,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 }
 
 .hero__accent {
-  color: var(--accent-text);
+  color: var(--accent-text-lg);
 }
 
 /* Typewriter */
@@ -1280,7 +1280,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   font-variant-numeric: tabular-nums;
 }
 
-.stats__pct { color: var(--accent-text); }
+.stats__pct { color: var(--accent-text-lg); }
 
 .stats__label {
   font-size: 14px;
@@ -1505,7 +1505,7 @@ h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   display: block;
   font-size: 48px;
   font-weight: 700;
-  color: var(--accent-text);
+  color: var(--accent-text-lg);
   letter-spacing: -0.05em;
   line-height: 1;
   margin-bottom: 20px;
