@@ -3,7 +3,7 @@ import { Lora, Inter } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import ChatWidget from "@/components/ChatWidget";
+import ChatWidgetLazy from "@/components/ChatWidgetLazy";
 import SkipLink from "@/components/SkipLink";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { ORG_ID, SITE_URL, WEBSITE_ID, urlFor } from "@/lib/site";
@@ -262,7 +262,7 @@ export default function RootLayout({
           <Nav />
           <main id="main">{children}</main>
           <Footer />
-          <ChatWidget />
+          <ChatWidgetLazy />
         </LanguageProvider>
       </body>
     </html>
