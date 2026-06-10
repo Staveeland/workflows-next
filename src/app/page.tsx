@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HomeClient from "@/components/HomeClient";
+import VerkstedHome from "@/components/verksted/VerkstedHome";
 import { ORG_ID, SITE_URL, WEBSITE_ID, urlFor } from "@/lib/site";
 import { DEFAULT_AREA_SERVED } from "@/lib/jsonLd";
 
@@ -95,7 +95,7 @@ export default function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(servicesJsonLd) }}
       />
-      <HomeClient />
+      <VerkstedHome />
     </>
   );
 }

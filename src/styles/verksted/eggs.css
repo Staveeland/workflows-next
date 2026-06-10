@@ -1,0 +1,264 @@
+/* ════════════════════════════════════════════════════════════════════
+   VERKSTEDET — easter eggs (kaffe toast, Konami nattskift, wonk)
+   Overlays are portaled to <body> (independent of any .vk stacking or
+   filter context), so .vk-egg-layer mirrors the few .vk tokens it
+   needs — same precedent as the canvas mirrors in ThreadContext.
+   Resting state = composed state (poster law): all entrances animate
+   FROM a from{} keyframe, loops carry no fill.
+   ════════════════════════════════════════════════════════════════════ */
+
+.vk-egg-layer {
+  --benk: #211b15;
+  --hairline: #3a3027;
+  --papir: #f4ede3;
+  --stov: #c9bba8;
+  --glod: #ffb454;
+  --glod-halo: #e29e33;
+  --kritt: #8fb8de;
+  --ease-work: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-stamp: linear(0, 0.6 18%, 1.08 38%, 0.985 60%, 1);
+  --dur-2: 240ms;
+  --dur-3: 480ms;
+  --rot-a: -2deg;
+  --rot-b: -1deg;
+  --rot-c: 1.5deg;
+
+  position: fixed;
+  inset: 0;
+  z-index: 65; /* above the nav (60), under the grain (70) and chat widget */
+  pointer-events: none;
+  line-height: 1.6;
+}
+
+/* Focus ring for the toast link (base.css scopes its ring to .vk). */
+.vk-egg-layer :focus-visible {
+  outline: 2px solid var(--glod);
+  outline-offset: 3px;
+}
+
+/* ════════════════════════════════════════════
+   (2) «kaffe» — coffee toast, bottom-left
+   ════════════════════════════════════════════ */
+
+.vk-egg-toast {
+  pointer-events: auto;
+  position: absolute;
+  left: clamp(16px, 3vw, 28px);
+  bottom: clamp(16px, 3vw, 28px);
+  max-width: min(400px, calc(100vw - 32px));
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+  transform: rotate(var(--rot-b));
+  cursor: pointer;
+  animation: vk-egg-toast-in var(--dur-3) var(--ease-work) both;
+}
+
+/* from{}-only: the to-state IS the resting state — instant under reduced. */
+@keyframes vk-egg-toast-in {
+  from {
+    transform: translateY(18px) rotate(var(--rot-b));
+    opacity: 0;
+  }
+}
+
+.vk-egg-cup {
+  flex: none;
+  margin-top: 2px;
+}
+
+.vk-egg-toast-text {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.45;
+  color: var(--papir);
+}
+
+/* 44px tap target on a small mono link. */
+.vk-egg-toast-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  color: var(--glod);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Steam loop: no fill — neutralized (reduced) it rests at base = visible. */
+.vk-egg-steam {
+  animation: vk-egg-steam-rise 2.6s linear infinite;
+  animation-fill-mode: backwards;
+}
+
+.vk-egg-steam:nth-child(2) {
+  animation-delay: 0.9s;
+}
+
+.vk-egg-steam:nth-child(3) {
+  animation-delay: 1.7s;
+}
+
+@keyframes vk-egg-steam-rise {
+  0% {
+    transform: translateY(2.5px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-3.5px);
+    opacity: 0;
+  }
+}
+
+/* ════════════════════════════════════════════
+   (3) Konami — «nattskiftet» (never runs under reduced motion)
+   ════════════════════════════════════════════ */
+
+/* 10% page dim as a portaled overlay — never a filter on .vk (a filter
+   would become the containing block for the fixed nav/grain). */
+.vk-egg-natt-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.1);
+  animation: vk-egg-dim var(--dur-3) var(--ease-work) both;
+}
+
+@keyframes vk-egg-dim {
+  from {
+    opacity: 0;
+  }
+}
+
+.vk-egg-natt-dot,
+.vk-egg-natt-ghost {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  border-radius: 50%;
+  background: var(--glod);
+  offset-rotate: 0deg;
+  offset-distance: 100%; /* resting = journey complete */
+  animation:
+    vk-egg-natt-run 6s var(--ease-work) both,
+    vk-egg-natt-out var(--dur-3) var(--ease-work) forwards;
+  animation-delay: 0s, 6.1s;
+}
+
+.vk-egg-natt-dot {
+  width: 8px;
+  height: 8px;
+  box-shadow: 0 0 12px 3px var(--glod-halo);
+}
+
+/* Trail: three staggered ghosts, each fainter and smaller. */
+.vk-egg-natt-ghost {
+  width: 6px;
+  height: 6px;
+  opacity: 0.45;
+  box-shadow: 0 0 8px 2px var(--glod-halo);
+  animation-delay: 0.12s, 6.1s;
+}
+
+.vk-egg-natt-ghost ~ .vk-egg-natt-ghost {
+  width: 5px;
+  height: 5px;
+  opacity: 0.28;
+  animation-delay: 0.24s, 6.1s;
+}
+
+.vk-egg-natt-ghost ~ .vk-egg-natt-ghost ~ .vk-egg-natt-ghost {
+  width: 4px;
+  height: 4px;
+  opacity: 0.16;
+  animation-delay: 0.36s, 6.1s;
+}
+
+@keyframes vk-egg-natt-run {
+  from {
+    offset-distance: 0%;
+  }
+}
+
+/* No offset-path ⇒ the dots would pile up top-left — drop them instead. */
+@supports not (offset-path: path("M 0 0 L 1 1")) {
+  .vk-egg-natt-dot,
+  .vk-egg-natt-ghost {
+    display: none;
+  }
+}
+
+@keyframes vk-egg-natt-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.vk-egg-natt-stampwrap {
+  position: absolute;
+  left: 50%;
+  top: 86%;
+  transform: translate(-50%, -50%);
+}
+
+/* Reuses the vk-stamp plate + slam keyframes from base.css, but in --glod
+   (amber = the workshop light; --drift stays semantic-only). */
+.vk-egg-natt-stamp {
+  --vk-rot: var(--rot-a);
+  color: var(--glod);
+  font-size: clamp(24px, 5vw, 44px);
+  white-space: nowrap;
+  animation:
+    vk-stamp-slam 320ms var(--ease-stamp) both,
+    vk-egg-natt-out var(--dur-3) var(--ease-work) 2.4s forwards;
+}
+
+/* ════════════════════════════════════════════
+   (4) Wonk — triple-click on the nav status dot
+   ════════════════════════════════════════════ */
+
+.vk-wonk .vk-display,
+.vk-wonk h1,
+.vk-wonk h2 {
+  font-variation-settings: "opsz" 144, "WONK" 1 !important;
+}
+
+.vk-egg-wonk-cap {
+  position: absolute;
+  max-width: min(280px, calc(100vw - 24px));
+  padding: 8px 12px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--stov);
+  text-align: center;
+  transform: translateX(-50%) rotate(var(--rot-c));
+  animation: vk-egg-cap-in var(--dur-2) var(--ease-work) both;
+  transition: opacity var(--dur-3) var(--ease-work);
+}
+
+@keyframes vk-egg-cap-in {
+  from {
+    transform: translateX(-50%) translateY(-6px) rotate(var(--rot-c));
+    opacity: 0;
+  }
+}
+
+/* JS removes the node at 3s; reduced motion hides instantly at 2.4s. */
+.vk-egg-wonk-cap--out {
+  opacity: 0;
+}

@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Lora, Inter } from "next/font/google";
 import "./globals.css";
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
+import SiteChrome from "@/components/SiteChrome";
 import ChatWidgetLazy from "@/components/ChatWidgetLazy";
 import SkipLink from "@/components/SkipLink";
 import { LanguageProvider } from "@/components/LanguageProvider";
@@ -260,9 +259,7 @@ export default function RootLayout({
       <body className={`${lora.variable} ${inter.variable} ${inter.className} antialiased`}>
         <LanguageProvider>
           <SkipLink />
-          <Nav />
-          <main id="main">{children}</main>
-          <Footer />
+          <SiteChrome>{children}</SiteChrome>
           <ChatWidgetLazy />
         </LanguageProvider>
       </body>

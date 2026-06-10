@@ -1,0 +1,369 @@
+/* ════════════════════════════════════════════════════════════════════
+   HERO — «Kaos inn. Flyt ut.» (brief §6 hero, §5 page-load)
+   260vh section = the brief's 160vh scroll runway above the sticky
+   100svh stage, so Phase A→C plays out over a full 160vh of pull.
+   Resting CSS state = fully composed state: every entrance animates
+   FROM a from{} keyframe TO the natural state, and all hidden-initial
+   states live behind no-preference media.
+   ════════════════════════════════════════════════════════════════════ */
+
+.vk-hero {
+  position: relative;
+  height: 260vh;
+  /* work-lamp pool — single-hue luminance gradient only (brief §3.3) */
+  background: radial-gradient(
+    ellipse 120% 85% at 26% 22%,
+    #211b15 0%,
+    #14100c 58%,
+    #171310 88%
+  );
+}
+
+/* ── Tråden's SVG hand-off — continues the canvas line as it fades ──
+   Container-clamped so viewBox x 0..1000 maps to the 1280px container
+   and x=380 sits exactly on the 38% spine at every width. */
+.vk-hero-tail {
+  position: absolute;
+  inset-inline: 0;
+  top: 60%;
+  height: 40%;
+  max-width: var(--vk-container);
+  margin-inline: auto;
+  pointer-events: none;
+}
+
+.vk-hero-thread {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Reduced motion: the canvas static frame already paints the full line —
+   hiding the tail avoids a doubled stroke (poster stays complete). */
+@media (prefers-reduced-motion: reduce) {
+  .vk-hero-tail {
+    display: none;
+  }
+}
+
+/* Sticky inner viewport: text holds while the scrap-drift gathers. */
+.vk-hero-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  z-index: 2;
+}
+
+.vk-hero-grid {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  padding-top: clamp(96px, 15vh, 168px);
+  padding-bottom: clamp(88px, 12vh, 128px);
+}
+
+/* ── H1 — letterpress display, left-anchored off-grid ── */
+
+.vk-hero-h1 {
+  margin: 0;
+  font-size: clamp(72px, 13vw, 220px);
+  font-variation-settings: "opsz" 144, "WONK" 1;
+}
+
+/* «Kaos inn.» / «Flyt ut.» — one sentence per line (forced break). */
+.vk-hero-line {
+  display: block;
+  white-space: nowrap;
+}
+
+.vk-hero-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.vk-hero-char {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* ── Sub + CTA + proof, grouped bottom-left ── */
+
+.vk-hero-foot {
+  position: relative;
+  display: grid;
+  gap: 28px;
+  justify-items: start;
+  max-width: 600px;
+}
+
+/* Soft luminance-only scrim — calms the copy zone without hiding the
+   chaos around it (the canvas also steers scraps off this block). */
+.vk-hero-foot::before {
+  content: "";
+  position: absolute;
+  inset: -52px -72px -44px -60px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(23, 19, 16, 0.7) 0%,
+    rgba(23, 19, 16, 0.52) 55%,
+    rgba(23, 19, 16, 0) 100%
+  );
+}
+
+.vk-hero-sub {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.55;
+  color: var(--papir);
+  max-width: 52ch;
+}
+
+.vk-hero-actions {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+
+.vk-hero-proof {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: var(--stov);
+}
+
+/* ── Chalk annotation + hand-drawn arrow toward the scrap drift ── */
+
+.vk-hero-annot {
+  position: absolute;
+  right: clamp(24px, 9vw, 150px);
+  top: 47%;
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  transform: rotate(var(--rot-b));
+  pointer-events: none;
+}
+
+.vk-hero-arrow {
+  display: block;
+  margin-left: 90px; /* head reaches up-right, over the drift */
+}
+
+.vk-hero-arrow path {
+  stroke: var(--kritt);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vk-hero-chalk {
+  font-size: clamp(18px, 1.8vw, 24px);
+  letter-spacing: 0.01em;
+}
+
+/* ── Mono ticker, top-right (decorative, aria-hidden) ── */
+
+.vk-hero-ticker {
+  position: absolute;
+  top: 84px;
+  right: clamp(20px, 4vw, 48px);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--stov);
+  white-space: pre; /* the typed/rest split must not collapse spaces */
+}
+
+/* Untyped remainder reserves width so the right-anchored box is stable. */
+.vk-hero-ticker-rest {
+  visibility: hidden;
+}
+
+.vk-hero-ticker-typed--caret {
+  box-shadow: 3px 0 0 0 var(--glod); /* layout-free caret sliver */
+}
+
+/* ── Scroll hint, bottom-center ── */
+
+.vk-hero-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  transition: opacity var(--dur-2) var(--ease-work);
+}
+
+.vk-hero-hint--hidden {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-2) var(--ease-work),
+    visibility 0s var(--dur-2);
+}
+
+.vk-hero-hint-label {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--stov);
+}
+
+.vk-hero-hint-line {
+  position: relative;
+  width: 1px;
+  height: 24px;
+  background: var(--hairline);
+}
+
+.vk-hero-hint-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--glod);
+  transform: translate(-50%, -50%); /* resting: visible mid-line */
+}
+
+/* ════════════════════════════════════════════
+   Motion — gated so the resting state never depends on animation.
+   ════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Chalk arrow draws in on load: shaft 300ms + head 180ms = 480ms,
+     starting just after the headline has landed. */
+  .vk-hero-arrow path {
+    stroke-dasharray: 1; /* paths carry pathLength=1 */
+  }
+
+  .vk-hero-arrow-shaft {
+    animation: vk-hero-draw 300ms var(--ease-work) 680ms backwards;
+  }
+
+  .vk-hero-arrow-head {
+    animation: vk-hero-draw 180ms var(--ease-work) 980ms backwards;
+  }
+
+  /* Sub + CTA + proof rise 240ms after the headline lands — intro only
+     (the .vk-hero--intro class is set with the per-char assembly). */
+  .vk-hero--intro .vk-hero-foot {
+    animation: vk-hero-rise var(--dur-2) var(--ease-work) 620ms backwards;
+  }
+
+  .vk-hero--intro .vk-hero-annot {
+    animation: vk-hero-fade var(--dur-3) var(--ease-work) 640ms backwards;
+  }
+
+  .vk-hero-hint-dot {
+    top: 0;
+    animation: vk-hero-dot 1.8s var(--ease-work) infinite;
+  }
+}
+
+@keyframes vk-hero-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes vk-hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes vk-hero-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes vk-hero-dot {
+  0% {
+    transform: translate(-50%, -2px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 22px);
+    opacity: 0;
+  }
+}
+
+/* ════════════════════════════════════════════
+   Breakpoints
+   ════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .vk-hero-grid {
+    padding-top: clamp(88px, 14vh, 120px);
+    padding-bottom: 104px;
+  }
+
+  .vk-hero-foot {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .vk-hero-actions {
+    width: 100%;
+  }
+
+  .vk-hero-cta {
+    width: 100%;
+  }
+
+  /* Annotation joins the flex flow between H1 and the foot group —
+     absolute placement collides with full-width text on small screens. */
+  .vk-hero-annot {
+    position: static;
+    align-self: flex-end;
+    margin-right: 8px;
+  }
+
+  .vk-hero-arrow {
+    width: 44px;
+    height: 44px;
+    margin-left: 56px;
+  }
+
+  .vk-hero-chalk {
+    font-size: 17px;
+  }
+
+  .vk-hero-ticker {
+    top: 76px;
+    font-size: 12px;
+  }
+}
+
+/* Short viewports (landscape phones): tighten, drop the hint. */
+@media (max-height: 480px) {
+  .vk-hero-grid {
+    padding-top: 72px;
+    padding-bottom: 56px;
+  }
+
+  .vk-hero-hint {
+    display: none;
+  }
+}

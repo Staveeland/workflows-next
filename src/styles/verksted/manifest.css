@@ -1,0 +1,172 @@
+/* ════════════════════════════════════════════════════════════════════
+   Manifest — «Vi snakker norsk, ikke data-norsk»
+   Editorial poster: struck jargon opens at the 38% spine and cascades
+   left, line by line, into the payoff breaking past the grid edge —
+   kaos → flyt as a reading direction.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Content sits above the decorative thread (z 0). */
+.vk-man-inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* Proofreader's line down the left margin — desktop only. The tall
+   viewBox (1:24) keeps height-fit in charge, so the curve always spans
+   the full section height. */
+.vk-man-thread {
+  display: none;
+  top: 0;
+  left: 7%;
+  width: 100px;
+  height: 100%;
+}
+
+@media (min-width: 1024px) {
+  .vk-man-thread {
+    display: block;
+  }
+}
+
+/* ── Kicker — hovers over the first jargon line, on the 38% spine ── */
+
+.vk-man-kicker {
+  margin: 0 10% clamp(40px, 6vw, 72px);
+}
+
+/* ── Jargon — the struck lines ── */
+
+.vk-man-line {
+  /* min(7vw, …) fit-guard: below ~485px viewport the longest jargon line
+     would wrap, and a strike across a wrapped line breaks. Desktop sizes
+     are untouched (7vw > 6vw). */
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: min(7vw, clamp(34px, 6vw, 84px));
+  font-weight: 560;
+  font-variation-settings: "opsz" 144;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  color: var(--stov);
+  margin: 0 0 0.18em;
+}
+
+/* Cascade offsets — first line right of the spine, stepping back left. */
+.vk-man-line:nth-child(1) {
+  margin-left: 10%;
+}
+
+.vk-man-line:nth-child(2) {
+  margin-left: 4%;
+}
+
+.vk-man-line:nth-child(3) {
+  margin-left: 0;
+}
+
+.vk-man-del {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  text-decoration: none; /* the strike IS the SVG overlay */
+}
+
+.vk-man-strike {
+  position: absolute;
+  left: -2.5%;
+  top: calc(50% - 0.21em);
+  width: 105%;
+  height: 0.42em;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Slight per-impression tilt — rotation tokens only, ever. */
+.vk-man-line:nth-child(1) .vk-man-strike {
+  transform: rotate(var(--rot-c));
+}
+
+.vk-man-line:nth-child(2) .vk-man-strike {
+  transform: rotate(var(--rot-a));
+}
+
+.vk-man-line:nth-child(3) .vk-man-strike {
+  transform: rotate(var(--rot-b));
+}
+
+/* ── Payoff — breaks left, set in --papir ── */
+
+.vk-man-payoff-block {
+  margin-top: clamp(56px, 9vw, 128px);
+}
+
+.vk-man-lead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--stov);
+  letter-spacing: 0.08em;
+  margin: 0 0 clamp(16px, 2.5vw, 28px);
+}
+
+.vk-man-lead::before {
+  content: "";
+  flex: none;
+  width: 36px;
+  height: 1px;
+  background: var(--glod);
+}
+
+.vk-man-payoff {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(40px, 7vw, 96px);
+  font-weight: 620;
+  font-variation-settings: "opsz" 144, "SOFT" 60;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  color: var(--papir);
+  max-width: 13ch;
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* ── Tablet: wider cascade ── */
+
+@media (min-width: 768px) {
+  .vk-man-kicker {
+    margin-left: 18%;
+  }
+
+  .vk-man-line:nth-child(1) {
+    margin-left: 18%;
+  }
+
+  .vk-man-line:nth-child(2) {
+    margin-left: 8%;
+  }
+}
+
+/* ── Desktop: opening line offset right of the 38% spine ── */
+
+@media (min-width: 1024px) {
+  .vk-man-kicker {
+    margin-left: 38%;
+  }
+
+  .vk-man-line:nth-child(1) {
+    margin-left: 38%;
+  }
+
+  .vk-man-line:nth-child(2) {
+    margin-left: 22%;
+  }
+
+  .vk-man-line:nth-child(3) {
+    margin-left: 6%;
+  }
+
+  /* Breaks left past the wrap's grid line — never past the viewport,
+     the pull stays inside the wrap's own inline padding. */
+  .vk-man-payoff-block {
+    margin-left: calc(clamp(20px, 4vw, 48px) * -0.6);
+  }
+}

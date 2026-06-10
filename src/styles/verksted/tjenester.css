@@ -1,0 +1,526 @@
+/* ════════════════════════════════════════════════════════════════════
+   VERKSTEDET — tjenester «Fire arbeidsbenker»
+   Four workbenches of deliberately different sizes on a 12-col grid,
+   staggered around the 38% spine; the top bench crosses the section
+   edge above. Resting CSS state = fully composed (poster law): the
+   pipeline dot rests at the last node, bubbles/log/chip fully shown.
+   ════════════════════════════════════════════════════════════════════ */
+
+.vk-tj.vk-s {
+  /* shallow top padding so the first bench can cross the section edge */
+  padding-top: clamp(44px, 5vw, 60px);
+}
+
+/* Tråden along the section — same aspect-ratio anchoring as Eierskap:
+   left 38% + centering puts path x=50 exactly on the spine. Sits at z 0
+   (engine inline) below the opaque benches; visible in the gaps. */
+.vk-tj-thread {
+  top: 0;
+  left: 38%;
+  height: 100%;
+  aspect-ratio: 100 / 600;
+  transform: translateX(-50%);
+}
+
+.vk-tj-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: clamp(16px, 2.5vw, 32px);
+}
+
+/* ── Header ── */
+
+.vk-tj-head {
+  position: relative;
+  z-index: 1; /* heading text above the thread */
+  grid-column: 1 / -1;
+  margin-bottom: clamp(36px, 7vw, 56px);
+}
+
+.vk .vk-tj-heading {
+  font-size: clamp(40px, 6vw, 88px);
+  margin: 14px 0 0;
+  text-wrap: balance;
+}
+
+/* ── Bench shell — containers never rotate, only stamps do ── */
+
+.vk-tj-bench {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  grid-column: 1 / -1;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+}
+
+/* No-uniform law: radius and padding differ per bench. */
+.vk-tj-bench--chatboter {
+  border-radius: 2px;
+  padding: clamp(26px, 3vw, 40px) clamp(22px, 3vw, 36px) clamp(36px, 4vw, 56px);
+}
+.vk-tj-bench--flyter {
+  border-radius: 4px;
+  padding: clamp(22px, 2.6vw, 30px) clamp(20px, 2.4vw, 28px) clamp(26px, 3vw, 36px);
+  margin-top: 28px;
+  margin-inline-end: clamp(0px, 7vw, 48px);
+}
+.vk-tj-bench--agenter {
+  border-radius: 6px;
+  padding: clamp(24px, 2.8vw, 34px) clamp(20px, 2.6vw, 30px) clamp(28px, 3.2vw, 40px);
+  margin-top: 36px;
+  margin-inline-start: clamp(0px, 7vw, 48px);
+}
+.vk-tj-bench--software {
+  border-radius: 3px;
+  padding: clamp(20px, 2.4vw, 28px) clamp(20px, 2.4vw, 28px) clamp(24px, 2.8vw, 32px);
+  margin-top: 30px;
+  margin-inline-end: clamp(0px, 4vw, 28px);
+}
+
+/* ── Bench anatomy ── */
+
+/* Small specimen label: --stov text/border (the --stempel red is reserved
+   for display stamps >=24px; these are 12px mono). */
+.vk .vk-tj-label {
+  align-self: flex-start;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--stov);
+  border-width: 1px;
+  padding: 5px 10px;
+  margin-bottom: 20px;
+}
+
+.vk-tj-title {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  color: var(--papir);
+  font-size: clamp(28px, 2.2vw, 32px);
+  margin: 0 0 10px;
+}
+
+.vk-tj-bench--chatboter .vk-tj-title {
+  font-size: clamp(30px, 2.8vw, 36px);
+}
+
+.vk-tj-titlelink {
+  color: inherit;
+  text-decoration: none;
+  /* >=44px touch target without moving the type (28px line + 2x8px) */
+  display: inline-block;
+  padding-block: 8px;
+  margin-block: -8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 8' preserveAspectRatio='none'%3E%3Cpath d='M2 5.5Q30 2.5 60 4.5T118 4' fill='none' stroke='%238FB8DE' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left calc(100% - 1px);
+  background-size: 0% 7px;
+  transition: background-size 200ms var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-tj-titlelink:hover {
+    background-size: 100% 7px;
+  }
+}
+
+.vk-tj-titlelink:focus-visible {
+  background-size: 100% 7px;
+}
+
+.vk-tj-benefit {
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--stov);
+  max-width: 44ch;
+  margin: 0;
+}
+
+.vk-tj-bench--chatboter .vk-tj-benefit {
+  font-size: 18px;
+}
+
+.vk-tj-vignette {
+  margin: 22px 0 4px;
+}
+
+/* Named-client proof, pinned to the bench foot. */
+.vk-tj-proof {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  color: var(--glod);
+  margin: auto 0 0;
+  padding-top: 20px;
+}
+
+/* Locally scoped sr-only (no dependency on legacy globals). */
+.vk-tj-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Vignette: chatboter (typing bubbles) ── */
+
+.vk-tj-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vk-tj-bubble {
+  position: relative;
+  max-width: min(40ch, 92%);
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  transition:
+    opacity var(--dur-2) var(--ease-work),
+    transform var(--dur-2) var(--ease-work);
+}
+
+.vk-tj-bubble[data-role="q"] {
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+  color: var(--stov);
+}
+
+.vk-tj-bubble[data-role="a"] {
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+  color: var(--papir);
+}
+
+/* JS-only pre-typing state — never the resting state. */
+.vk-tj-bubble[data-on="false"] {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.vk-tj-ghost {
+  visibility: hidden;
+}
+
+.vk-tj-typed {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  right: 14px;
+  pointer-events: none;
+}
+
+/* ── Vignette: flyter (pipeline + travelling dot) ── */
+
+.vk-tj-flow {
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 16px 14px 8px;
+}
+
+.vk-tj-flow svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.vk-tj-flow-path {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1.5;
+}
+
+.vk-tj-flow-node {
+  fill: var(--bek);
+  stroke: var(--stov);
+  stroke-width: 1.25;
+}
+
+.vk-tj-flow-tag {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  fill: var(--stov);
+}
+
+.vk-tj-flow-halo {
+  fill: var(--glod-halo);
+  opacity: 0.28;
+}
+
+.vk-tj-flow-dot {
+  fill: var(--glod);
+}
+
+/* Dot rides the path via offset-path; without support it stays hidden
+   (the drawn pipeline still tells the story). Resting offset = 100%,
+   i.e. delivered at the last node — the composed state. */
+.vk-tj-flow-dotg {
+  display: none;
+}
+
+@supports (offset-path: path("M0 0H8")) {
+  .vk-tj-flow-dotg {
+    display: block;
+    offset-rotate: 0deg;
+    offset-distance: 100%;
+  }
+
+  .vk-tj-flow[data-live="true"] .vk-tj-flow-dotg {
+    animation: vk-tj-travel 4s cubic-bezier(0.45, 0.05, 0.2, 1) infinite;
+  }
+}
+
+@keyframes vk-tj-travel {
+  0% { offset-distance: 0%; }
+  26% { offset-distance: 33.3%; }
+  34% { offset-distance: 33.3%; }
+  60% { offset-distance: 66.6%; }
+  68% { offset-distance: 66.6%; }
+  94% { offset-distance: 100%; }
+  100% { offset-distance: 100%; }
+}
+
+/* ── Vignette: agenter (cycling mono log) ── */
+
+.vk-tj-log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.vk-tj-logline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--stov);
+  transition:
+    opacity var(--dur-3) var(--ease-work),
+    color var(--dur-3) var(--ease-work);
+}
+
+.vk-tj-log[data-live="true"] .vk-tj-logline {
+  opacity: 0.38;
+}
+
+.vk-tj-log[data-live="true"] .vk-tj-logline[data-active="true"] {
+  opacity: 1;
+  color: var(--papir);
+}
+
+.vk-tj-caret {
+  display: none;
+  width: 7px;
+  height: 13px;
+  flex: none;
+  background: var(--glod);
+}
+
+.vk-tj-log[data-live="true"] .vk-tj-logline[data-active="true"] .vk-tj-caret {
+  display: inline-block;
+  animation: vk-tj-blink 1.06s step-end infinite;
+}
+
+@keyframes vk-tj-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── Vignette: software (formula → UI chip crossfade) ── */
+
+.vk-tj-code {
+  display: grid;
+}
+
+.vk-tj-code > * {
+  grid-area: 1 / 1;
+  justify-self: start;
+  align-self: center;
+}
+
+.vk-tj-code-before {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--stov);
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 12px 14px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0; /* resting/composed state shows the chip */
+  transition: opacity var(--dur-3) var(--ease-work);
+}
+
+.vk-tj-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 10px 18px;
+  color: var(--papir);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  transition:
+    opacity var(--dur-3) var(--ease-work),
+    transform var(--dur-3) var(--ease-stamp);
+}
+
+.vk-tj-chip::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 8px var(--glod-halo);
+}
+
+/* JS-only pre-compile state — never the resting state. */
+.vk-tj-code[data-compiled="false"] .vk-tj-code-before {
+  opacity: 1;
+}
+
+.vk-tj-code[data-compiled="false"] .vk-tj-chip {
+  opacity: 0;
+  transform: scale(0.94);
+}
+
+/* ── Chalk note, bottom-right ── */
+
+.vk-tj-chalknote {
+  grid-column: 1 / -1;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 40px;
+  padding-inline-end: 8px;
+}
+
+.vk-tj-chalktext {
+  font-size: clamp(19px, 2vw, 23px);
+}
+
+.vk-tj-chalkarrow {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  overflow: visible;
+}
+
+.vk-tj-chalkarrow path {
+  fill: none;
+  stroke: var(--kritt);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Drawn at rest; JS arms the hidden state, then strokes it in on view. */
+.vk-tj-chalknote[data-chalk="armed"] .vk-tj-chalkarrow path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.vk-tj-chalknote[data-chalk="draw"] .vk-tj-chalkarrow path {
+  stroke-dasharray: 1;
+  animation: vk-tj-chalkdraw var(--dur-3) var(--ease-work) both;
+}
+
+.vk-tj-chalknote[data-chalk="draw"] .vk-tj-chalkhead {
+  animation-delay: 360ms;
+}
+
+@keyframes vk-tj-chalkdraw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* ════════════════════════════════════════════
+   Desktop composition (>=1024px): asymmetric placement around the
+   38% spine. flyter crosses the section edge above; agenter laps a
+   column over chatboter; software tucks up under chatboter's foot.
+   ════════════════════════════════════════════ */
+
+@media (min-width: 1024px) {
+  .vk-tj-head {
+    grid-column: 1 / 8;
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+
+  .vk-tj-bench--flyter {
+    grid-column: 8 / 13;
+    grid-row: 1 / 3;
+    margin: -88px 0 0;
+    align-self: start;
+    z-index: 1;
+  }
+
+  .vk-tj-bench--chatboter {
+    grid-column: 1 / 8;
+    grid-row: 2 / 4;
+    margin: 72px 0 0;
+    align-self: start;
+    z-index: 1;
+    /* keep content clear of agenter's overlapping column + software's lap */
+    padding-right: clamp(96px, 9vw, 124px);
+    padding-bottom: 88px;
+  }
+
+  .vk-tj-bench--agenter {
+    grid-column: 7 / 13;
+    grid-row: 3;
+    margin: 64px 0 0;
+    align-self: start;
+    z-index: 2;
+  }
+
+  .vk-tj-bench--software {
+    grid-column: 2 / 8;
+    grid-row: 4;
+    margin: -64px 0 0;
+    align-self: start;
+    z-index: 3;
+  }
+
+  .vk-tj-chalknote {
+    grid-column: 9 / 13;
+    grid-row: 4;
+    align-self: end;
+    justify-self: end;
+    margin-top: 56px;
+  }
+}

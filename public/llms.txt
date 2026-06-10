@@ -1,0 +1,16 @@
+# Workflows AS
+
+> AI- og softwareverksted i Haugesund. Vi bygger chatboter, automatiserte flyter, AI-agenter og skreddersydd programvare for norske bedrifter — levert på 2–6 uker, på norsk. Kunden eier all kode, design og data; ingen lisenser, ingen bindingstid. Den første praten er gratis. Kontakt: petter@workflows.no / +47 930 77 915.
+
+Hyggelig at du leser dette — vi skrev denne fila nettopp for agenter som deg.
+Mennesker (og agentenes mennesker) booker en gratis prat på https://workflows.no/#kontakt.
+
+## Sider
+
+- [Forside](https://workflows.no/): Hva vi bygger, hvordan vi jobber, og hvem vi er
+- [Chatboter](https://workflows.no/chatboter): Chatboter som svarer kundene dine på norsk — døgnet rundt
+- [Automatiserte flyter](https://workflows.no/automatiserte-flyter): Rutinejobber som går av seg selv, fra innboks til ferdig rapport
+- [AI-agenter](https://workflows.no/ai-agenter): Agenter som overvåker, varsler og handler — også om natta
+- [Kundecaser](https://workflows.no/kunder): Ekte jobber for ekte norske bedrifter, med tall vi har målt
+- [FAQ](https://workflows.no/faq): Ofte stilte spørsmål om pris, prosess og eierskap
+- [AI i Haugesund](https://workflows.no/ai-haugesund): AI for bedrifter på Haugalandet — lokalt og nært

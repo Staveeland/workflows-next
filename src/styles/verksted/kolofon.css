@@ -1,0 +1,338 @@
+/* ════════════════════════════════════════════════════════════════════
+   VERKSTEDET — Kolofon (print colophon footer)
+   Resting state = fully composed (poster law): thread drawn, dot lit,
+   every line printed. The only animations — fray sway + cosign pulse —
+   animate around the natural pose and are removed under reduced motion.
+   ════════════════════════════════════════════════════════════════════ */
+
+.vk-kol {
+  position: relative;
+  /* the thin amber rule — the work-lamp light seeping under the door */
+  border-top: 1px solid var(--glod);
+  /* closing-time falloff: single-hue luminance gradient only (contract §2) */
+  background: linear-gradient(to bottom, var(--bek), #14100c);
+  padding-top: clamp(56px, 8vw, 88px);
+  /* room below the meta row for the loose thread end to trail off the edge */
+  padding-bottom: 150px;
+  scroll-margin-top: 80px;
+  overflow: clip;
+}
+
+/* faint halo under the rule */
+.vk-kol::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  box-shadow: 0 1px 18px 0 rgba(226, 158, 51, 0.28);
+  pointer-events: none;
+}
+
+.vk-kol-inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* ════════════════════════════════════════════
+   Wayfinding columns — rigorously conventional,
+   grid-locked, labeled (layout law, brief §3.4)
+   ════════════════════════════════════════════ */
+
+.vk-kol-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 44px;
+}
+
+@media (min-width: 768px) {
+  .vk-kol-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 48px clamp(32px, 5vw, 72px);
+  }
+}
+
+.vk-kol-colhead {
+  margin: 0 0 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-kol-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 14px mono line (~22px) + 2×11px padding = 44px touch target;
+   min-width covers short labels like «FAQ» (contract §5: >=44px). */
+.vk-kol-list a {
+  display: inline-block;
+  padding-block: 11px;
+  min-width: 44px;
+}
+
+.vk-kol-link {
+  color: var(--papir);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+  transition:
+    color var(--dur-2) var(--ease-work),
+    text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-kol-link:hover {
+    color: var(--glod);
+    text-decoration-color: var(--glod);
+  }
+}
+
+.vk-kol-link:focus-visible {
+  color: var(--glod);
+  text-decoration-color: var(--glod);
+}
+
+/* FAQ block — legacy #faq anchor lands here */
+.vk-kol-faq {
+  scroll-margin-top: 80px;
+}
+
+.vk-kol-faq-note {
+  display: block;
+  font-size: 12px;
+  color: var(--stov);
+}
+
+.vk-kol-based {
+  margin: 20px 0 0;
+  max-width: 32ch;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--stov);
+}
+
+/* ════════════════════════════════════════════
+   Signature — the craftsman's line
+   ════════════════════════════════════════════ */
+
+.vk-kol-sig {
+  display: grid;
+  gap: 28px;
+  margin-top: clamp(56px, 8vw, 84px);
+  padding-top: clamp(32px, 5vw, 48px);
+  border-top: 1px solid var(--hairline);
+}
+
+@media (min-width: 1024px) {
+  .vk-kol-sig {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 48px;
+  }
+}
+
+.vk-kol-signature {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-variation-settings: "opsz" 72, "SOFT" 40;
+  font-weight: 420;
+  font-size: clamp(27px, 3.4vw, 42px);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: var(--papir);
+  max-width: 18ch;
+  text-wrap: balance;
+}
+
+.vk-kol-llms {
+  margin: 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--stov);
+}
+
+/* inline link inside running text keeps a persistent underline; inline
+   padding grows the hit area to >=44px (16px inline box + 2x14px) without
+   shifting the line */
+.vk-kol-llmslink {
+  padding-block: 14px;
+  color: var(--glod);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 180, 84, 0.45);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+  transition: text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-kol-llmslink:hover {
+    text-decoration-color: var(--glod);
+  }
+}
+
+.vk-kol-llmslink:focus-visible {
+  text-decoration-color: var(--glod);
+}
+
+.vk-kol-cosign {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--stov);
+}
+
+/* amber = awake/working (two-state status language; green stays reserved) */
+.vk-kol-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: 7px; /* optical center of the first text line */
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 8px var(--glod-halo);
+  animation: vk-kol-dot 2.6s ease-in-out infinite;
+}
+
+@keyframes vk-kol-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ════════════════════════════════════════════
+   Meta row — honest counter + copyright
+   ════════════════════════════════════════════ */
+
+.vk-kol-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px 48px;
+  margin-top: clamp(48px, 7vw, 72px);
+  padding-top: 28px;
+  border-top: 1px solid var(--hairline);
+}
+
+.vk-kol-counter-line {
+  margin: 0;
+  max-width: 52ch;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--stov);
+}
+
+.vk-kol-counter-n {
+  color: var(--glod);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.vk-kol-counter-foot {
+  margin: 6px 0 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--stov);
+}
+
+.vk-kol-copy {
+  margin: 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--stov);
+  white-space: nowrap;
+}
+
+/* ════════════════════════════════════════════
+   Tråden's loose end — frays off the bottom edge.
+   Anchored at the 38% spine of the container.
+   ════════════════════════════════════════════ */
+
+.vk-kol-fraywrap {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 150px;
+  max-width: var(--vk-container);
+  margin-inline: auto;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.vk-kol-thread {
+  position: absolute;
+  left: 38%;
+  bottom: 0;
+  display: block;
+  width: 120px;
+  height: 150px;
+  margin-left: -60px;
+  transform-origin: 50% 0;
+  animation: vk-kol-fray 3s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* gentle sway around the natural hang (rest without animation = 0deg) */
+@keyframes vk-kol-fray {
+  from {
+    transform: rotate(-1.1deg) translateX(-1px);
+  }
+  to {
+    transform: rotate(1.3deg) translateX(1px);
+  }
+}
+
+.vk-kol-strand {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+}
+
+.vk-kol-strand--a {
+  animation: vk-kol-fray-strand 3s ease-in-out -0.9s infinite alternate;
+}
+
+.vk-kol-strand--b {
+  animation: vk-kol-fray-strand 3s ease-in-out -2.1s infinite alternate;
+}
+
+@keyframes vk-kol-fray-strand {
+  from {
+    transform: rotate(-2.4deg);
+  }
+  to {
+    transform: rotate(2.6deg);
+  }
+}
+
+/* poster law: thread hangs still, dot stays lit */
+@media (prefers-reduced-motion: reduce) {
+  .vk-kol-thread,
+  .vk-kol-strand,
+  .vk-kol-dot {
+    animation: none;
+  }
+}
