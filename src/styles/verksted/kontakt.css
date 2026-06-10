@@ -1,8 +1,8 @@
 /* ════════════════════════════════════════════════════════════════════
    KONTAKT — «Tråden ender her» (the finale)
    The thread drops into the CTA's status lamp. When the segment completes
-   (.vk-kon-lit on the section): the glow blooms, the dot flips amber→drift
-   green, the stamp slams. Resting/reduced state = the lit poster.
+   (.vk-kon-lit on the section) the glow blooms and the lamp settles.
+   Resting/reduced state = the lit poster.
    ════════════════════════════════════════════════════════════════════ */
 
 /* Work-lamp light pool behind the CTA — single-hue luminance only. */
@@ -72,7 +72,7 @@
   aspect-ratio: 100 / 133;
 }
 
-/* Status lamp — Tråden plugs in here. --drift is semantic: lit = delivered. */
+/* Status lamp — Tråden plugs in here; stays amber, brightens when lit. */
 .vk-kon-dot {
   position: relative;
   z-index: 1;
@@ -82,14 +82,11 @@
   border-radius: 50%;
   background: var(--glod);
   box-shadow: 0 0 12px var(--glod-halo);
-  transition:
-    background-color var(--dur-2) var(--ease-work),
-    box-shadow var(--dur-2) var(--ease-work);
+  transition: box-shadow var(--dur-2) var(--ease-work);
 }
 
 .vk-kon-lit .vk-kon-dot {
-  background: var(--drift);
-  box-shadow: 0 0 12px rgba(127, 209, 185, 0.55);
+  box-shadow: 0 0 18px var(--glod-halo);
 }
 
 /* Waiting-state breath; resting (reduced) state is the full steady glow. */
@@ -125,24 +122,6 @@
 .vk-kon-lit .vk-kon-cta,
 .vk-kon-cta:focus-visible {
   box-shadow: 0 0 48px rgba(255, 160, 46, 0.45);
-}
-
-/* Stamp slams beside the CTA when the thread completes. Hidden-initial
-   state is gated to no-preference: reduced motion gets the landed stamp. */
-.vk-kon-stamp {
-  max-width: 100%;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .vk-kon:not(.vk-kon-lit) .vk-kon-stamp {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
-/* Let the glow bloom land first, then the stamp. */
-.vk-kon-stamp[data-slam="in"] {
-  animation-delay: 140ms;
 }
 
 /* ── Proof + microcopy ── */

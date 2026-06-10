@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import VerkstedShell from "@/components/verksted/VerkstedShell";
+import { PageHero } from "@/components/verksted/page/PageHero";
+import { PageCta } from "@/components/verksted/page/PageCta";
+import { Reveal } from "@/components/verksted/page/Reveal";
+import { KunderClient, type KunderCase } from "@/components/verksted/pages/KunderClient";
 import { urlFor } from "@/lib/site";
 import { buildBreadcrumb } from "@/lib/jsonLd";
 
@@ -33,31 +38,70 @@ export const metadata: Metadata = {
   ],
 };
 
-const cases = [
+// Tre dokumenterte jobber — platene på arkivveggen.
+const cases: KunderCase[] = [
   {
-    name: "CSUB",
-    logo: "/kunder-csub.svg",
     slug: "csub",
+    name: "CSUB",
+    jobNo: "jobb 01",
     industry: "Subsea & Offshore",
-    summary: "Intelligent dashboard som samler prosjektdata fra Excel-filer, med en AI-assistent som svarer på spørsmål og genererer rapporter på sekunder.",
-    results: ["Alt samlet på ett sted", "AI-assistent med datainnsikt", "Rapporter på sekunder"],
+    logo: "/kunder-csub.svg",
+    logoWidth: 279,
+    logoHeight: 48,
+    logoDisplayHeight: 24,
+    summary:
+      "Prosjektdata lå spredt i Excel-filer. Nå ligger alt i ett dashbord — med en AI-assistent som svarer på spørsmål og bygger rapporter på sekunder.",
+    results: ["Alt samlet på ett sted", "AI-assistent med full datainnsikt", "Rapporter på sekunder"],
+    weeks: "levert på 6 uker",
+    whisper: "assistent: svar funnet i prosjektarkivet",
   },
   {
-    name: "Festiviteten",
-    logo: "/kunder-festiviteten.png",
     slug: "festiviteten",
+    name: "Festiviteten",
+    jobNo: "jobb 02",
     industry: "Kultur & arrangement",
-    summary: "AI som holder styr på billettsalg og annonser på Meta, Google og radio — med personlige AI-assistenter koblet på hele økosystemet, tilgjengelig 24/7.",
+    logo: "/kunder-festiviteten.png",
+    logoWidth: 911,
+    logoHeight: 387,
+    logoDisplayHeight: 34,
+    summary:
+      "AI-en følger billettsalg og annonser på Meta, Google og radio — i sanntid, døgnet rundt. Svikter salget for en forestilling, kommer varselet med en gang.",
     results: ["Sanntidsoversikt på alle kanaler", "AI-assistent 24/7", "Varsler ved svakt salg"],
+    weeks: "levert på 6 uker",
+    whisper: "03:12: svakt salg oppdaget → varsel sendt",
   },
   {
-    name: "ElementLab",
-    logo: "/kunder-elementlab.png",
     slug: "elementlab",
+    name: "ElementLab",
+    jobNo: "jobb 03",
     industry: "Helse & Velvære",
-    summary: "Skreddersydd booking-frontend integrert i nettsiden og AI-chatbot trent på behandlingsdata — en sømløs kundereise fra A til Å.",
-    results: ["Booking rett på nettsiden", "AI-chatbot 24/7", "Eget design, full kontroll"],
+    logo: "/kunder-elementlab.png",
+    logoWidth: 256,
+    logoHeight: 74,
+    logoDisplayHeight: 26,
+    summary:
+      "Skreddersydd booking rett på nettsiden og en AI-chatbot trent på behandlingsdataene. Én sømløs kundereise fra spørsmål til time.",
+    results: ["Booking rett på nettsiden", "AI-chatbot 24/7", "Eget design hele veien"],
+    weeks: "levert på 4 uker",
+    whisper: "booking fullført — uten å forlate nettsiden",
   },
+];
+
+// Skiltveggen — alle seks. Tre lenker videre til dokumenterte case.
+const skilt: Array<{
+  name: string;
+  logo: string;
+  width: number;
+  height: number;
+  displayHeight: number;
+  href?: string;
+}> = [
+  { name: "CSUB", logo: "/kunder-csub.svg", width: 279, height: 48, displayHeight: 26, href: "/kunder/csub" },
+  { name: "Saga Subsea", logo: "/kunder-saga.png", width: 320, height: 91, displayHeight: 26 },
+  { name: "ElementLab", logo: "/kunder-elementlab.png", width: 256, height: 74, displayHeight: 26, href: "/kunder/elementlab" },
+  { name: "Port 5561", logo: "/kunder-port.webp", width: 474, height: 101, displayHeight: 24 },
+  { name: "Nyholmen", logo: "/kunder-nyholmen.png", width: 448, height: 200, displayHeight: 44 },
+  { name: "Festiviteten", logo: "/kunder-festiviteten.png", width: 911, height: 387, displayHeight: 36, href: "/kunder/festiviteten" },
 ];
 
 const breadcrumbJsonLd = buildBreadcrumb([
@@ -92,57 +136,88 @@ export default function KunderPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
       />
-      <section className="page-hero">
-        <div className="wrap">
-          <span className="tag">Kundecaser</span>
-          <h1>Bedrifter som jobber smartere med AI fra Workflows</h1>
-          <p className="page-hero__sub">
-            Fra subsea-operasjoner til helsesentre — se hvordan vi har bygget AI-agenter,
-            kunstig intelligens og skreddersydd software som faktisk gjør en forskjell i hverdagen.
-          </p>
-        </div>
-      </section>
+      <VerkstedShell>
+        <PageHero
+          kicker="Kundecaser · arkivet"
+          title="Kundecaser fra verkstedet"
+          lead="Fra subsea-operasjoner til helsesentre: se hvordan AI-agenter, kunstig intelligens og skreddersydd software gjør en forskjell i hverdagen — i daglig bruk hos norske bedrifter."
+          chalk="alt på denne veggen er i drift"
+        />
 
-      <section className="section">
-        <div className="wrap">
-          <div className="cases-grid">
-            {cases.map((c) => (
-              <article key={c.slug} className="case-card card-link-host">
-                <div className="case-card__header">
-                  <div className="case-card__logo">
-                    <Image src={c.logo} alt={c.name} width={200} height={70} style={{ width: "auto", height: "44px", objectFit: "contain" }} />
-                  </div>
-                  <span className="case-card__industry">{c.industry}</span>
-                </div>
-                <h2>
-                  <Link href={`/kunder/${c.slug}`} className="card-link">
-                    {c.name}
+        <KunderClient
+          kicker="Arkivet"
+          heading="Tre jobber, dokumentert"
+          sub="Chatboter, AI-agenter og skreddersydd programvare — bygget på 4–6 uker, fortsatt i daglig bruk. Hver plate lenker til hele historien."
+          statusLabel="I DAGLIG BRUK"
+          readMore="Les hele caset"
+          cases={cases}
+        />
+
+        <section aria-labelledby="vk-kunder-vegg-h" className="vk-pg-s vk-pg-s--tight vk-kunder-vegg">
+          <div className="vk-wrap">
+            <Reveal as="p" className="vk-kicker" y={14}>
+              Skiltene på veggen
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h2 id="vk-kunder-vegg-h" className="vk-display vk-pg-h2">
+                I drift hos seks norske bedrifter
+              </h2>
+            </Reveal>
+            <Reveal as="p" className="vk-pg-sub" delay={0.12}>
+              Tre av jobbene er dokumentert som case over. Resten av skiltene henger her —
+              systemene deres går stille i bakgrunnen.
+            </Reveal>
+            <Reveal delay={0.16}>
+              <ul className="vk-kunder-skiltrad">
+                {skilt.map((s) =>
+                  s.href ? (
+                    <li key={s.name}>
+                      <Link href={s.href} className="vk-kunder-skilt">
+                        <Image
+                          src={s.logo}
+                          alt=""
+                          width={s.width}
+                          height={s.height}
+                          style={{ height: s.displayHeight, width: "auto" }}
+                        />
+                        <span className="vk-mono vk-kunder-skiltnavn">{s.name}</span>
+                      </Link>
+                    </li>
+                  ) : (
+                    <li key={s.name}>
+                      <figure className="vk-kunder-skilt">
+                        <Image
+                          src={s.logo}
+                          alt=""
+                          width={s.width}
+                          height={s.height}
+                          style={{ height: s.displayHeight, width: "auto" }}
+                        />
+                        <figcaption className="vk-mono vk-kunder-skiltnavn">{s.name}</figcaption>
+                      </figure>
+                    </li>
+                  ),
+                )}
+                <li>
+                  <Link href="#kontakt" className="vk-kunder-skilt vk-kunder-slot">
+                    plass til ditt skilt<span aria-hidden="true"> →</span>
                   </Link>
-                </h2>
-                <p>{c.summary}</p>
-                <div className="case-card__results">
-                  {c.results.map((r) => (
-                    <span key={r} className="case-card__result">{r}</span>
-                  ))}
-                </div>
-                <span className="case-card__link" aria-hidden="true">Les hele casen &rarr;</span>
-              </article>
-            ))}
+                </li>
+              </ul>
+            </Reveal>
+            <p className="vk-chalk vk-kunder-veggchalk">seks skilt — plass til flere</p>
+            <p className="vk-pg-prose vk-kunder-verktoy">
+              Verktøyene bak jobbene står på benkene våre:{" "}
+              <Link href="/chatboter">chatboter</Link>,{" "}
+              <Link href="/automatiserte-flyter">automatiserte flyter</Link> og{" "}
+              <Link href="/ai-agenter">AI-agenter</Link> — alle fire arbeidsbenkene finner du på{" "}
+              <Link href="/#tjenester">forsiden</Link>.
+            </p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="cta-section">
-        <div className="wrap">
-          <div className="cta">
-            <h2>Vil du bli neste suksesshistorie?</h2>
-            <p>Book en uforpliktende samtale. Vi finner ut sammen hva vi kan gjøre for din bedrift.</p>
-            <Link href="/#kontakt" className="btn btn--dark">
-              Start samtalen <span className="btn__arrow">&rarr;</span>
-            </Link>
-          </div>
-        </div>
-      </section>
+        <PageCta heading="Neste skilt på veggen kan bli ditt." />
+      </VerkstedShell>
     </>
   );
 }

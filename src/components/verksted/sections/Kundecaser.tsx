@@ -108,10 +108,7 @@ function CaseChapter({
             {c.stamp}
           </span>
         </span>
-        <span className="vk-mono vk-case-inuse">
-          <span className="vk-case-driftdot" aria-hidden="true" />
-          {labels.statusLabel}
-        </span>
+        <span className="vk-mono vk-case-inuse">{labels.statusLabel}</span>
       </div>
       <div className="vk-case-grid">
         <div className="vk-case-content">

@@ -21,8 +21,7 @@ html:has(.vk) {
   --glod-halo: #e29e33; /* heritage amber — glow halo ONLY (decorative) */
   --cta: #ffa02e;       /* CTA fill; ink #171310 on top */
   --kritt: #8fb8de;     /* chalk annotations — the one cool counterpoint */
-  --stempel: #e2593d;   /* stamps/strikes — display/decorative >=24px, NEVER body text */
-  --drift: #7fd1b9;     /* semantic green: delivered/«i drift» ONLY (3 places) */
+  --stempel: #e2593d;   /* ink strikes (manifest jargon) — decorative only, NEVER body text */
 
   /* ── Motion (one hand, one family) ── */
   --ease-work: cubic-bezier(0.22, 1, 0.36, 1);
@@ -48,12 +47,11 @@ html:has(.vk) {
   overflow-x: clip; /* broken-grid overlaps never cause horizontal scroll */
 }
 
-/* Scoped paper tokens — exist ONLY inside the Skjøtet sheet. */
+/* Scoped paper tokens — exist ONLY inside the light panel. */
 .vk .vk-paper {
   --papir-flate: #f4efe5;
   --blekk: #171310;
-  --stempel-papir: #b23a22; /* stamps stay >=24px regardless */
-  --glod-papir: #8a5a14;    /* amber-as-text on paper */
+  --glod-papir: #8a5a14; /* amber-as-text on paper */
 }
 
 /* Visually-hidden utility — vk-scoped name, no dependency on legacy globals. */
@@ -145,48 +143,39 @@ html:has(.vk) {
 .vk-rot-d { --vk-rot: var(--rot-d); transform: rotate(var(--vk-rot)); }
 
 /* ════════════════════════════════════════════
-   Stamp — rubber-stamp impression
-   Resting state = landed. Slam only via [data-slam="in"].
+   Tag — quiet amber label chip (replaces the old red rubber stamp).
+   Resting state = settled. Entrance only via [data-slam="in"].
    ════════════════════════════════════════════ */
 
 .vk-stamp {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-spline), ui-monospace, monospace;
-  font-size: 24px; /* --stempel floor: never below 24px */
+  font-size: 13px;
   font-weight: 500;
   line-height: 1;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--stempel);
-  border: 2px solid currentColor;
-  padding: 6px 14px;
-  transform: rotate(var(--vk-rot, 0deg));
-  will-change: transform;
-  /* dry-ink impression (brief §3.3): noise nibbles the alpha (0.7–1) —
-     texture only; dominant coverage stays opaque so contrast floors hold */
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0.3 0.3 0 0.7'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23d)'/%3E%3C/svg%3E");
-  -webkit-mask-size: 120px 120px;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0.3 0.3 0 0.7'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23d)'/%3E%3C/svg%3E");
-  mask-size: 120px 120px;
+  letter-spacing: 0.14em;
+  color: var(--glod);
+  background: rgba(255, 180, 84, 0.07);
+  border: 1px solid rgba(255, 180, 84, 0.28);
+  border-radius: 999px;
+  padding: 8px 14px;
 }
 
 .vk-stamp[data-slam="in"] {
-  animation: vk-stamp-slam 320ms var(--ease-stamp) both;
+  animation: vk-stamp-slam 360ms var(--ease-work) both;
 }
 
 @keyframes vk-stamp-slam {
   0% {
-    transform: rotate(-4deg) scale(1.35);
+    transform: translateY(6px);
     opacity: 0;
-    filter: blur(0);
-  }
-  38% {
-    filter: blur(1.5px); /* one-frame ink bleed */
   }
   100% {
-    transform: rotate(var(--vk-rot, 0deg)) scale(1);
+    transform: translateY(0);
     opacity: 1;
-    filter: blur(0);
   }
 }
 

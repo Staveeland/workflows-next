@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import VerkstedShell from "@/components/verksted/VerkstedShell";
+import { PageHero } from "@/components/verksted/page/PageHero";
+import { PageCta } from "@/components/verksted/page/PageCta";
+import { Reveal } from "@/components/verksted/page/Reveal";
+import { ThreadSegment } from "@/components/verksted/ThreadContext";
+import {
+  FestivitetenMerge,
+  FestivitetenWatchPanel,
+} from "@/components/verksted/pages/FestivitetenCaseClient";
 import { urlFor } from "@/lib/site";
 import { buildArticle, buildBreadcrumb } from "@/lib/jsonLd";
 
@@ -49,6 +58,18 @@ const articleJsonLd = buildArticle({
   about: { "@type": "Thing", name: "Festiviteten" },
 });
 
+// Tråden gjennom nattevakt-seksjonen — samme 38 %-ryggrad som resten av huset.
+const NATT_THREAD_D = "M 50 0 C 44 40 58 80 52 120 C 48 152 54 176 50 200";
+
+const LOSNING_PUNKTER = [
+  "Sanntidsoversikt over billettsalg per arrangement — koblet mot annonseutgifter per kanal",
+  "Direkte integrasjon mot Meta Ads, Google Ads og billettsystemet",
+  "Råd om hvilke annonser som bør skaleres opp, pauses eller endres",
+  "Automatisk varsel når salget underpresterer mot prognosen",
+  "Konkrete forslag som løfter salget: annonsetekst, målgruppe, budsjett, kanal",
+  "Personlige AI-assistenter koblet på hele økosystemet — spør når som helst på døgnet",
+];
+
 export default function FestivitetenCase() {
   return (
     <>
@@ -60,106 +81,272 @@ export default function FestivitetenCase() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
-      <section className="page-hero page-hero--case">
-        <div className="wrap">
-          <Link href="/kunder" className="back-link">&larr; Alle kundecaser</Link>
-          <div className="case-hero">
-            <div className="case-hero__info">
-              <span className="tag">Kundecase</span>
-              <h1>Festiviteten</h1>
-              <p className="case-hero__tagline">AI som holder styr på billettsalget og annonseringen — døgnet rundt</p>
-              <div className="case-hero__meta">
-                <div><strong>Bransje</strong><span>Kultur & arrangement</span></div>
-                <div><strong>Tjenester</strong><span>AI-assistenter, Dataintegrasjon, Skreddersydd software</span></div>
-                <div><strong>Tidsramme</strong><span>6 uker</span></div>
-              </div>
+      <VerkstedShell>
+        <PageHero
+          kicker="Kundecase · Historisk teater i Haugesund"
+          title="Festiviteten"
+          lead="Et historisk teater — og en AI-agent som følger billettsalg og annonser på Meta, Google og radio i sanntid. Svikter salget, kommer varselet med en gang."
+          chalk="lyset på scenen er av — lyset i systemet er på"
+        >
+          <Reveal className="vk-festiviteten-hero-extra" delay={0.3}>
+            <Link href="/kunder" className="vk-pg-link vk-festiviteten-back">
+              <span aria-hidden="true">←</span> Alle kundecaser
+            </Link>
+            <div className="vk-festiviteten-meta">
+              <dl className="vk-festiviteten-facts">
+                <div>
+                  <dt>Bransje</dt>
+                  <dd>Kultur og arrangement</dd>
+                </div>
+                <div>
+                  <dt>Tjenester</dt>
+                  <dd>AI-agenter, dataintegrasjon, skreddersydd programvare</dd>
+                </div>
+                <div>
+                  <dt>Tidsramme</dt>
+                  <dd>6 uker</dd>
+                </div>
+              </dl>
+              <figure className="vk-paper vk-festiviteten-playbill">
+                <Image
+                  src="/kunder-festiviteten.png"
+                  alt="Festiviteten Haugesund – logo"
+                  width={911}
+                  height={387}
+                  sizes="250px"
+                />
+                <figcaption className="vk-mono">
+                  historisk teater · haugesund
+                </figcaption>
+              </figure>
             </div>
-            <div className="case-hero__logo">
-              <Image src="/kunder-festiviteten.png" alt="Festiviteten Haugesund" width={250} height={80} style={{ width: "auto", height: "60px" }} />
-            </div>
+          </Reveal>
+        </PageHero>
+
+        <section className="vk-pg-s vk-pg-s--tight" aria-labelledby="festiviteten-kort-h">
+          <h2 id="festiviteten-kort-h" className="vk-sr">
+            Kort oppsummert
+          </h2>
+          <div className="vk-wrap">
+            <ul className="vk-festiviteten-tiles">
+              <Reveal as="li" className="vk-festiviteten-tile">
+                <strong className="vk-display">Sanntid</strong>
+                <span>oversikt over billettsalg og annonser — alle kanaler</span>
+              </Reveal>
+              <Reveal as="li" className="vk-festiviteten-tile" delay={0.08}>
+                <strong className="vk-display">24/7</strong>
+                <span>personlige AI-assistenter, koblet på hele økosystemet</span>
+              </Reveal>
+              <Reveal as="li" className="vk-festiviteten-tile" delay={0.16}>
+                <strong className="vk-display">Varsler</strong>
+                <span>når salget underpresterer mot prognosen</span>
+              </Reveal>
+            </ul>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="section">
-        <div className="wrap">
-          <div className="case-content">
-            <div className="case-results-bar">
-              <div className="case-result">
-                <span className="case-result__num">Sanntid</span>
-                <span className="case-result__label">oversikt over alle kanaler</span>
-              </div>
-              <div className="case-result">
-                <span className="case-result__num">24/7</span>
-                <span className="case-result__label">personlig AI-assistent</span>
-              </div>
-              <div className="case-result">
-                <span className="case-result__num">Varsler</span>
-                <span className="case-result__label">ved svakt salg og dårlig ytelse</span>
-              </div>
+        <section className="vk-pg-s" aria-labelledby="festiviteten-utfordring-h">
+          <div className="vk-wrap">
+            <p className="vk-kicker vk-festiviteten-kick">Utfordringen</p>
+            <Reveal>
+              <h2 id="festiviteten-utfordring-h" className="vk-display vk-pg-h2">
+                Innsikten lå spredt over fire kanaler
+              </h2>
+            </Reveal>
+            <div className="vk-pg-prose vk-festiviteten-prose">
+              <p>
+                Festiviteten setter opp konserter og forestillinger gjennom hele
+                året. Hvert arrangement skal markedsføres riktig, og budsjettet
+                fordeles på radio, Meta (Facebook og Instagram) og Google Ads.
+                Når noe presterer dårlig, koster det både penger og fulle saler.
+              </p>
+              <p>
+                Men innsikten lå spredt: billettsystemet ett sted, Meta Ads
+                Manager et annet, Google Ads et tredje — og radioplanene i et
+                regneark. Å se helheten krevde manuelt arbeid. Og når salget på
+                et arrangement plutselig stoppet opp, ble det oppdaget for sent
+                til å justere kursen.
+              </p>
             </div>
+            <p className="vk-chalk vk-festiviteten-aside">
+              fire kanaler — fire steder å lete
+            </p>
+          </div>
+        </section>
 
-            <div className="case-body">
-              <h2>Utfordringen</h2>
+        <section className="vk-pg-s" aria-labelledby="festiviteten-losning-h">
+          <div className="vk-wrap">
+            <p className="vk-kicker vk-festiviteten-kick">Løsningen</p>
+            <Reveal>
+              <h2 id="festiviteten-losning-h" className="vk-display vk-pg-h2">
+                Fire kanaler inn. Én tråd ut.
+              </h2>
+            </Reveal>
+            <div className="vk-pg-prose vk-festiviteten-prose">
               <p>
-                Festiviteten setter opp et bredt program av konserter og forestillinger gjennom hele året. Hvert arrangement må markedsføres riktig, og budsjettet fordeles på flere kanaler — radio, Meta (Facebook og Instagram) og Google Ads. Når noe presterer dårlig, koster det både penger og fulle saler.
+                Workflows bygde et AI-system som kobler seg direkte til
+                billettsystemet, Meta, Google Ads og radioplanen. Alt salg og
+                all annonseytelse samles i én sanntidsoversikt. Oppå datalaget
+                ligger personlige AI-assistenter — tilgjengelige hele døgnet for
+                å analysere, anbefale og varsle.
               </p>
-              <p>
-                Problemet var at innsikten lå spredt: billettsystemet ett sted, Meta Ads Manager et annet, Google Ads et tredje, radioplaner i et regneark. Det krevde manuelt arbeid å se helheten, og når salget på et arrangement plutselig stoppet opp, ble det oppdaget for sent til å justere kursen.
-              </p>
-
-              <h2>Løsningen</h2>
-              <p>
-                Workflows bygde et AI-system som kobler seg direkte til billettsystemet, Meta, Google Ads og oversikten over radioannonsering. Alt salg og all annonseytelse samles i én sanntidsoversikt — og oppå datalaget ligger personlige AI-assistenter som er tilgjengelige 24 timer i døgnet for å analysere, anbefale og varsle.
-              </p>
-              <ul>
-                <li>Sanntidsoversikt over billettsalg per arrangement, koblet mot annonseutgifter per kanal</li>
-                <li>Direkte integrasjon mot Meta Ads, Google Ads og billettsystem</li>
-                <li>Skreddersydde råd om hvilke annonser som bør skaleres opp, pauses eller endres</li>
-                <li>Automatiske varsler når salget på et arrangement underpresterer mot prognosen</li>
-                <li>Konkrete forslag til hvordan salget kan løftes — annonsetekst, målgruppe, budsjett, kanal</li>
-                <li>Personlige AI-assistenter som er koblet på hele økosystemet og kan rådgi når som helst på døgnet</li>
+            </div>
+            <FestivitetenMerge />
+            <Reveal delay={0.06}>
+              <ul className="vk-festiviteten-points">
+                {LOSNING_PUNKTER.map((punkt) => (
+                  <li key={punkt}>{punkt}</li>
+                ))}
               </ul>
+            </Reveal>
+          </div>
+        </section>
 
-              <h2>Resultatet</h2>
-              <p>
-                Festiviteten har gått fra å sjonglere flere dashboards og regneark til å ha én samlet oversikt — og en AI-assistent som faktisk forstår sammenhengen mellom annonseinvestering og billettsalg. Når et arrangement begynner å skjelve, vet teamet om det med en gang, og de får konkrete anbefalinger om hva som bør gjøres.
-              </p>
-              <p>
-                Markedsføringsbudsjettet brukes mer presist, fordi beslutninger tas på data og ikke magefølelse. Og fordi assistenten er tilgjengelig hele døgnet, slipper teamet å vente til neste arbeidsdag for å vurdere en kampanje som glipper i helgen.
-              </p>
-
-              <blockquote>
-                &ldquo;Vi hadde tallene, men ikke tiden til å koble dem sammen. Nå har vi en AI-assistent som ser alt — billettsalg, annonser, radio — og sier ifra med en gang noe ikke fungerer. Det er som å ha en ekstra markedssjef som aldri sover.&rdquo;
-              </blockquote>
+        <section
+          className="vk-pg-s vk-festiviteten-natt"
+          aria-labelledby="festiviteten-natt-h"
+        >
+          <ThreadSegment
+            d={NATT_THREAD_D}
+            viewBox="0 0 100 200"
+            className="vk-festiviteten-natt-thread"
+          />
+          <div className="vk-wrap">
+            <div className="vk-festiviteten-natt-grid">
+              <div className="vk-festiviteten-natt-copy">
+                <p className="vk-kicker vk-festiviteten-kick">Nattevakten</p>
+                <Reveal>
+                  <h2 id="festiviteten-natt-h" className="vk-display vk-pg-h2">
+                    Teateret sover. Agenten gjør ikke.
+                  </h2>
+                </Reveal>
+                <div className="vk-pg-prose vk-festiviteten-prose">
+                  <p>
+                    Hver natt går agenten gjennom salgstallene for kommende
+                    forestillinger og måler dem mot annonsene som kjører.
+                    Svikter salget, går varselet ut med en gang — ikke neste
+                    arbeidsdag. Anbefalingen ligger klar når teamet kommer på
+                    jobb.
+                  </p>
+                </div>
+                <Link
+                  href="/ai-agenter"
+                  className="vk-pg-link vk-festiviteten-natt-link"
+                >
+                  Slik bygger vi AI-agenter <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+              <FestivitetenWatchPanel />
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="section section--elevated">
-        <div className="wrap">
-          <div className="case-other">
-            <h2>Andre kundecaser</h2>
-            <div className="case-other__grid">
-              <article className="case-other__card card-link-host">
-                <Image src="/kunder-csub.svg" alt="CSUB" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
-                <h3>
-                  <Link href="/kunder/csub" className="card-link">CSUB</Link>
+        <section className="vk-pg-s" aria-labelledby="festiviteten-resultat-h">
+          <div className="vk-wrap">
+            <p className="vk-kicker vk-festiviteten-kick">Resultatet</p>
+            <Reveal>
+              <h2 id="festiviteten-resultat-h" className="vk-display vk-pg-h2">
+                Beslutninger på tall, ikke magefølelse
+              </h2>
+            </Reveal>
+            <div className="vk-pg-prose vk-festiviteten-prose">
+              <p>
+                Festiviteten har gått fra å sjonglere dashboards og regneark til
+                én samlet oversikt — og en AI-assistent som faktisk forstår
+                sammenhengen mellom annonseinvestering og billettsalg. Begynner
+                et arrangement å skjelve, vet teamet det med en gang, med
+                konkrete anbefalinger om hva som bør gjøres.
+              </p>
+              <p>
+                Markedsføringsbudsjettet brukes mer presist, fordi beslutninger
+                tas på data og ikke magefølelse. Og fordi assistenten er våken
+                hele døgnet, slipper teamet å vente til neste arbeidsdag for å
+                vurdere en kampanje som glipper i helgen.
+              </p>
+            </div>
+            <Reveal delay={0.1}>
+              <figure className="vk-festiviteten-quote">
+                <blockquote>
+                  <p>
+                    «Vi hadde tallene, men ikke tiden til å koble dem sammen. Nå
+                    har vi en AI-assistent som ser alt — billettsalg, annonser,
+                    radio — og sier ifra med en gang noe ikke fungerer. Det er
+                    som å ha en ekstra markedssjef som aldri sover.»
+                  </p>
+                </blockquote>
+              </figure>
+            </Reveal>
+          </div>
+        </section>
+
+        <section className="vk-pg-s vk-pg-s--tight" aria-labelledby="festiviteten-neste-h">
+          <div className="vk-wrap">
+            <p className="vk-kicker vk-festiviteten-kick">Flere fra verkstedet</p>
+            <Reveal>
+              <h2 id="festiviteten-neste-h" className="vk-display vk-pg-h2">
+                Les flere kundecaser
+              </h2>
+            </Reveal>
+            <div className="vk-pg-grid">
+              <article className="vk-pg-card vk-festiviteten-next-card">
+                <span className="vk-stamp">Neste case</span>
+                <h3 className="vk-pg-card-title">
+                  <Link
+                    href="/kunder/elementlab"
+                    className="vk-festiviteten-next-link"
+                  >
+                    ElementLab
+                  </Link>
                 </h3>
-                <p>Intelligent dashboard og AI-assistent</p>
+                <p className="vk-pg-card-body">
+                  Sømløs booking rett på nettsiden og AI-chatbot trent på
+                  behandlingsdata — for Norges ledende senter for hyperbar
+                  oksygenterapi.
+                </p>
+                <p
+                  className="vk-mono vk-pg-card-mono vk-festiviteten-next-cue"
+                  aria-hidden="true"
+                >
+                  les caset →
+                </p>
               </article>
-              <article className="case-other__card card-link-host">
-                <Image src="/kunder-elementlab.png" alt="ElementLab" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
-                <h3>
-                  <Link href="/kunder/elementlab" className="card-link">ElementLab</Link>
+              <article className="vk-pg-card vk-festiviteten-next-card">
+                <p className="vk-mono vk-festiviteten-next-tag">
+                  subsea-engineering
+                </p>
+                <h3 className="vk-pg-card-title">
+                  <Link
+                    href="/kunder/csub"
+                    className="vk-festiviteten-next-link"
+                  >
+                    CSUB
+                  </Link>
                 </h3>
-                <p>Bookingintegrasjon og AI-chatbot</p>
+                <p className="vk-pg-card-body">
+                  Intelligent dashbord og AI-assistent som gjør prosjektdata
+                  tilgjengelig på sekunder.
+                </p>
+                <p
+                  className="vk-mono vk-pg-card-mono vk-festiviteten-next-cue"
+                  aria-hidden="true"
+                >
+                  les caset →
+                </p>
               </article>
             </div>
+            <div className="vk-festiviteten-next-foot">
+              <Link href="/kunder" className="vk-pg-link">
+                <span aria-hidden="true">←</span> Alle kundecaser
+              </Link>
+              <Link href="/#tjenester" className="vk-pg-link">
+                Alt vi bygger <span aria-hidden="true">→</span>
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <PageCta />
+      </VerkstedShell>
     </>
   );
 }

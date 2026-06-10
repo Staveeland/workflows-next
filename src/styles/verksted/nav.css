@@ -41,34 +41,36 @@
   height: 100%;
 }
 
-/* ── Brand: stamp-set wordmark + status dot ── */
+/* ── Brand: the real wordmark (white ink) + status dot ── */
 
 .vk-nav-brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .vk-nav-logo {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  /* right inset trimmed by ~one tracking unit so the border sits optically centered */
-  padding: 0 9px 0 13px;
-  border: 1px solid var(--hairline);
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  text-decoration: none;
   color: var(--papir);
-  transition: border-color var(--dur-2) var(--ease-work);
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-nav-logosvg {
+  display: block;
+  height: 26px;
+  width: auto;
+  transition: height var(--dur-2) var(--ease-work);
+}
+
+.vk-nav--condensed .vk-nav-logosvg {
+  height: 22px;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .vk-nav-logo:hover {
-    border-color: var(--glod);
+    color: var(--glod);
   }
 }
 
@@ -326,17 +328,18 @@
   top: 44%;
   z-index: 5;
   max-width: min(92vw, 1100px);
-  padding: 18px 30px;
-  border: 3px solid currentColor;
+  padding: 18px 34px;
+  border: 1px solid rgba(255, 180, 84, 0.4);
+  border-radius: 999px;
+  background: rgba(23, 19, 16, 0.88);
   font-family: var(--font-spline), ui-monospace, monospace;
-  /* --stempel floor: never below 24px */
-  font-size: clamp(24px, 6.5vw, 72px);
+  font-size: clamp(24px, 6.5vw, 64px);
   font-weight: 500;
   line-height: 1.1;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: center;
-  color: var(--stempel);
+  color: var(--glod);
   transform: translate(-50%, -50%) rotate(var(--rot-b));
 }
 
@@ -482,8 +485,8 @@
 /* Tighter metrics between the mobile breakpoint and 1024px so the full
    desktop row fits without horizontal overflow (touch targets stay 44px). */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .vk-nav-logo {
-    letter-spacing: 0.2em;
+  .vk-nav-logosvg {
+    height: 22px;
   }
   .vk-nav-links a {
     padding: 0 5px;

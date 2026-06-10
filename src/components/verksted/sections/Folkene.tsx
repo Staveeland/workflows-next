@@ -9,11 +9,10 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { motion, useReducedMotion, type MotionProps } from "framer-motion";
+import { motion, useInView, useReducedMotion, type MotionProps } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
 import { verkstedContent } from "@/lib/verkstedContent";
 
-const EGG_KEY = "vk-egg-coords";
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const VIEW = { once: true, amount: 0.25 } as const;
 
@@ -187,32 +186,52 @@ export function Folkene() {
   const headingId = useId();
   const tipId = useId();
 
-  const [beamOn, setBeamOn] = useState(false);
+  const [beam, setBeam] = useState(0); // 0 = off; >0 keys the sweep instance
   const [tip, setTip] = useState<string | null>(null);
-  const fired = useRef(false);
   const pressTimer = useRef(0);
   const beamTimer = useRef(0);
+  const beamDelay = useRef(0);
+  const beamSeq = useRef(0);
+  const cachedTip = useRef<{ lang: string; text: string } | null>(null);
+  const fetching = useRef(false);
 
   const template = t.eggs.coordsTooltipTemplate;
 
+  const fireBeam = useCallback(() => {
+    if (reduced) return;
+    window.clearTimeout(beamTimer.current);
+    window.clearTimeout(beamDelay.current);
+    // async so callers inside effects stay pure; fresh key replays the sweep
+    beamDelay.current = window.setTimeout(() => {
+      setBeam(++beamSeq.current);
+      beamTimer.current = window.setTimeout(() => setBeam(0), 1900);
+    }, 30);
+  }, [reduced]);
+
+  // The sweep plays on every approach: fresh load, refresh mid-page, and
+  // each scroll back into the section (deliberately NOT once-per-session).
+  const sectionRef = useRef<HTMLElement>(null);
+  const sectionInView = useInView(sectionRef, { amount: 0.35 });
+  useEffect(() => {
+    if (sectionInView) fireBeam();
+  }, [sectionInView, fireBeam]);
+
   const trigger = useCallback(() => {
-    if (fired.current) return;
-    fired.current = true;
-    try {
-      if (window.sessionStorage.getItem(EGG_KEY)) return; // once per session
-      window.sessionStorage.setItem(EGG_KEY, "1");
-    } catch {
-      // storage unavailable — still fire once per mount
+    fireBeam();
+    const cached = cachedTip.current;
+    if (cached && cached.lang === lang) {
+      if (cached.text) setTip(cached.text);
+      return;
     }
-    if (!reduced) {
-      setBeamOn(true);
-      beamTimer.current = window.setTimeout(() => setBeamOn(false), 1900);
-    }
+    if (fetching.current) return;
+    fetching.current = true;
     void fetchWind(lang).then((wind) => {
+      fetching.current = false;
       const text = buildTooltip(template, wind);
+      cachedTip.current = { lang, text };
       if (text) setTip(text);
     });
-  }, [reduced, template, lang]);
+  }, [fireBeam, template, lang]);
 
   // Long-press (coarse pointers): 500ms hold on the coordinates line.
   const startPress = () => {
@@ -225,6 +244,7 @@ export function Folkene() {
     () => () => {
       window.clearTimeout(pressTimer.current);
       window.clearTimeout(beamTimer.current);
+      window.clearTimeout(beamDelay.current);
     },
     [],
   );
@@ -244,7 +264,7 @@ export function Folkene() {
   }, [tip]);
 
   return (
-    <section id="folkene" className="vk-s vk-folk" aria-labelledby={headingId}>
+    <section ref={sectionRef} id="folkene" className="vk-s vk-folk" aria-labelledby={headingId}>
       <div className="vk-wrap">
         <header className="vk-folk-head">
           <div className="vk-folk-head-main">
@@ -345,7 +365,7 @@ export function Folkene() {
         </div>
       </div>
 
-      {beamOn && <div className="vk-folk-beam" aria-hidden="true" />}
+      {beam !== 0 && <div key={beam} className="vk-folk-beam" aria-hidden="true" />}
       <div className="vk-grain vk-grain--heavy vk-folk-grain" aria-hidden="true" />
     </section>
   );

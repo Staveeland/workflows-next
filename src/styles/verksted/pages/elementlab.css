@@ -1,0 +1,450 @@
+/* ════════════════════════════════════════════════════════════════════
+   VERKSTEDET — /kunder/elementlab (case: rapportflyt + booking/chatbot)
+   Prefix: vk-elementlab-. Poster law: resting state = composed. The count-scrub
+   and the flow-draw rest at their finished values (p = 1) and only leave
+   them after mount with motion allowed (state set in the client comp).
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Hero foot: fact strip + back-link ── */
+
+.vk-elementlab-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px clamp(28px, 4vw, 56px);
+  margin: clamp(32px, 5vw, 52px) 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+  max-width: 760px;
+}
+
+.vk-elementlab-fact {
+  margin: 0;
+}
+
+.vk-elementlab-fact dt {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--stov);
+  opacity: 0.75;
+}
+
+.vk-elementlab-fact dd {
+  margin: 6px 0 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  color: var(--papir);
+}
+
+.vk-elementlab-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 10px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  color: var(--stov);
+  text-decoration: none;
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-elementlab-back:hover {
+    color: var(--glod);
+  }
+}
+
+/* ── Chapter rhythm ── */
+
+.vk-elementlab-cols {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(32px, 4.5vw, 56px);
+  margin-top: clamp(32px, 4.5vw, 52px);
+}
+
+@media (min-width: 900px) {
+  .vk-elementlab-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.vk-elementlab-h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(20px, 2.2vw, 26px);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--papir);
+}
+
+.vk-elementlab-h3::before {
+  content: "";
+  flex: none;
+  width: 18px;
+  height: 1px;
+  background: var(--glod-halo);
+}
+
+/* ── Deliverables list (jobb 2) ── */
+
+.vk-elementlab-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 56ch;
+}
+
+.vk-elementlab-list li {
+  position: relative;
+  padding-left: 28px;
+  margin: 0 0 14px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--stov);
+}
+
+.vk-elementlab-list li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--glod);
+}
+
+.vk-elementlab-list a {
+  color: var(--glod);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 180, 84, 0.45);
+  text-underline-offset: 0.24em;
+  transition: text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-elementlab-list a:hover {
+    text-decoration-color: var(--glod);
+  }
+}
+
+/* ════════════════════════════════════════════
+   The star plate — flow-draw + count-scrub.
+   SSR / no-JS / reduced motion: line drawn, all
+   nodes lit, «80 %» composed (poster law).
+   ════════════════════════════════════════════ */
+
+.vk-elementlab-plate {
+  position: relative;
+  margin-top: clamp(40px, 6vw, 64px);
+  padding: clamp(24px, 4vw, 48px);
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+}
+
+.vk-elementlab-platehead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.vk-elementlab-platekicker {
+  margin: 0;
+}
+
+.vk-elementlab-flow {
+  max-width: 720px;
+  margin-top: clamp(20px, 3vw, 32px);
+}
+
+.vk-elementlab-flow svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.vk-elementlab-flowbase {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1.5;
+  stroke-dasharray: 0.006 0.018;
+  stroke-linecap: round;
+}
+
+.vk-elementlab-flowline {
+  fill: none;
+  stroke: var(--glod);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  filter: drop-shadow(0 0 6px var(--glod-halo));
+  transition: stroke-dashoffset 90ms linear;
+}
+
+.vk-elementlab-flownode {
+  fill: var(--hairline);
+  transition: fill var(--dur-2) var(--ease-work);
+}
+
+.vk-elementlab-flownode[data-lit="true"] {
+  fill: var(--glod);
+  filter: drop-shadow(0 0 5px var(--glod-halo));
+}
+
+.vk-elementlab-flowtag {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  fill: var(--stov);
+}
+
+/* the SVG scales with the plate — on narrow screens the labels must be
+   set larger in viewBox units to stay legible after the scale-down */
+@media (max-width: 640px) {
+  .vk-elementlab-flowtag {
+    font-size: 22px;
+    letter-spacing: 0.02em;
+  }
+}
+
+/* ── The number ── */
+
+.vk-elementlab-stat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px clamp(14px, 2.5vw, 26px);
+  margin-top: clamp(28px, 4vw, 44px);
+}
+
+.vk-elementlab-statvalue {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 144;
+  font-size: clamp(96px, 14vw, 210px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 0.85;
+  color: var(--papir);
+  white-space: nowrap;
+}
+
+/* digits right-aligned in a reserved box — the 0→80 scrub never reflows */
+.vk-elementlab-statdigits {
+  display: inline-block;
+  min-width: 2ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.vk-elementlab-statpct {
+  font-size: 0.52em;
+  color: var(--glod);
+}
+
+.vk-elementlab-statlabel {
+  margin: 0;
+  max-width: 12ch;
+  font-size: 18px;
+  line-height: 1.35;
+  color: var(--stov);
+}
+
+.vk-elementlab-stataside {
+  margin: clamp(14px, 2vw, 22px) 0 0;
+  max-width: 44ch;
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--papir);
+}
+
+.vk-elementlab-monoline {
+  margin: clamp(24px, 3.5vw, 38px) 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+  color: var(--glod);
+}
+
+/* mono whisper in the plate corner — purely decorative (aria-hidden),
+   never carries information. Poster law: where it exists it rests
+   VISIBLE (dimmed); hover only lifts it. Hover-capable wide screens
+   only, so it never overlaps the mono ticker on small plates. */
+.vk-elementlab-whisper {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 700px) {
+  .vk-elementlab-whisper {
+    display: block;
+    position: absolute;
+    right: clamp(18px, 3vw, 32px);
+    bottom: clamp(16px, 2.5vw, 26px);
+    margin: 0;
+    font-size: 12px;
+    color: var(--stov);
+    opacity: 0.55;
+    transition: opacity var(--dur-3) var(--ease-work);
+  }
+
+  .vk-elementlab-plate:hover .vk-elementlab-whisper {
+    opacity: 1;
+  }
+}
+
+.vk-elementlab-chalk {
+  margin: clamp(24px, 3vw, 36px) 0 0;
+  width: fit-content;
+  font-size: 18px;
+  rotate: var(--rot-b);
+}
+
+/* ── Jobb 2 ── */
+
+/* thread stitch in the whitespace between the two jobs */
+.vk-elementlab-spine {
+  top: -56px;
+  left: 38%;
+  width: 140px;
+  aspect-ratio: 100 / 120;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 767.98px) {
+  .vk-elementlab-spine {
+    display: none;
+  }
+}
+
+.vk-elementlab-resultat {
+  margin-top: clamp(36px, 5vw, 56px);
+}
+
+.vk-elementlab-levert {
+  margin: 18px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--glod);
+}
+
+/* ── Quote ── */
+
+.vk-elementlab-quote {
+  position: relative;
+  margin: clamp(48px, 7vw, 84px) 0 0;
+  max-width: 30ch;
+  padding-left: clamp(22px, 3vw, 40px);
+}
+
+.vk-elementlab-quote::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(var(--glod), rgba(255, 180, 84, 0));
+}
+
+.vk-elementlab-quote blockquote {
+  margin: 0;
+}
+
+.vk-elementlab-quote p {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(21px, 2.6vw, 30px);
+  line-height: 1.42;
+  color: var(--papir);
+}
+
+.vk-elementlab-cite {
+  margin: 16px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--stov);
+}
+
+/* ── Next case ── */
+
+.vk-elementlab-nextgrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(20px, 3vw, 32px);
+  margin-top: clamp(32px, 4.5vw, 48px);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .vk-elementlab-nextgrid {
+    grid-template-columns: 3fr 2fr;
+  }
+}
+
+.vk-elementlab-nextcard .vk-elementlab-nextname {
+  margin: 6px 0 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 144;
+  font-size: clamp(34px, 4.5vw, 56px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.vk-elementlab-nextlink {
+  color: var(--papir);
+  text-decoration: none;
+}
+
+/* stretched link — the whole card is the tap target */
+.vk-elementlab-nextlink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 14px;
+}
+
+.vk-elementlab-nextlink:focus-visible {
+  outline: none;
+}
+
+.vk-elementlab-nextlink:focus-visible::after {
+  outline: 2px solid var(--glod);
+  outline-offset: 3px;
+}
+
+.vk-elementlab-nextarrow {
+  margin-top: 6px;
+  color: var(--glod);
+  font-size: 17px;
+  font-weight: 600;
+  transition: transform var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-elementlab-nextcard:hover .vk-elementlab-nextarrow {
+    transform: translateX(6px);
+  }
+}
+
+.vk-elementlab-nextlinks {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding-top: 6px;
+}

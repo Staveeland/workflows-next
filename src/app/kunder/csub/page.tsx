@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { urlFor } from "@/lib/site";
 import { buildArticle, buildBreadcrumb } from "@/lib/jsonLd";
+import VerkstedShell from "@/components/verksted/VerkstedShell";
+import { PageHero } from "@/components/verksted/page/PageHero";
+import { PageCta } from "@/components/verksted/page/PageCta";
+import { Reveal } from "@/components/verksted/page/Reveal";
+import { CsubCaseClient } from "@/components/verksted/pages/CsubCaseClient";
 
 export const metadata: Metadata = {
   title: "CSUB – AI-dashboard og RAG-assistent",
   description:
-    "Kundecase: Workflows bygget et intelligent dashboard med AI-assistent (RAG) som samler prosjektdata og genererer rapporter for CSUB på sekunder.",
+    "Kundecase: CSUBs prosjektdata lå spredt i Excel. Workflows samlet alt i ett dashbord — med AI-assistent (RAG) som svarer fra egne dokumenter på sekunder.",
   alternates: {
     canonical: "/kunder/csub",
     languages: {
@@ -50,6 +54,12 @@ const articleJsonLd = buildArticle({
   about: { "@type": "Thing", name: "CSUB" },
 });
 
+const DOSSIER: ReadonlyArray<readonly [string, string]> = [
+  ["Bransje", "Subsea & offshore"],
+  ["Tjenester", "Dashbord · AI-assistent · Dataintegrasjon"],
+  ["Tidsramme", "6 uker"],
+];
+
 export default function CsubCase() {
   return (
     <>
@@ -61,109 +71,79 @@ export default function CsubCase() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
-      <section className="page-hero page-hero--case">
-        <div className="wrap">
-          <Link href="/kunder" className="back-link">&larr; Alle kundecaser</Link>
-          <div className="case-hero">
-            <div className="case-hero__info">
-              <span className="tag">Kundecase</span>
-              <h1>CSUB</h1>
-              <p className="case-hero__tagline">Intelligent dashboard og AI-assistent som gjør prosjektdata tilgjengelig på sekunder</p>
-              <div className="case-hero__meta">
-                <div><strong>Bransje</strong><span>Subsea & Offshore</span></div>
-                <div><strong>Tjenester</strong><span>Dashboard, AI-assistent, Dataintegrasjon</span></div>
-                <div><strong>Tidsramme</strong><span>6 uker</span></div>
-              </div>
+      <VerkstedShell>
+        <PageHero
+          kicker="Kundecase · Subsea-engineering"
+          title="CSUB"
+          lead="Prosjektdata lå spredt i utallige Excel-ark, e-poster og systemer. Nå ligger alt i ett dashbord — med en AI-assistent som svarer fra CSUBs egne dokumenter. På sekunder."
+          chalk="seks uker fra kaos til flyt"
+        >
+          <Reveal className="vk-csub-hero-extra" delay={0.3} y={14}>
+            <div className="vk-csub-stampline">
+              <span className="vk-stamp">ALT PÅ ETT BRETT</span>
+              <span className="vk-mono vk-csub-inuse">i daglig bruk</span>
             </div>
-            <div className="case-hero__logo">
-              <Image src="/kunder-csub.svg" alt="CSUB" width={250} height={80} style={{ width: "auto", height: "60px" }} />
-            </div>
-          </div>
-        </div>
-      </section>
+            <dl className="vk-csub-dossier">
+              {DOSSIER.map(([label, value]) => (
+                <div key={label} className="vk-csub-doss">
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </Reveal>
+        </PageHero>
 
-      <section className="section">
-        <div className="wrap">
-          <div className="case-content">
-            <div className="case-results-bar">
-              <div className="case-result">
-                <span className="case-result__num">Alt</span>
-                <span className="case-result__label">samlet på ett sted</span>
-              </div>
-              <div className="case-result">
-                <span className="case-result__num">AI</span>
-                <span className="case-result__label">assistent med full datainnsikt</span>
-              </div>
-              <div className="case-result">
-                <span className="case-result__num">Sek.</span>
-                <span className="case-result__label">fra spørsmål til rapport</span>
-              </div>
-            </div>
+        <CsubCaseClient />
 
-            <div className="case-body">
-              <h2>Utfordringen</h2>
-              <p>
-                CSUB driver komplekse subsea-prosjekter med store mengder data spredt utover utallige Excel-filer, e-poster og systemer. Prosjektlederne brukte timer på å grave frem tall, sammenstille informasjon og lage rapporter manuelt.
-              </p>
-              <p>
-                Å få svar på enkle spørsmål som «Hva er status på prosjekt X?» eller «Hvor mye har vi brukt på Y?» krevde at noen satt seg ned og lette gjennom mapper og regneark. Verdifull innsikt lå skjult i data ingen hadde tid til å analysere.
-              </p>
-
-              <h2>Løsningen</h2>
-              <p>
-                Workflows bygget et sentralisert dashboard som automatisk samler og strukturerer data fra CSUBs eksisterende Excel-filer og systemer. All prosjektinformasjon — økonomi, fremdrift, ressursbruk — er tilgjengelig i et oversiktlig grensesnitt.
-              </p>
-              <p>
-                I tillegg ble det utviklet en AI-drevet chatassistent som har full tilgang til databasen. Teamet kan stille spørsmål i naturlig språk og få svar umiddelbart — enten det er en statusoppdatering, et sammendrag eller en fullstendig rapport.
-              </p>
-              <ul>
-                <li>Sentralisert dashboard som samler data fra Excel-filer og eksisterende systemer</li>
-                <li>Navigerbar prosjektoversikt med statistikk, økonomi og fremdrift</li>
-                <li>AI-chatassistent med tilgang til hele databasen via RAG-system</li>
-                <li>Rapportgenerering basert på brukerens preferanser fra databasen</li>
-                <li>Delegering av prosjekter til ansatte for å vise tydelig hvem som jobber med hva</li>
-                <li>Filtrerbart og søkbart grensesnitt for rask navigering</li>
-              </ul>
-
-              <h2>Resultatet</h2>
-              <p>
-                CSUB har gått fra å bruke timer på å lete etter informasjon til å få svar på sekunder. Prosjektledere kan nå fokusere på å drive prosjektene fremover istedenfor å lage rapporter, og ledelsen har sanntidsoversikt over hele porteføljen.
-              </p>
-              <p>
-                AI-assistenten har blitt et naturlig verktøy i hverdagen. Teamet bruker den til alt fra raske statussjekker til å generere detaljerte rapporter for kunder — uten å åpne en eneste Excel-fil.
-              </p>
-
-              <blockquote>
-                &ldquo;Før måtte vi bruke en halv dag på å sette sammen en prosjektrapport. Nå spør vi bare assistenten, og den leverer på sekunder. Det er som å ha en ekstra prosjektleder som aldri glemmer noe.&rdquo;
-              </blockquote>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section section--elevated">
-        <div className="wrap">
-          <div className="case-other">
-            <h2>Andre kundecaser</h2>
-            <div className="case-other__grid">
-              <article className="case-other__card card-link-host">
-                <Image src="/kunder-festiviteten.png" alt="Festiviteten" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
-                <h3>
-                  <Link href="/kunder/festiviteten" className="card-link">Festiviteten</Link>
+        {/* ── Next from the workshop ── */}
+        <section className="vk-pg-s vk-pg-s--tight" aria-labelledby="csub-h-neste">
+          <div className="vk-wrap">
+            <p className="vk-kicker vk-pg-kicker">Kundecaser</p>
+            <h2 id="csub-h-neste" className="vk-display vk-pg-h2">
+              Neste fra verkstedet
+            </h2>
+            <div className="vk-csub-nextgrid">
+              <article className="vk-pg-card">
+                <p className="vk-mono vk-csub-nextlabel">Neste case</p>
+                <h3 className="vk-pg-card-title">
+                  <Link href="/kunder/festiviteten" className="vk-csub-nextlink">
+                    Festiviteten
+                  </Link>
                 </h3>
-                <p>AI for billettsalg og annonsering</p>
+                <p className="vk-pg-card-body">
+                  Teateret sover — agenten gjør ikke. AI-en følger billettsalg og annonser i
+                  sanntid, og varsler når salget svikter.
+                </p>
+                <p className="vk-mono vk-pg-card-mono" aria-hidden="true">
+                  03:12 i natt: svakt salg oppdaget → varsel sendt
+                </p>
               </article>
-              <article className="case-other__card card-link-host">
-                <Image src="/kunder-elementlab.png" alt="ElementLab" width={160} height={50} style={{ width: "auto", height: "32px", objectFit: "contain" }} />
-                <h3>
-                  <Link href="/kunder/elementlab" className="card-link">ElementLab</Link>
+              <article className="vk-pg-card">
+                <p className="vk-mono vk-csub-nextlabel">Også fra verkstedet</p>
+                <h3 className="vk-pg-card-title">
+                  <Link href="/kunder/elementlab" className="vk-csub-nextlink">
+                    ElementLab
+                  </Link>
                 </h3>
-                <p>Bookingintegrasjon og AI-chatbot</p>
+                <p className="vk-pg-card-body">
+                  80 % raskere rapporter — hundrevis av timer frigjort hvert år.
+                </p>
+                <p className="vk-mono vk-pg-card-mono" aria-hidden="true">
+                  rapport bygget → levert · neste i kø
+                </p>
               </article>
             </div>
+            <p className="vk-csub-back">
+              <Link href="/kunder" className="vk-pg-link">
+                ← Alle kundecaser
+              </Link>
+            </p>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <PageCta />
+      </VerkstedShell>
     </>
   );
 }

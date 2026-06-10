@@ -231,7 +231,6 @@ function Pinned({ p }: { p: ProsessContent }) {
                 animate={{ opacity: live ? 1 : 0 }}
                 transition={{ duration: 0.24, ease: EASE_WORK }}
               >
-                <span className="vk-pro-dot" />
                 {p.badgeLive}
               </motion.span>
               <motion.span
@@ -364,10 +363,7 @@ function BadgeRow({ building, live }: { building: string; live: string }) {
   const flip = mounted && !reduced ? (inView ? "in" : "pre") : undefined;
   return (
     <div ref={ref} className="vk-pro-badge vk-pro-badge--row" data-flip={flip}>
-      <span className="vk-pro-badge-face vk-pro-badge-face--live">
-        <span className="vk-pro-dot" aria-hidden="true" />
-        {live}
-      </span>
+      <span className="vk-pro-badge-face vk-pro-badge-face--live">{live}</span>
       <span className="vk-pro-badge-face vk-pro-badge-face--building" aria-hidden="true">
         {building}
       </span>

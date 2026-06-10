@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
 import { verkstedContent } from "@/lib/verkstedContent";
+import { WorkflowsLogo } from "@/components/verksted/WorkflowsLogo";
 
 // Contact data — invariant in both languages, sanctioned by contract §6 (kontakt row).
 const EMAIL = "petter@workflows.no";
@@ -169,6 +170,7 @@ export function Kolofon() {
   return (
     <footer ref={footerRef} className="vk-kol">
       <div className="vk-wrap vk-kol-inner">
+        <WorkflowsLogo className="vk-kol-logo" />
         <div className="vk-kol-grid">
           <nav className="vk-kol-col" aria-labelledby="vk-kol-h-tjenester">
             <p id="vk-kol-h-tjenester" className="vk-kol-colhead">
