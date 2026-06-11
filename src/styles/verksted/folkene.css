@@ -69,11 +69,14 @@
   z-index: 1; /* above the artwork, below caption (13) and grain (12) */
   mix-blend-mode: screen;
   /* Wedge points «up» at rotate: 0; ~2.6° flat core, soft 3.2° edges. */
+  /* The painted lighthouse light was edited out of the artwork — this
+     animated beam is now the ONLY light from the tower, so it can carry
+     more presence. */
   background: conic-gradient(
     from -4.5deg,
     transparent 0deg,
-    rgba(255, 214, 140, 0.16) 3.2deg,
-    rgba(255, 214, 140, 0.16) 5.8deg,
+    rgba(255, 214, 140, 0.22) 3.2deg,
+    rgba(255, 214, 140, 0.22) 5.8deg,
     transparent 9deg
   );
   /* closest-side = 75vw: the beam dissolves before it reaches it. */
@@ -163,14 +166,16 @@
   aspect-ratio: 1;
   translate: -50% -50%;
   border-radius: 50%;
-  opacity: 0.92; /* static mid-state between the breathe extremes */
+  opacity: 0.8; /* static mid-state between the breathe extremes */
   pointer-events: none;
   z-index: 1;
   mix-blend-mode: screen;
+  /* Strong enough to read over the painted doorway — the breathe delta
+     below is what makes the life inside visible. */
   background: radial-gradient(
     circle closest-side,
-    rgba(255, 180, 84, 0.3),
-    rgba(255, 170, 70, 0.14) 48%,
+    rgba(255, 180, 84, 0.5),
+    rgba(255, 170, 70, 0.24) 48%,
     transparent 100%
   );
 }
@@ -188,13 +193,13 @@
 
 @keyframes vk-folk-vindu-breathe {
   from {
-    opacity: 0.84;
-    scale: 0.93;
+    opacity: 0.55;
+    scale: 0.9;
   }
 
   to {
     opacity: 1;
-    scale: 1.07;
+    scale: 1.12;
   }
 }
 
