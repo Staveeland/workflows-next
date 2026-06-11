@@ -30,7 +30,10 @@ const IMAGE_MODEL = "gpt-image-2";
 // Vercel kills the function (GET /me has a staleness backstop regardless).
 const PROBE_TIMEOUT_MS = 6_000;
 const CHAT_TIMEOUT_MS = 20_000;
-const IMAGE_TIMEOUT_MS = 30_000;
+// 40s: gpt-image-2 at medium quality usually lands in 20-35s — 30s proved
+// too tight in prod (the first real run timed out). The worst case still
+// fits maxDuration 60 because the mockup is non-fatal in the submit route.
+const IMAGE_TIMEOUT_MS = 40_000;
 
 const ANBEFALINGER: readonly PortalAnbefaling[] = [
   "chatbot",

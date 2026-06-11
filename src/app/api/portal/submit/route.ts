@@ -137,13 +137,24 @@ export async function POST(req: Request) {
 
     // 3) … then the mockup image, uploaded with the user's own token so
     //    the owner-scoped storage policy (<uid>/ prefix) applies.
-    const webp = await generateMockup(body.answers, assessment);
-    const mockupPath = `${user.id}/${rowId}.webp`;
-    const { error: uploadError } = await supabase.storage
-      .from("mockups")
-      .upload(mockupPath, webp, { contentType: "image/webp" });
-    if (uploadError) {
-      throw new Error(`mockup upload failed: ${uploadError.message}`);
+    //    NON-FATAL: the assessment is the product — if the drawing times
+    //    out or fails, the forslag ships without it (the UI handles a
+    //    missing mockupUrl) instead of burning the whole generation.
+    let mockupPath: string | null = null;
+    if (assessment.anbefaling !== "ikke_ai") {
+      try {
+        const webp = await generateMockup(body.answers, assessment);
+        const candidatePath = `${user.id}/${rowId}.webp`;
+        const { error: uploadError } = await supabase.storage
+          .from("mockups")
+          .upload(candidatePath, webp, { contentType: "image/webp" });
+        if (uploadError) {
+          throw new Error(`mockup upload failed: ${uploadError.message}`);
+        }
+        mockupPath = candidatePath;
+      } catch (mockupErr) {
+        console.error("[portal/submit] mockup skipped (non-fatal)", mockupErr);
+      }
     }
 
     // 4) Done — forslag_klart.
