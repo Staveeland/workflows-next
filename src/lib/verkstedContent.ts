@@ -124,10 +124,15 @@ export interface VerkstedContent {
     title: string;
     subtitle: string;
     welcome: string;
+    /** Time-aware welcome variants — picked from the visitor's local clock. */
+    welcomeByHour?: { natt: string; morgen: string; dag: string; kveld: string };
+    /** A second short note that lands ~1.2s after the welcome — a wink. */
+    welcomeFollowup?: string;
     placeholder: string;
     send: string;
     sendAria: string;
-    thinking: string;
+    /** One is drawn at random per request — the watchman has habits, not a script. */
+    thinkingLines: string[];
     modeAi: string;
     modePetter: string;
     backToAi: string;
@@ -402,37 +407,55 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       based: "Workflows AS · Haugesund, Norge · 59.4138° N, 5.2679° Ø",
     },
     chat: {
-      hatchLabel: "verkstedet er våkent",
-      hatchAria: "Åpne chatten — nattevakten i verkstedet svarer",
+      hatchLabel: "lyset er på — bank på",
+      hatchAria: "Åpne chatten — Nattevakten i verkstedet svarer",
       title: "Nattevakten",
-      subtitle: "lyset er på — spør i vei",
+      subtitle: "på vakt siden stengetid — spør i vei",
       welcome:
-        "Godt du fant luka. Spør meg om AI og automatisering — eller skriv direkte til Petter, så svarer han selv.",
+        "Du banket på. Det liker vi. Jeg er Nattevakten — jeg holder systemene i gang mens Haugesund sover, og kan det meste om chatboter, automatisering og AI-agenter. Så: hva strever dere med?",
+      welcomeByHour: {
+        natt:
+          "Sent ute? Fint selskap. Jeg er Nattevakten — jeg er våken uansett, det er liksom poenget med meg. Spør i vei om chatboter, automatisering og AI-agenter.",
+        morgen:
+          "God morgen. Jeg har holdt vakt i natt — alt i orden, kaffen står på. Jeg er Nattevakten, og jeg kan det meste om chatboter, automatisering og AI-agenter. Hva strever dere med?",
+        dag:
+          "Du banker på midt på dagen — da er det vel noe i hverdagen som butter. Jeg er Nattevakten: chatboter, automatisering, AI-agenter — spør om det du vil. Fortell.",
+        kveld:
+          "Kveldsskift? Da er vi to. Jeg er Nattevakten — jeg tar over når verkstedet stenger, og kan det meste om chatboter, automatisering og AI-agenter. Hva strever dere med?",
+      },
+      welcomeFollowup: "Ta den tiden du trenger. Jeg har kaffe og hele natta.",
       placeholder: "Skriv en lapp …",
       send: "Send",
-      sendAria: "Send melding",
-      thinking: "nattevakten skriver …",
+      sendAria: "Send lappen til Nattevakten",
+      thinkingLines: [
+        "nattevakten blar i notatboka …",
+        "tenker — lykta blafrer litt …",
+        "slår opp i verkstedspermen …",
+        "myser på tavla bak benken …",
+        "en slurk kaffe, så svarer jeg …",
+      ],
       modeAi: "Nattevakten",
-      modePetter: "Skriv direkte til Petter",
-      backToAi: "Tilbake til nattevakten",
+      modePetter: "Heller et menneske? Skriv rett til Petter",
+      backToAi: "Tilbake til Nattevakten",
       close: "Lukk chatten",
       petterStamp: "FRA PETTER",
-      directInfo: "Nå skriver du direkte til Petter. Svaret lander her i chatten.",
-      idle: "nattevakten hviler øynene …",
+      directInfo: "Nå går lappene rett til Petter. Han svarer selv — her i chatten.",
+      idle: "nattevakten hviler øynene … skriv noe, så er jeg her",
       a11yNewMsg: "Ny melding i chatten",
-      a11yDialog: "Chat med Workflows — nattevakten i verkstedet",
+      a11yDialog: "Chat med Workflows — Nattevakten i verkstedet",
       workorder: {
         title: "ARBEIDSORDRE",
         name: "Navn",
         email: "E-post",
         request: "Hva gjelder det?",
-        requestHint: "kort er fint — vi spør om resten",
+        requestHint: "to linjer holder — Petter spør om resten",
         submit: "Send til Petter",
-        sending: "sender …",
-        sent: "Levert. Petter svarer her i chatten — og på e-posten du oppga.",
+        sending: "stempler og sender …",
+        sent: "Den ligger på benken til Petter nå. Han svarer deg her i chatten — og på e-posten du oppga. Som regel innen én arbeidsdag.",
         retry: "Prøv igjen",
         failTitle: "Den kom ikke fram",
-        failBody: "Noe butta i maskineriet akkurat nå. Send en e-post eller ring oss i stedet — vi svarer raskt.",
+        failBody:
+          "Noe butta i maskineriet — hos oss, ikke hos deg. Send en e-post eller ring i stedet, så svarer vi fort. Jeg finner fram skiftenøkkelen i mellomtiden.",
         stampSent: "LEVERT",
       },
     },
@@ -685,37 +708,55 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       based: "Workflows AS · Haugesund, Norway · 59.4138° N, 5.2679° E",
     },
     chat: {
-      hatchLabel: "the workshop is awake",
-      hatchAria: "Open the chat — the workshop's night watchman answers",
+      hatchLabel: "the light's on — knock",
+      hatchAria: "Open the chat — the Night Watchman of the workshop answers",
       title: "The Night Watchman",
-      subtitle: "the light is on — ask away",
+      subtitle: "on watch since closing time — ask away",
       welcome:
-        "Glad you found the hatch. Ask me about AI and automation — or write directly to Petter, and he'll answer himself.",
+        "You knocked. We like that. I'm the Night Watchman — I keep the systems running while Haugesund sleeps, and I know most things about chatbots, automation and AI agents. So: what's slowing you down?",
+      welcomeByHour: {
+        natt:
+          "Up late? Good company. I'm the Night Watchman — I'm awake either way, that's rather the point of me. Ask away about chatbots, automation and AI agents.",
+        morgen:
+          "Morning. I kept watch last night — all quiet, coffee's on. I'm the Night Watchman, and I know most things about chatbots, automation and AI agents. What's slowing you down?",
+        dag:
+          "Knocking in broad daylight — something in the day-to-day must be grinding, then. I'm the Night Watchman: chatbots, automation, AI agents — ask me anything. Go on.",
+        kveld:
+          "Evening shift? That makes two of us. I'm the Night Watchman — I take over when the workshop closes, and I know most things about chatbots, automation and AI agents. What's slowing you down?",
+      },
+      welcomeFollowup: "Take your time. I've got coffee and the whole night.",
       placeholder: "Write a note …",
       send: "Send",
-      sendAria: "Send message",
-      thinking: "the night watchman is writing …",
+      sendAria: "Send the note to the Night Watchman",
+      thinkingLines: [
+        "the watchman flips through his notebook …",
+        "thinking — the lantern flickers a little …",
+        "checking the workshop binder …",
+        "squinting at the chalkboard behind the bench …",
+        "one sip of coffee, then an answer …",
+      ],
       modeAi: "The night watchman",
-      modePetter: "Write directly to Petter",
-      backToAi: "Back to the night watchman",
+      modePetter: "Rather talk to a human? Write straight to Petter",
+      backToAi: "Back to the Night Watchman",
       close: "Close the chat",
       petterStamp: "FROM PETTER",
-      directInfo: "You're now writing directly to Petter. His reply lands right here in the chat.",
-      idle: "the night watchman is resting his eyes …",
+      directInfo: "Your notes now go straight to Petter. He answers himself — right here in the chat.",
+      idle: "the watchman is resting his eyes … write something and he's back",
       a11yNewMsg: "New message in the chat",
-      a11yDialog: "Chat with Workflows — the workshop's night watchman",
+      a11yDialog: "Chat with Workflows — the Night Watchman of the workshop",
       workorder: {
         title: "WORK ORDER",
         name: "Name",
         email: "Email",
         request: "What do you need?",
-        requestHint: "short is fine — we'll ask about the rest",
+        requestHint: "two lines will do — Petter asks about the rest",
         submit: "Send to Petter",
-        sending: "sending …",
-        sent: "Delivered. Petter answers here in the chat — and at the email you gave.",
+        sending: "stamping and sending …",
+        sent: "It's on Petter's bench now. He'll answer you here in the chat — and at the email you gave. Usually within one working day.",
         retry: "Try again",
         failTitle: "It didn't get through",
-        failBody: "Something jammed in the machinery just now. Email or call us instead — we answer fast.",
+        failBody:
+          "Something jammed in the machinery — on our end, not yours. Email or call instead and we'll answer fast. I'll go find the wrench in the meantime.",
         stampSent: "DELIVERED",
       },
     },

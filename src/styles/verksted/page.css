@@ -263,35 +263,28 @@
   aspect-ratio: 100 / 124;
 }
 
-.vk-pg-cta-dot {
-  position: relative;
-  z-index: 1;
-  flex: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--glod);
-  box-shadow: 0 0 12px var(--glod-halo);
-  transition: box-shadow var(--dur-2) var(--ease-work);
-}
-
-.vk-pg-cta--lit .vk-pg-cta-dot {
-  box-shadow: 0 0 18px var(--glod-halo);
-}
-
+/* Inherits the «tent av tråden» CTA from base.css — only size + the lit
+   bloom are local. Resting halo comes from .vk-btn--cta. */
 .vk-pg-cta-btn {
   position: relative;
   z-index: 1;
   min-height: 60px;
   padding: 16px 32px;
   font-size: 19px;
-  box-shadow: 0 0 0 rgba(255, 160, 46, 0.45);
-  transition: box-shadow 300ms var(--ease-stamp);
+  transition:
+    transform var(--dur-1) var(--ease-work),
+    box-shadow 300ms var(--ease-stamp),
+    color var(--dur-2) var(--ease-work);
 }
 
 .vk-pg-cta--lit .vk-pg-cta-btn,
 .vk-pg-cta-btn:focus-visible {
-  box-shadow: 0 0 48px rgba(255, 160, 46, 0.45);
+  box-shadow: 0 0 40px rgba(226, 158, 51, 0.4);
+}
+
+.vk-pg-cta--lit .vk-pg-cta-btn::before {
+  opacity: 1; /* interior lamp blooms with the lit latch, like Kontakt */
+  transition: opacity 300ms var(--ease-stamp);
 }
 
 .vk-pg-cta-phone {

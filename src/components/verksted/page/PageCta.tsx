@@ -45,7 +45,6 @@ export function PageCta({ heading, note }: { heading?: string; note?: string }) 
             className="vk-pg-cta-thread"
             offset={["start 0.9", "end 0.5"]}
           />
-          <span className="vk-pg-cta-dot" aria-hidden="true" />
           <a href={`mailto:${EMAIL}`} className="vk-btn vk-btn--cta vk-pg-cta-btn">
             {t.kontakt.cta}
           </a>

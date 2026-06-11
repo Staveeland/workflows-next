@@ -219,23 +219,64 @@ html:has(.vk) {
   transform: scale(0.97);
 }
 
+/* CTA — «tent av tråden»: a dark benk plate with the amber wire as its
+   edge and a lamp barely on inside. Text = glod on benk ≈ 9.7:1 (AA);
+   hover text #FFD9A0 ≈ 12.7:1 on benk, ≥8:1 over the warmed interior. */
 .vk-btn--cta {
-  background: var(--cta);
-  border-color: transparent;
-  color: #171310;
+  position: relative;
+  isolation: isolate; /* keeps the ::before lamp under the label text */
+  background: var(--benk);
+  border: 2px solid var(--glod);
+  border-radius: 10px;
+  color: var(--glod);
   font-weight: 600;
   min-height: 52px;
   padding: 16px 32px;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35); /* letterpress */
+  box-shadow: 0 0 18px rgba(226, 158, 51, 0.22);
+  transition:
+    transform var(--dur-1) var(--ease-work),
+    box-shadow var(--dur-2) var(--ease-work),
+    color var(--dur-2) var(--ease-work);
+}
+
+/* The lamp inside, barely on. Authored at the bloom maximum (0.28) and
+   dimmed with opacity, so rest (≈0.10), hover (≈0.22) and the Kontakt
+   finale (0.28) all animate one property. */
+.vk-btn--cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 8px; /* inner radius: 10px outer − 2px border */
+  background: radial-gradient(
+    120% 100% at 50% 100%,
+    rgba(255, 160, 46, 0.28),
+    transparent 72%
+  );
+  opacity: 0.36; /* ≈ rgba(255,160,46,0.10) effective */
+  pointer-events: none;
+  transition: opacity var(--dur-2) var(--ease-work);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .vk-btn--cta:hover {
-    box-shadow: 0 0 24px rgba(255, 160, 46, 0.35);
+    color: #ffd9a0;
+    box-shadow: 0 0 28px rgba(226, 158, 51, 0.4);
+  }
+
+  .vk-btn--cta:hover::before {
+    opacity: 0.79; /* ≈ 0.22 effective */
   }
 }
 
 .vk-btn--cta:focus-visible {
-  box-shadow: 0 0 24px rgba(255, 160, 46, 0.35);
+  color: #ffd9a0;
+  box-shadow: 0 0 28px rgba(226, 158, 51, 0.4);
+}
+
+.vk-btn--cta:focus-visible::before {
+  opacity: 0.79;
 }
 
 /* ════════════════════════════════════════════

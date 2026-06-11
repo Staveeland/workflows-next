@@ -1,8 +1,9 @@
 /* ════════════════════════════════════════════════════════════════════
    KONTAKT — «Tråden ender her» (the finale)
-   The thread drops into the CTA's status lamp. When the segment completes
-   (.vk-kon-lit on the section) the glow blooms and the lamp settles.
-   Resting/reduced state = the lit poster.
+   The thread drops INTO the CTA: it lands on the button's left-edge
+   midpoint and hands off to an SVG ring that traces the button outline.
+   When the section lights (.vk-kon-lit) the interior lamp blooms and the
+   halo widens. Resting/reduced state = the lit poster.
    ════════════════════════════════════════════════════════════════════ */
 
 /* Work-lamp light pool behind the CTA — single-hue luminance only. */
@@ -51,7 +52,7 @@
   color: var(--stov);
 }
 
-/* ── CTA row: [status lamp] [button] [stamp] ── */
+/* ── CTA row: [tråden] → [button] — the line goes INTO the button ── */
 
 .vk-kon-row {
   position: relative;
@@ -62,9 +63,10 @@
   margin-top: clamp(40px, 5vw, 56px);
 }
 
-/* Thread finale box. Anchored to the row so the path's end point always
-   lands on the button centerline (bottom edge = 32px below the row top =
-   the 64px button's vertical center), in both languages. */
+/* Thread finale box. Anchored to the row so the path's end point (viewBox
+   bottom-left) always lands exactly on the CTA's left-edge midpoint
+   (bottom edge = 32px below the row top = the 64px button's vertical
+   center), in both languages. */
 .vk-kon-thread {
   left: 0;
   bottom: calc(100% - 32px);
@@ -72,56 +74,66 @@
   aspect-ratio: 100 / 133;
 }
 
-/* Status lamp — Tråden plugs in here; stays amber, brightens when lit. */
-.vk-kon-dot {
+/* Magnet + press transforms live on this wrapper (framer-motion), so the
+   traced ring and the button move as one piece. */
+.vk-kon-ctawrap {
   position: relative;
   z-index: 1;
-  flex: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--glod);
-  box-shadow: 0 0 12px var(--glod-halo);
-  transition: box-shadow var(--dur-2) var(--ease-work);
+  display: inline-flex;
 }
 
-.vk-kon-lit .vk-kon-dot {
-  box-shadow: 0 0 18px var(--glod-halo);
-}
-
-/* Waiting-state breath; resting (reduced) state is the full steady glow. */
-@media (prefers-reduced-motion: no-preference) {
-  .vk-kon:not(.vk-kon-lit) .vk-kon-dot {
-    animation: vk-kon-pulse 2.2s var(--ease-work) infinite;
-  }
-}
-
-@keyframes vk-kon-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 12px var(--glod-halo);
-  }
-  50% {
-    box-shadow: 0 0 3px var(--glod-halo);
-  }
-}
-
-/* The biggest tap target on the page. Transform is driven by framer-motion
-   (magnet + press), so the transition covers box-shadow only — the bloom
-   overshoots and settles via the spring-shaped linear() easing. */
+/* The biggest tap target on the page. The box-shadow bloom overshoots and
+   settles via the spring-shaped linear() easing. */
 .vk-kon-cta {
   position: relative;
-  z-index: 1;
   min-height: 64px;
   padding: 18px 36px;
   font-size: 20px;
-  box-shadow: 0 0 0 rgba(255, 160, 46, 0.45);
-  transition: box-shadow 300ms var(--ease-stamp);
+  transition:
+    transform var(--dur-1) var(--ease-work),
+    box-shadow 300ms var(--ease-stamp),
+    color var(--dur-2) var(--ease-work);
 }
 
-.vk-kon-lit .vk-kon-cta,
-.vk-kon-cta:focus-visible {
-  box-shadow: 0 0 48px rgba(255, 160, 46, 0.45);
+/* While the ring traces the perimeter the CSS border steps aside — the SVG
+   IS the border HERE ONLY. SSR/no-JS/reduced/coarse never get
+   .vk-kon-trace, so the fully-drawn CSS border carries the poster state. */
+.vk-kon-trace .vk-kon-cta {
+  border-color: transparent;
+}
+
+/* The wrapper owns press scale (whileTap) — disable the base :active nudge
+   so the press isn't applied twice. */
+.vk-kon-trace .vk-kon-cta:active {
+  transform: none;
+}
+
+/* Traced outline — stroke geometry matches the 2px/10px CSS border exactly;
+   the drop-shadow is the wire's own glow while it draws. */
+.vk-kon-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(226, 158, 51, 0.45));
+  transition: filter 300ms var(--ease-stamp);
+}
+
+/* The finale: interior lamp blooms to 0.28 (300ms spring), halo widens,
+   ring glow steps up. */
+.vk-kon.vk-kon-lit .vk-kon-cta {
+  box-shadow: 0 0 40px rgba(226, 158, 51, 0.4);
+}
+
+.vk-kon.vk-kon-lit .vk-kon-cta::before {
+  opacity: 1; /* 0.28 effective — gradient is authored at the bloom max */
+  transition: opacity 300ms var(--ease-stamp);
+}
+
+.vk-kon.vk-kon-lit .vk-kon-ring {
+  filter: drop-shadow(0 0 11px rgba(226, 158, 51, 0.6));
 }
 
 /* ── Proof + microcopy ── */

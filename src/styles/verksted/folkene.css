@@ -40,57 +40,161 @@
   z-index: 0;
 }
 
-/* ── Lighthouse flare — easter-egg visual. The element exists only
-      during the flare; the glow itself is gated to no-preference, so
-      reduced motion never paints it. Anchored over the painted
-      lighthouse (right edge, on the horizon). ── */
+/* ── Fyrlykta — the rotating lighthouse beam. A ~9° conic wedge
+      anchored at the painted lamp (81.1% / 54.4% of the artwork),
+      radially masked so it dissolves before ~75vw. While the stage is
+      in view (.is-lit) it sweeps up-left → down-left across the whole
+      section on a 10s duty cycle: 3.5s sweep, dark the rest — the
+      lighthouse «blinks» between rotations. Resting/reduced/SSR state
+      is a static faint beam at a fixed picturesque angle (poster law).
+      The section clips overflow so the beam may run past the artwork
+      without painting neighbor sections or causing horizontal scroll
+      at any width. ── */
 
-.vk-folk-lys {
+.vk-folk {
+  overflow: clip;
+}
+
+.vk-folk-beam {
   position: absolute;
-  top: 34%;
-  right: -2%;
-  width: 24%;
+  left: 81.1%;
+  top: 54.4%;
+  width: 150vw;
   aspect-ratio: 1;
+  translate: -50% -50%; /* lamp = element center = rotation pivot */
+  /* Static pose: across the harbor, a touch above the waterline. */
+  rotate: -86deg;
+  opacity: 0.5;
   pointer-events: none;
-  z-index: 1;
+  z-index: 1; /* above the artwork, below caption (13) and grain (12) */
+  mix-blend-mode: screen;
+  /* Wedge points «up» at rotate: 0; ~2.6° flat core, soft 3.2° edges. */
+  background: conic-gradient(
+    from -4.5deg,
+    transparent 0deg,
+    rgba(255, 214, 140, 0.16) 3.2deg,
+    rgba(255, 214, 140, 0.16) 5.8deg,
+    transparent 9deg
+  );
+  /* closest-side = 75vw: the beam dissolves before it reaches it. */
+  -webkit-mask-image: radial-gradient(
+    circle closest-side,
+    rgba(0, 0, 0, 1),
+    rgba(0, 0, 0, 0.6) 42%,
+    transparent 88%
+  );
+  mask-image: radial-gradient(
+    circle closest-side,
+    rgba(0, 0, 0, 1),
+    rgba(0, 0, 0, 0.6) 42%,
+    transparent 88%
+  );
+}
+
+/* Lamp glint at the beam origin — the light has a source. Inherits
+   the element's duty-cycle opacity, so it blinks with the beam. */
+.vk-folk-beam::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(28px, 5vw, 56px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 224, 170, 0.6),
+    rgba(255, 196, 110, 0.22) 45%,
+    transparent 70%
+  );
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .vk-folk-lys::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    mix-blend-mode: screen;
-    background: radial-gradient(
-      circle,
-      rgba(255, 180, 84, 0.55),
-      rgba(255, 180, 84, 0.2) 42%,
-      transparent 70%
-    );
-    /* Resting = flare finished, faded out (both keeps the end frame). */
-    animation: vk-folk-flare 1.9s var(--ease-work) 1 both;
+  /* Applied only while lit: each approach restarts the sweep, and the
+     easter egg restarts it by re-keying the element. */
+  .vk-folk-stage.is-lit .vk-folk-beam {
+    animation:
+      vk-folk-beam-sweep 10s ease-in-out infinite,
+      vk-folk-beam-duty 10s ease-in-out infinite;
   }
 }
 
-@keyframes vk-folk-flare {
-  from {
+/* Rotation: 88° arc in the first 3.5s, then hold (dark) until relit. */
+@keyframes vk-folk-beam-sweep {
+  0% {
+    rotate: -46deg;
+  }
+
+  35%,
+  100% {
+    rotate: -134deg;
+  }
+}
+
+/* Duty cycle: 0.6s up, full through the sweep, 0.7s down, 6.5s dark. */
+@keyframes vk-folk-beam-duty {
+  0% {
     opacity: 0;
-    transform: scale(0.85);
   }
 
-  22% {
+  6%,
+  28% {
     opacity: 1;
-    transform: scale(1);
   }
 
-  74% {
-    opacity: 1;
+  35%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ── Vindusglød — warm life inside the workshop doorway where the man
+      works (31.4% / 54% of the artwork). A soft amber pool, ~30% of
+      the image wide (≈165px radius at full size), breathing gently
+      while the stage is in view. Reduced motion / SSR hold the static
+      mid-state — koselig, never a spotlight. ── */
+
+.vk-folk-vindu {
+  position: absolute;
+  left: 31.4%;
+  top: 54%;
+  width: 30%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  opacity: 0.92; /* static mid-state between the breathe extremes */
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    circle closest-side,
+    rgba(255, 180, 84, 0.3),
+    rgba(255, 170, 70, 0.14) 48%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-folk-vindu {
+    animation: vk-folk-vindu-breathe 5.5s ease-in-out infinite alternate;
+    animation-play-state: paused; /* breathes only while on screen */
+  }
+
+  .vk-folk-stage.is-lit .vk-folk-vindu {
+    animation-play-state: running;
+  }
+}
+
+@keyframes vk-folk-vindu-breathe {
+  from {
+    opacity: 0.84;
+    scale: 0.93;
   }
 
   to {
-    opacity: 0;
-    transform: scale(1.05);
+    opacity: 1;
+    scale: 1.07;
   }
 }
 

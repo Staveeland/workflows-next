@@ -74,6 +74,16 @@ const PHONE_HREF = "tel:+4793077915";
 
 type VC = (typeof verkstedContent)["no"];
 
+// Buckets for the time-aware welcome. The clock is read in the hatch click
+// handler / effects (never during render — render stays pure).
+type HourBucket = "natt" | "morgen" | "dag" | "kveld";
+function bucketForHour(h: number): HourBucket {
+  if (h < 6) return "natt";
+  if (h < 12) return "morgen";
+  if (h < 18) return "dag";
+  return "kveld";
+}
+
 // Same storage key as the old widget — returning users keep their session.
 function getSessionId() {
   if (typeof window === "undefined") return "";
@@ -161,6 +171,12 @@ export default function VerkstedChat() {
   const [woState, setWoState] = useState<WoState>("idle");
   const [idle, setIdle] = useState(false);
   const [kaffe, setKaffe] = useState(false);
+  // Which welcome variant fits the visitor's clock — set when the hatch opens.
+  const [hourBucket, setHourBucket] = useState<HourBucket | null>(null);
+  // The watchman's current «thinking» line — drawn per request in send().
+  const [thinkingLine, setThinkingLine] = useState("");
+  // The wink that lands shortly after the welcome (sticks once shown).
+  const [followupShown, setFollowupShown] = useState(false);
   // Text mirrored into the hidden polite live region — only genuinely new
   // incoming content (replies, status, failures), never the user's own notes.
   const [liveMsg, setLiveMsg] = useState("");
@@ -258,6 +274,20 @@ export default function VerkstedChat() {
     setLiveMsg(""); // fresh live region per open — no stale re-announce
     justOpenedRef.current = true;
   }, [open]);
+
+  // The watchman's second note — a wink that lands ~1.2s after the welcome.
+  // Under reduced motion it shows immediately (the note entry animation is
+  // already gated behind prefers-reduced-motion in chat.css). Once shown it
+  // stays shown — he doesn't repeat his jokes.
+  useEffect(() => {
+    if (!open || followupShown || !t.chat.welcomeFollowup) return;
+    if (reduced) {
+      setFollowupShown(true);
+      return;
+    }
+    const id = setTimeout(() => setFollowupShown(true), 1200);
+    return () => clearTimeout(id);
+  }, [open, reduced, followupShown, t]);
 
   // If focus was dropped to <body> (e.g. the send button disabled itself
   // mid-press), hand it back to the bench input when the watchman is done.
@@ -476,8 +506,12 @@ export default function VerkstedChat() {
       setKaffe(true);
       after(3000, () => setKaffe(false));
     }
+    // Draw tonight's thinking line here in the handler — render stays pure.
+    const lines = t.chat.thinkingLines;
+    const line = lines[Math.floor(Math.random() * lines.length)] ?? "";
+    setThinkingLine(line);
     // Mirror the visible thinking line (the log itself is aria-live=off).
-    announce(t.chat.thinking);
+    announce(line);
     if (mode === "ai") await sendAi(text);
     else if (mode === "direct") await sendDirect(text);
   }
@@ -588,6 +622,9 @@ export default function VerkstedChat() {
         aria-controls={open ? "vk-chat-dialog" : undefined}
         onClick={() => {
           openCountRef.current = msgs.length;
+          // Read the visitor's clock now (event handler, not render) so the
+          // welcome matches the hour — fresh on every open.
+          setHourBucket(bucketForHour(new Date().getHours()));
           setOpen(true);
         }}
       >
@@ -726,7 +763,16 @@ export default function VerkstedChat() {
               {mode !== "direct" && (
                 <div className="vk-chat-note vk-chat-note--ai">
                   <span className="vk-sr">{t.chat.modeAi}: </span>
-                  <p>{t.chat.welcome}</p>
+                  <p>
+                    {(hourBucket && t.chat.welcomeByHour?.[hourBucket]) ||
+                      t.chat.welcome}
+                  </p>
+                </div>
+              )}
+              {mode !== "direct" && followupShown && t.chat.welcomeFollowup && (
+                <div className="vk-chat-note vk-chat-note--ai">
+                  <span className="vk-sr">{t.chat.modeAi}: </span>
+                  <p>{t.chat.welcomeFollowup}</p>
                 </div>
               )}
 
@@ -772,7 +818,7 @@ export default function VerkstedChat() {
                 );
               })}
 
-              {busy && <p className="vk-chat-thinking">{t.chat.thinking}</p>}
+              {busy && <p className="vk-chat-thinking">{thinkingLine}</p>}
 
               {mode === "form" &&
                 (woState === "failed" ? (

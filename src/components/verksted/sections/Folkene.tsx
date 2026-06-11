@@ -139,37 +139,29 @@ export function Folkene() {
   const fine = useFinePointer();
   const parallax = anim && fine;
 
-  const [glow, setGlow] = useState(0); // 0 = off; >0 keys the flare instance
+  // The lighthouse beam loops in CSS while the stage is on screen:
+  // `.is-lit` applies the sweep (and lets the doorway glow breathe), so
+  // every approach restarts the beam — fresh load, refresh mid-page, and
+  // each scroll back to the harbor.
+  const stageInView = useInView(stageRef, { amount: 0.35 });
+
+  // Sequence key for the beam element — bumping it remounts the beam and
+  // restarts its sweep immediately, mid-duty-cycle. Reduced motion has no
+  // animation to restart; skip the re-render.
+  const [beamSeq, setBeamSeq] = useState(0);
+  const relightBeam = useCallback(() => {
+    if (!reduced) setBeamSeq((s) => s + 1);
+  }, [reduced]);
+
   const [tip, setTip] = useState<string | null>(null);
   const pressTimer = useRef(0);
-  const glowTimer = useRef(0);
-  const glowDelay = useRef(0);
-  const glowSeq = useRef(0);
   const cachedTip = useRef<{ lang: string; text: string } | null>(null);
   const fetching = useRef(false);
 
   const template = t.eggs.coordsTooltipTemplate;
 
-  const fireGlow = useCallback(() => {
-    if (reduced) return;
-    window.clearTimeout(glowTimer.current);
-    window.clearTimeout(glowDelay.current);
-    // async so callers inside effects stay pure; fresh key replays the flare
-    glowDelay.current = window.setTimeout(() => {
-      setGlow(++glowSeq.current);
-      glowTimer.current = window.setTimeout(() => setGlow(0), 1900);
-    }, 30);
-  }, [reduced]);
-
-  // The flare plays on every approach: fresh load, refresh mid-page, and
-  // each scroll back to the harbor (deliberately NOT once-per-session).
-  const stageInView = useInView(stageRef, { amount: 0.35 });
-  useEffect(() => {
-    if (stageInView) fireGlow();
-  }, [stageInView, fireGlow]);
-
   const trigger = useCallback(() => {
-    fireGlow();
+    relightBeam();
     const cached = cachedTip.current;
     if (cached && cached.lang === lang) {
       if (cached.text) setTip(cached.text);
@@ -183,7 +175,7 @@ export function Folkene() {
       cachedTip.current = { lang, text };
       if (text) setTip(text);
     });
-  }, [fireGlow, template, lang]);
+  }, [relightBeam, template, lang]);
 
   // Long-press (coarse pointers): 500ms hold on the coordinates line.
   const startPress = () => {
@@ -192,14 +184,7 @@ export function Folkene() {
   };
   const cancelPress = () => window.clearTimeout(pressTimer.current);
 
-  useEffect(
-    () => () => {
-      window.clearTimeout(pressTimer.current);
-      window.clearTimeout(glowTimer.current);
-      window.clearTimeout(glowDelay.current);
-    },
-    [],
-  );
+  useEffect(() => () => window.clearTimeout(pressTimer.current), []);
 
   // WCAG 1.4.13: tooltip is dismissible (Esc) and self-expires.
   useEffect(() => {
@@ -238,7 +223,10 @@ export function Folkene() {
 
         {/* ── Centerpiece: the harbor at night. The heading hangs into its
               sky; the name story sits at its waterline as a caption plate. ── */}
-        <figure className="vk-folk-stage" ref={stageRef}>
+        <figure
+          className={`vk-folk-stage${stageInView ? " is-lit" : ""}`}
+          ref={stageRef}
+        >
           <motion.div
             className="vk-folk-ill"
             style={parallax ? { y: parallaxY } : undefined}
@@ -252,11 +240,17 @@ export function Folkene() {
               className="vk-ill vk-ill--feather"
             />
 
-            {/* Easter egg: the painted lighthouse flares on every approach —
-                keyed on the sequence so each pass replays the glow. Rendered
-                only during the flare; the glow itself is reduced-motion-gated.
-                Lives inside the parallax wrapper so it tracks the artwork. */}
-            {glow !== 0 && <div key={glow} className="vk-folk-lys" aria-hidden="true" />}
+            {/* Fyrlykta: rotating beam anchored at the painted lamp
+                (81.1% / 54.4%). CSS sweeps it while `.is-lit`; the key
+                restarts the sweep when the coordinates easter egg fires.
+                Reduced motion / SSR render the static composed beam
+                (poster law). Lives inside the parallax wrapper so it
+                tracks the artwork. */}
+            <div key={`beam-${beamSeq}`} className="vk-folk-beam" aria-hidden="true" />
+
+            {/* Vindusglød: the lit doorway (31.4% / 54%) breathes softly —
+                warm life inside where the man works. */}
+            <div className="vk-folk-vindu" aria-hidden="true" />
           </motion.div>
 
           <motion.figcaption
