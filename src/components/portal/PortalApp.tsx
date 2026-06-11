@@ -97,6 +97,14 @@ function clearDraft() {
   }
 }
 
+class PortalApiError extends Error {
+  status: number;
+  constructor(path: string, status: number) {
+    super(`${path} → ${status}`);
+    this.status = status;
+  }
+}
+
 async function apiFetch<T>(path: string, token: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...init,
@@ -106,7 +114,7 @@ async function apiFetch<T>(path: string, token: string, init?: RequestInit): Pro
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
     },
   });
-  if (!res.ok) throw new Error(`${path} → ${res.status}`);
+  if (!res.ok) throw new PortalApiError(path, res.status);
   return (await res.json()) as T;
 }
 
@@ -190,7 +198,15 @@ function Generating({ t, autoFocus }: { t: PortalContent; autoFocus: boolean }) 
 
 /* ── Error — «Det stoppet opp.» ── */
 
-function ErrorScreen({ t, onRetry }: { t: PortalContent; onRetry: () => void }) {
+function ErrorScreen({
+  t,
+  onRetry,
+  rateLimited = false,
+}: {
+  t: PortalContent;
+  onRetry: () => void;
+  rateLimited?: boolean;
+}) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // Same pattern as every other phase: the Generating subtree just
@@ -202,15 +218,18 @@ function ErrorScreen({ t, onRetry }: { t: PortalContent; onRetry: () => void }) 
   return (
     <section className="vk-portal-err">
       <h1 ref={headingRef} tabIndex={-1} className="vk-display vk-portal-h1">
-        {t.feil.tittel}
+        {rateLimited ? t.feil.forMangeTittel : t.feil.tittel}
       </h1>
       <p className="vk-portal-lead" role="alert">
-        {t.feil.tekst}
+        {rateLimited ? t.feil.forMangeTekst : t.feil.tekst}
       </p>
       <div className="vk-portal-introrow">
-        <button type="button" className="vk-btn vk-btn--cta" onClick={onRetry}>
-          {t.feil.provIgjen}
-        </button>
+        {/* Retrying a quota stop would just 429 again — offer the human. */}
+        {!rateLimited ? (
+          <button type="button" className="vk-btn vk-btn--cta" onClick={onRetry}>
+            {t.feil.provIgjen}
+          </button>
+        ) : null}
         <Link href="/#kontakt" className="vk-portal-quietlink vk-mono">
           {t.forslag.taPrat}
         </Link>
@@ -230,6 +249,7 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
   const [kart, setKart] = useState<PortalKartlegging | null>(null);
   const [liking, setLiking] = useState(false);
   const [likeError, setLikeError] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
 
   const draftRef = useRef(draft);
   const langRef = useRef(lang);
@@ -312,6 +332,7 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     async (token: string) => {
       if (submittingRef.current) return;
       submittingRef.current = true;
+      setRateLimited(false);
       setPhase("generating");
       try {
         // If a generation is already in flight (tab closed mid-draw, magic
@@ -339,7 +360,15 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
         if (k && isReady(k)) land(k);
         else if (k && isWorking(k)) setKart(k); // poll takes over
         else setPhase("error");
-      } catch {
+      } catch (err) {
+        // Quota hit (429): say so honestly. The old fallback would fetch
+        // /me and «land» the PREVIOUS forslag — which read as «the wizard
+        // ignores my new answers». Never mask a quota stop as a result.
+        if (err instanceof PortalApiError && err.status === 429) {
+          setRateLimited(true);
+          setPhase("error");
+          return;
+        }
         // The request died — but the server may still be drawing. One check
         // decides: keep polling, land it, or admit failure.
         try {
@@ -561,7 +590,9 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
           />
         ) : null}
 
-        {phase === "error" ? <ErrorScreen t={t} onRetry={retry} /> : null}
+        {phase === "error" ? (
+          <ErrorScreen t={t} onRetry={retry} rateLimited={rateLimited} />
+        ) : null}
       </main>
 
       <div className="vk-grain" aria-hidden="true" />

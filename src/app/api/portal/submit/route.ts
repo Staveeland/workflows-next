@@ -106,7 +106,10 @@ export async function POST(req: Request) {
   if (inFlight) {
     return NextResponse.json<PortalSubmitResponse>({ id: inFlight.id as string });
   }
-  if (rows.length >= DB_HOURLY_MAX) {
+  // feilet rows don't count against the quota — punishing retries after
+  // our own generation failures would be hostile (and they barely cost).
+  const paidRows = rows.filter((r) => r.status !== "feilet");
+  if (paidRows.length >= DB_HOURLY_MAX) {
     return NextResponse.json(
       { error: "For mange genereringer på kort tid. Prøv igjen om en times tid — eller ta en prat med et menneske." },
       { status: 429, headers: { "Retry-After": "3600" } }

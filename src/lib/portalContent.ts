@@ -137,6 +137,8 @@ export interface PortalContent {
     tittel: string;
     tekst: string;
     provIgjen: string;
+    forMangeTittel: string;
+    forMangeTekst: string;
   };
   a11y: {
     /** aria-label for the level rail <nav>. */
@@ -331,6 +333,9 @@ export const portalContent: Record<Lang, PortalContent> = {
       tekst:
         "Genereringen feilet — det skjer innimellom. Svarene dine ligger trygt her. Prøv igjen, eller ta en prat med et menneske i stedet.",
       provIgjen: "Prøv igjen",
+      forMangeTittel: "Verkstedet trenger en pust.",
+      forMangeTekst:
+        "Du har fått maks antall genereringer denne timen — tegnebordet koster oss faktisk litt per runde. Prøv igjen om en times tid, eller ta praten direkte med Petter. Den er gratis, og han tegner gjerne på ordentlig.",
     },
     a11y: {
       railLabel: "Hvor du er i prosessen",
@@ -519,6 +524,9 @@ export const portalContent: Record<Lang, PortalContent> = {
       tekst:
         "The generation failed — it happens now and then. Your answers are safe here. Try again, or just talk to a human instead.",
       provIgjen: "Try again",
+      forMangeTittel: "The workshop needs a breather.",
+      forMangeTekst:
+        "You've hit the hourly limit for generations — the drawing board does cost us a little per round. Try again in an hour or so, or talk to Petter directly. That's free, and he draws properly.",
     },
     a11y: {
       railLabel: "Where you are in the process",
