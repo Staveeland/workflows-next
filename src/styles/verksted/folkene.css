@@ -72,11 +72,12 @@
   /* The painted lighthouse light was edited out of the artwork — this
      animated beam is now the ONLY light from the tower, so it can carry
      more presence. */
+  /* Warm amber — matches the artwork's lamplight, not a cold searchlight. */
   background: conic-gradient(
     from -4.5deg,
     transparent 0deg,
-    rgba(255, 214, 140, 0.22) 3.2deg,
-    rgba(255, 214, 140, 0.22) 5.8deg,
+    rgba(255, 186, 92, 0.24) 3.2deg,
+    rgba(255, 186, 92, 0.24) 5.8deg,
     transparent 9deg
   );
   /* closest-side = 75vw: the beam dissolves before it reaches it. */
@@ -107,8 +108,8 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(255, 224, 170, 0.6),
-    rgba(255, 196, 110, 0.22) 45%,
+    rgba(255, 205, 130, 0.65),
+    rgba(255, 176, 90, 0.26) 45%,
     transparent 70%
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import "@/styles/verksted/manifest.css";
-import { useSyncExternalStore } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useRef, useSyncExternalStore } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
 import { verkstedContent } from "@/lib/verkstedContent";
 import { ThreadSegment } from "@/components/verksted/ThreadContext";
@@ -37,6 +37,12 @@ export function Manifest() {
   const mounted = useMounted();
   const drawn = mounted && !reduced;
 
+  // ONE observer on the whole jargon block: when it enters, all three
+  // strikes draw with their stagger. Per-line whileInView with a tight
+  // margin could skip the last line on fast scrolls.
+  const jargonRef = useRef<HTMLDivElement>(null);
+  const jargonInView = useInView(jargonRef, { once: true, amount: 0.3 });
+
   return (
     <section className="vk-s vk-man">
       <ThreadSegment
@@ -46,7 +52,7 @@ export function Manifest() {
       />
       <div className="vk-wrap vk-man-inner">
         <h2 className="vk-kicker vk-man-kicker">{t.manifest.kicker}</h2>
-        <div className="vk-man-jargon">
+        <div className="vk-man-jargon" ref={jargonRef}>
           {t.manifest.jargon.map((line, i) => (
             <p className="vk-man-line" key={line}>
               <del className="vk-man-del">
@@ -68,8 +74,7 @@ export function Manifest() {
                       strokeLinecap="round"
                       vectorEffect="non-scaling-stroke"
                       initial={{ pathLength: 0 }}
-                      whileInView={{ pathLength: 1 }}
-                      viewport={{ once: true, margin: "-25%" }}
+                      animate={{ pathLength: jargonInView ? 1 : 0 }}
                       transition={{ duration: 0.55, delay: i * 0.25, ease: EASE_WORK }}
                     />
                   ) : (
