@@ -46,7 +46,7 @@
   text-wrap: balance;
 }
 
-/* ── Bench shell — containers never rotate, only stamps do ── */
+/* ── Bench shell — nothing rotates here: benches and stamps sit level ── */
 
 .vk-tj-bench {
   position: relative;
@@ -89,15 +89,12 @@
 
 /* ── Bench anatomy ── */
 
-/* Small specimen label: --stov text/border (the --stempel red is reserved
-   for display stamps >=24px; these are 12px mono). */
+/* Small specimen label — the base amber tag chip, bench-sized. */
 .vk .vk-tj-label {
   align-self: flex-start;
   font-size: 12px;
   letter-spacing: 0.12em;
-  color: var(--stov);
-  border-width: 1px;
-  padding: 5px 10px;
+  padding: 6px 12px;
   margin-bottom: 18px;
 }
 

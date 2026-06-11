@@ -126,10 +126,7 @@ function CaseChapter({
               {c.stamp}
             </span>
           </span>
-          <span className="vk-mono vk-case-inuse">
-            <span className="vk-case-driftdot" aria-hidden="true" />
-            {labels.statusLabel}
-          </span>
+          <span className="vk-mono vk-case-inuse">{labels.statusLabel}</span>
         </div>
         <p className="vk-mono vk-case-monoline">{c.monoLine}</p>
         <a href={c.href} className="vk-case-link">

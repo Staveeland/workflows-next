@@ -1,0 +1,515 @@
+/* ════════════════════════════════════════════════════════════════════
+   VERKSTEDET — /chatboter («Svar-rommet»)
+   Page-scoped styles, prefix vk-chatboter-. Tokens from base.css only.
+   Poster law: the resting state is the fully-composed state; JS-only
+   pre-states are opt-in via data-attributes set after mount.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Hero: mono facts strip under the lead ── */
+
+.vk-chatboter-facts {
+  margin: clamp(24px, 3vw, 32px) 0 0;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--stov);
+}
+
+/* ── Demo bench (star interaction) ── */
+
+.vk-chatboter-demo {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(36px, 5vw, 56px);
+  max-width: 760px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  overflow: clip;
+}
+
+.vk-chatboter-demo-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.vk-chatboter-demo-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 10px var(--glod-halo);
+}
+
+.vk-chatboter-demo-status {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--stov);
+}
+
+/* Hidden delight: a mono whisper that wakes when you lean over the bench.
+   Purely decorative — also shown while anything inside has focus. */
+.vk-chatboter-whisper {
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-chatboter-demo:hover .vk-chatboter-whisper {
+    opacity: 1;
+  }
+}
+
+.vk-chatboter-demo:focus-within .vk-chatboter-whisper {
+  opacity: 1;
+}
+
+.vk-chatboter-demo-time {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--stov);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Scenario switcher ── */
+
+.vk-chatboter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.vk-chatboter-tab {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--stov);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color var(--dur-2) var(--ease-work),
+    border-color var(--dur-2) var(--ease-work),
+    background-color var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-chatboter-tab:hover {
+    color: var(--papir);
+    border-color: rgba(255, 180, 84, 0.34);
+  }
+}
+
+.vk-chatboter-tab[aria-pressed="true"] {
+  color: var(--glod);
+  border-color: rgba(255, 180, 84, 0.34);
+  background: rgba(255, 180, 84, 0.07);
+}
+
+/* ── Chat window ── */
+
+.vk-chatboter-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px 20px 18px;
+  min-height: 248px;
+}
+
+.vk-chatboter-bubble {
+  position: relative;
+  max-width: min(44ch, 92%);
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  transition:
+    opacity var(--dur-2) var(--ease-work),
+    transform var(--dur-2) var(--ease-work);
+}
+
+.vk-chatboter-bubble[data-role="q"] {
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+  color: var(--stov);
+}
+
+.vk-chatboter-bubble[data-role="a"] {
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+  color: var(--papir);
+}
+
+/* JS-only pre-typing state — never the resting state. */
+.vk-chatboter-bubble[data-on="false"] {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+/* Ghost reserves the final size so typing never reflows the bench. */
+.vk-chatboter-ghost {
+  visibility: hidden;
+}
+
+.vk-chatboter-typed {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  right: 14px;
+  pointer-events: none;
+}
+
+/* Source line — the quiet payoff after the answer lands. */
+.vk-chatboter-source {
+  margin: 4px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--glod);
+  transition: opacity var(--dur-3) var(--ease-work);
+}
+
+.vk-chatboter-source[data-on="false"] {
+  opacity: 0;
+}
+
+/* ── Card lists (types, use cases, trust) ── */
+
+.vk-chatboter-list {
+  list-style: none;
+  margin: clamp(36px, 5vw, 56px) 0 0;
+  padding: 0;
+}
+
+.vk-chatboter-card {
+  height: 100%;
+}
+
+.vk-chatboter-card-n {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--glod);
+}
+
+/* ── RAG: three steps on one line of light ── */
+
+.vk-chatboter-thread {
+  top: -40px;
+  left: 38%;
+  height: calc(100% + 80px);
+  aspect-ratio: 100 / 200;
+  transform: translateX(-50%);
+}
+
+/* Teksten ligger over tråden — linja vever bak innholdet, aldri gjennom det. */
+.vk-chatboter-thread ~ .vk-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.vk-chatboter-ragline {
+  position: relative;
+  z-index: 1;
+  margin: 22px 0 0;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  color: var(--stov);
+}
+
+.vk-chatboter-ragline strong {
+  font-weight: 500;
+  color: var(--glod);
+}
+
+.vk-chatboter-steps {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(16px, 2.4vw, 28px);
+  list-style: none;
+  margin: clamp(36px, 5vw, 64px) 0 0;
+  padding: 0;
+}
+
+.vk-chatboter-step {
+  position: relative;
+  height: 100%;
+  padding: clamp(22px, 3vw, 30px);
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+}
+
+.vk-chatboter-step-n {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--glod);
+}
+
+.vk-chatboter-step-t {
+  margin: 10px 0 8px;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(20px, 2vw, 23px);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--papir);
+}
+
+.vk-chatboter-step-b {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--stov);
+}
+
+@media (min-width: 860px) {
+  .vk-chatboter-steps {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* the workbench wire the three steps hang from */
+  .vk-chatboter-steps::before {
+    content: "";
+    position: absolute;
+    top: -22px;
+    left: 4%;
+    right: 4%;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .vk-chatboter-step::before {
+    content: "";
+    position: absolute;
+    top: -25px;
+    left: 28px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--glod);
+    box-shadow: 0 0 8px var(--glod-halo);
+  }
+}
+
+.vk-chatboter-rag-chalk {
+  position: relative;
+  z-index: 1;
+  margin: clamp(28px, 4vw, 40px) 0 0;
+  width: fit-content;
+  font-size: clamp(17px, 1.8vw, 20px);
+  rotate: var(--rot-b);
+}
+
+/* ── Uten / med bot ── */
+
+.vk-chatboter-ba {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(16px, 2.4vw, 28px);
+  margin-top: clamp(36px, 5vw, 56px);
+}
+
+@media (min-width: 820px) {
+  .vk-chatboter-ba {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.vk-chatboter-ba-col {
+  padding: clamp(22px, 3vw, 32px);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+}
+
+.vk-chatboter-ba-col--med {
+  background: var(--benk);
+  border-color: rgba(255, 180, 84, 0.22);
+}
+
+.vk-chatboter-ba-h {
+  margin: 0 0 18px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-chatboter-ba-col--med .vk-chatboter-ba-h {
+  color: var(--glod);
+}
+
+.vk-chatboter-ba-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vk-chatboter-ba-item {
+  display: flex;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--stov);
+}
+
+.vk-chatboter-ba-col--med .vk-chatboter-ba-item {
+  color: var(--papir);
+}
+
+.vk-chatboter-ba-mark {
+  flex: none;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--stov);
+}
+
+.vk-chatboter-ba-col--med .vk-chatboter-ba-mark {
+  color: var(--glod);
+}
+
+/* ── Integrations: the parts inventory ── */
+
+.vk-chatboter-inv {
+  list-style: none;
+  margin: clamp(36px, 5vw, 56px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 clamp(24px, 4vw, 48px);
+}
+
+@media (min-width: 640px) {
+  .vk-chatboter-inv {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .vk-chatboter-inv {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.vk-chatboter-inv-item {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding-block: 12px;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  color: var(--stov);
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-chatboter-inv-item:hover {
+    color: var(--papir);
+  }
+}
+
+.vk-chatboter-inv-n {
+  flex: none;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--glod);
+}
+
+.vk-chatboter-inv-note {
+  margin: 18px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: var(--stov);
+}
+
+/* ── Når er en chatbot riktig: prose + CSUB proof ── */
+
+.vk-chatboter-proof {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+  margin-top: clamp(36px, 5vw, 56px);
+}
+
+@media (min-width: 900px) {
+  .vk-chatboter-proof {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  }
+}
+
+.vk-chatboter-prose p {
+  margin: 0 0 1.2em;
+}
+
+.vk-chatboter-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.vk-chatboter-case {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: clamp(24px, 3vw, 36px);
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+}
+
+@media (min-width: 900px) {
+  .vk-chatboter-case {
+    rotate: var(--rot-c);
+  }
+}
+
+.vk-chatboter-case-date {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-chatboter-case-lead {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(21px, 2.4vw, 26px);
+  font-weight: 560;
+  line-height: 1.25;
+  color: var(--papir);
+}
+
+.vk-chatboter-case-mono {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--glod);
+}
+
+.vk-chatboter-case-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}

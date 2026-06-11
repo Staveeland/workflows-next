@@ -1,0 +1,385 @@
+/* ════════════════════════════════════════════════════════════════════
+   /ai-agenter — nattevaktens rom. Prefix: vk-agenter-
+   Same laws as base.css: tokens only, hairline borders, poster law
+   (resting state = composed), amber is the only warm accent.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Nattevakt-seksjonen (star interaction) ── */
+
+/* Horizontal overflow is already clipped on the .vk root; the thread is
+   allowed to bleed 40px up into the hero hand-off. */
+.vk-agenter-natt-thread {
+  top: -40px;
+  left: 38%;
+  height: calc(100% + 80px);
+  aspect-ratio: 100 / 280;
+  transform: translateX(-50%);
+}
+
+.vk-agenter-natt-grid {
+  position: relative;
+  display: grid;
+  gap: clamp(36px, 5vw, 64px);
+}
+
+@media (min-width: 960px) {
+  .vk-agenter-natt-grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: center;
+  }
+}
+
+.vk-agenter-natt-copy .vk-pg-link {
+  margin-top: 22px;
+}
+
+/* The panel is opaque and sits above the thread, like the home benches. */
+.vk-agenter-natt-panel {
+  position: relative;
+  z-index: 1;
+}
+
+.vk-agenter-log {
+  position: relative;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: clamp(20px, 3vw, 30px);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.vk-agenter-loghead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.vk-agenter-logstatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--glod);
+}
+
+.vk-agenter-logdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 8px var(--glod-halo);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-agenter-logdot {
+    animation: vk-agenter-puls 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes vk-agenter-puls {
+  0%,
+  100% {
+    box-shadow: 0 0 5px var(--glod-halo);
+  }
+  50% {
+    box-shadow: 0 0 14px var(--glod-halo);
+  }
+}
+
+.vk-agenter-logline {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 12px;
+  margin: 0;
+  padding-block: 5px;
+  color: var(--papir);
+  transition: opacity var(--dur-2) var(--ease-work);
+}
+
+.vk-agenter-logline[data-on="false"] {
+  opacity: 0;
+}
+
+.vk-agenter-logtime {
+  color: var(--stov);
+}
+
+.vk-agenter-logline[data-kind="avvik"] .vk-agenter-logtext,
+.vk-agenter-logline[data-kind="varsel"] .vk-agenter-logtext {
+  color: var(--glod);
+}
+
+/* Ghost/typed stack: the ghost reserves the composed size in-flow so the
+   panel never reflows while the typed overlay catches up. */
+.vk-agenter-logtext {
+  position: relative;
+  display: block;
+}
+
+.vk-agenter-ghost {
+  visibility: hidden;
+}
+
+.vk-agenter-typed {
+  position: absolute;
+  inset: 0;
+}
+
+.vk-agenter-caret {
+  display: inline-block;
+  width: 7px;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: text-bottom;
+  background: var(--glod);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-agenter-caret {
+    animation: vk-agenter-blink 1s steps(1) infinite;
+  }
+}
+
+@keyframes vk-agenter-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Hidden delight: hover-only chalk whisper, purely decorative. */
+.vk-agenter-whisper {
+  position: absolute;
+  right: 20px;
+  bottom: 10px;
+  font-size: 15px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-3) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-agenter-log:hover .vk-agenter-whisper {
+    opacity: 1;
+  }
+}
+
+.vk-agenter-natt-chalk {
+  margin: 18px 0 0 auto;
+  width: fit-content;
+  font-size: clamp(16px, 1.6vw, 19px);
+  rotate: var(--rot-b);
+}
+
+/* ── Agent-løkken (oppfatte → planlegge → handle → verifisere) ── */
+
+.vk-agenter-loop .vk-pg-card {
+  height: 100%;
+}
+
+.vk-agenter-steg-nr {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--glod);
+}
+
+.vk-agenter-trygg {
+  margin: clamp(28px, 4vw, 44px) 0 0;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--stov);
+}
+
+/* ── Uten vs. med (før/etter) ── */
+
+.vk-agenter-ba {
+  display: grid;
+  gap: clamp(16px, 2.4vw, 28px);
+  margin-top: clamp(36px, 5vw, 56px);
+}
+
+@media (min-width: 760px) {
+  .vk-agenter-ba {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.vk-agenter-ba-panel {
+  height: 100%;
+  padding: clamp(22px, 3vw, 32px);
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+}
+
+.vk-agenter-ba-panel[data-side="med"] {
+  border-color: rgba(255, 180, 84, 0.3);
+}
+
+.vk-agenter-ba-h {
+  margin: 0 0 18px;
+}
+
+.vk-agenter-ba-panel[data-side="med"] .vk-agenter-ba-h {
+  color: var(--glod);
+}
+
+.vk-agenter-ba-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.vk-agenter-ba-list li {
+  display: flex;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--stov);
+}
+
+.vk-agenter-ba-panel[data-side="med"] .vk-agenter-ba-list li {
+  color: var(--papir);
+}
+
+.vk-agenter-ba-mark {
+  flex: none;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  color: var(--stov);
+}
+
+.vk-agenter-ba-panel[data-side="med"] .vk-agenter-ba-mark {
+  color: var(--glod);
+}
+
+/* ── Typer agenter ── */
+
+.vk-agenter-typer .vk-pg-card {
+  height: 100%;
+}
+
+.vk-agenter-type-nr {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--glod);
+}
+
+/* ── Bruksområder — hovedbok-rader ── */
+
+.vk-agenter-ledger {
+  margin-top: clamp(36px, 5vw, 56px);
+  border-top: 1px solid var(--hairline);
+}
+
+.vk-agenter-rad {
+  display: grid;
+  gap: 8px 24px;
+  padding-block: clamp(22px, 3vw, 34px);
+  border-bottom: 1px solid var(--hairline);
+}
+
+@media (min-width: 760px) {
+  .vk-agenter-rad {
+    grid-template-columns: 64px minmax(0, 5fr) minmax(0, 6fr);
+    align-items: baseline;
+  }
+}
+
+.vk-agenter-rad-nr {
+  margin: 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--glod);
+}
+
+.vk-agenter-rad-title {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--papir);
+}
+
+.vk-agenter-rad-body {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--stov);
+}
+
+/* ── Riktig verktøy (beslutningsrader) ── */
+
+.vk-agenter-valg {
+  max-width: 880px;
+  margin-top: clamp(32px, 4vw, 48px);
+  border-top: 1px solid var(--hairline);
+}
+
+.vk-agenter-valg-rad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 32px;
+  padding-block: clamp(16px, 2.4vw, 24px);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.vk-agenter-valg-rad--her {
+  border-bottom-color: rgba(255, 180, 84, 0.3);
+}
+
+.vk-agenter-valg-q {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(19px, 2vw, 24px);
+  font-weight: 560;
+  line-height: 1.25;
+  color: var(--papir);
+}
+
+.vk-agenter-valg-her {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--glod);
+}
+
+.vk-agenter-valg-herdot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 10px var(--glod-halo);
+}
+
+.vk-agenter-prose {
+  margin-top: clamp(28px, 4vw, 44px);
+}

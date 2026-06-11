@@ -14,6 +14,7 @@ import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform 
 import { useLang } from "@/components/LanguageProvider";
 import type { Lang } from "@/lib/translations";
 import { verkstedContent } from "@/lib/verkstedContent";
+import { WorkflowsLogo } from "@/components/verksted/WorkflowsLogo";
 
 // Not provided by verkstedContent — implemented locally per contract §0.4.
 // Language-switch labels conventionally stay in their target language.
@@ -45,9 +46,10 @@ const useMounted = () =>
     () => false,
   );
 
-export function NavVerksted() {
+export function NavVerksted({ variant = "home" }: { variant?: "home" | "page" }) {
   const { lang, setLang } = useLang();
   const t = verkstedContent[lang];
+  const onHome = variant === "home";
   const reduced = useReducedMotion() === true;
   const mounted = useMounted();
 
@@ -106,8 +108,10 @@ export function NavVerksted() {
 
   // Logo egg: 6 clicks = the six delivery weeks. Repeatable by design (no
   // session guard). Counter resets after 3.2s idle so stray clicks don't pool.
+  // On sub-pages the logo is a plain home link — no egg, no preventDefault.
   const onLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault(); // this nav only renders on "/" — swallow the self-link
+    if (!onHome) return;
+    e.preventDefault(); // on "/" the self-link is swallowed
     clicks.current += 1;
     const n = clicks.current;
     // A home-logo that does nothing on Enter is an a11y smell — the first
@@ -238,10 +242,11 @@ export function NavVerksted() {
     };
   }, [open]);
 
+  const prefix = onHome ? "" : "/";
   const links = [
-    { href: "#tjenester", label: t.nav.links.tjenester },
-    { href: "#kundecaser", label: t.nav.links.kundecaser },
-    { href: "#folkene", label: t.nav.links.folkene },
+    { href: `${prefix}#tjenester`, label: t.nav.links.tjenester },
+    { href: `${prefix}#kundecaser`, label: t.nav.links.kundecaser },
+    { href: `${prefix}#folkene`, label: t.nav.links.folkene },
   ];
 
   // The bar copy goes inert while the overlay dialog is open (the overlay
@@ -283,7 +288,8 @@ export function NavVerksted() {
         <div className="vk-wrap vk-nav-in">
           <span className="vk-nav-brand" inert={open ? true : undefined}>
             <Link href="/" className="vk-nav-logo" onClick={onLogoClick}>
-              Workflows
+              <WorkflowsLogo className="vk-nav-logosvg" />
+              <span className="vk-sr">Workflows</span>
             </Link>
             <span
               className="vk-nav-status"

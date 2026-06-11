@@ -1,0 +1,538 @@
+/* ════════════════════════════════════════════════════════════════════
+   /kunder/csub — CSUB case story (vk-csub-)
+   Editorial long-read: dossier hero, fact strip, three chapters with
+   marginalia plates on the 38% spine, assistant log, quote, next case.
+   Poster law: resting CSS is the composed state — data-attrs only
+   deviate after mount with motion allowed.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Hero extras: stamp line + dossier ── */
+
+.vk-csub-hero-extra {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(30px, 5vw, 46px);
+}
+
+.vk-csub-stampline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.vk-csub-inuse {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-csub-dossier {
+  margin: 26px 0 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px 32px;
+  max-width: 760px;
+}
+
+@media (min-width: 640px) {
+  .vk-csub-dossier {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.vk-csub-doss {
+  margin: 0;
+  border-top: 1px solid var(--hairline);
+  padding-top: 12px;
+}
+
+.vk-csub-doss dt {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--stov);
+}
+
+.vk-csub-doss dd {
+  margin: 6px 0 0;
+  color: var(--papir);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* ── Body container + thread on the 38% spine ── */
+
+.vk-csub-body {
+  position: relative;
+}
+
+.vk-csub-thread {
+  top: 0;
+  left: 38%;
+  height: 100%;
+  aspect-ratio: 100 / 720;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 979px) {
+  .vk-csub-thread {
+    display: none;
+  }
+}
+
+/* ── Fact strip ── */
+
+.vk-csub-facts-s {
+  padding-top: clamp(24px, 4vw, 56px);
+}
+
+.vk-csub-facts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+}
+
+@media (min-width: 700px) {
+  .vk-csub-facts {
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(24px, 3vw, 40px);
+  }
+}
+
+.vk-csub-fact {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--hairline);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vk-csub-factval {
+  font-size: clamp(40px, 4.6vw, 60px);
+  font-weight: 560;
+}
+
+.vk-csub-factlabel {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--stov);
+}
+
+/* ── Chapter layout: prose right, marginalia left on desktop ── */
+
+.vk-csub-sgrid {
+  display: grid;
+  grid-template-areas:
+    "main"
+    "side";
+  grid-template-columns: 1fr;
+  gap: clamp(32px, 5vw, 56px);
+}
+
+.vk-csub-main {
+  grid-area: main;
+  position: relative;
+  z-index: 1;
+}
+
+.vk-csub-side {
+  grid-area: side;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 980px) {
+  .vk-csub-sgrid {
+    grid-template-areas: "side main";
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    column-gap: clamp(48px, 6vw, 88px);
+    align-items: start;
+  }
+
+  .vk-csub-side {
+    position: sticky;
+    top: 110px;
+  }
+}
+
+.vk-csub-num {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 14px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--glod);
+}
+
+.vk-csub-num::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--hairline);
+}
+
+.vk-csub-main .vk-pg-h2 {
+  margin: 0 0 22px;
+}
+
+.vk-csub-prose p {
+  margin: 0 0 1.2em;
+}
+
+.vk-csub-prose p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Chapter 01: the scattered-Excel pile ── */
+
+.vk-csub-pile {
+  position: relative;
+  z-index: 1;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.vk-csub-pilehead {
+  margin: 0 0 16px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--stov);
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 10px;
+}
+
+.vk-csub-pilefiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 10px;
+  padding-block: 6px;
+}
+
+.vk-csub-file {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--stov);
+  background: rgba(23, 19, 16, 0.55);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 7px 10px;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vk-csub-file:nth-child(2n) {
+  translate: 0 3px;
+}
+
+.vk-csub-file--ark {
+  color: var(--glod);
+  border-color: rgba(255, 180, 84, 0.28);
+}
+
+.vk-csub-chalk {
+  margin: 16px 0 0;
+  font-size: 17px;
+  rotate: var(--rot-b);
+  width: fit-content;
+}
+
+/* ── Chapter 02: spec sheet (the work order) ── */
+
+.vk-csub-spec {
+  list-style: none;
+  margin: clamp(28px, 4vw, 40px) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--hairline);
+  max-width: 64ch;
+}
+
+.vk-csub-spec li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.vk-csub-specnum {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--glod);
+  padding-top: 3px;
+}
+
+.vk-csub-spec strong {
+  display: block;
+  color: var(--papir);
+  font-size: 16.5px;
+  font-weight: 600;
+}
+
+.vk-csub-spec li > div > span {
+  display: block;
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--stov);
+}
+
+/* ── Chapter 02: the assistant log ── */
+
+.vk-csub-log {
+  position: relative;
+  z-index: 1;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 20px 22px;
+}
+
+.vk-csub-loghead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--stov);
+}
+
+.vk-csub-logline {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--stov);
+  transition:
+    opacity 320ms var(--ease-work),
+    transform 320ms var(--ease-work);
+}
+
+.vk-csub-logline:last-of-type {
+  margin-bottom: 0;
+}
+
+.vk-csub-logline[data-tone="q"] {
+  color: var(--papir);
+}
+
+.vk-csub-logline[data-tone="a"] {
+  color: var(--glod);
+}
+
+.vk-csub-logline[data-on="false"] {
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+.vk-csub-caret {
+  display: none;
+  width: 7px;
+  height: 13px;
+  background: var(--glod);
+  margin-left: 6px;
+  vertical-align: -2px;
+}
+
+.vk-csub-logline[data-caret="true"] .vk-csub-caret {
+  display: inline-block;
+  animation: vk-csub-blink 800ms steps(2, start) infinite;
+}
+
+@keyframes vk-csub-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vk-csub-logline,
+  .vk-csub-caret {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Hidden delight: a chalk whisper the curious hover finds.
+   Poster law: the resting state is the visible, composed one — the hide
+   exists only for hover-capable, motion-okay visitors who can recover it
+   instantly. Touch/no-JS/reduced motion always see the line. */
+.vk-csub-whisper {
+  margin: 14px 0 0;
+  font-size: 15px;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .vk-csub-whisper {
+    opacity: 0;
+    transition: opacity var(--dur-3) var(--ease-work);
+  }
+
+  .vk-csub-log:hover .vk-csub-whisper {
+    opacity: 1;
+  }
+}
+
+/* ── Chapter 03: after-plate + the strike line ── */
+
+.vk-csub-after {
+  position: relative;
+  z-index: 1;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 20px 22px;
+}
+
+.vk-csub-afterhead {
+  margin: 0 0 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--stov);
+}
+
+.vk-csub-after ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vk-csub-after li {
+  display: flex;
+  gap: 8px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13.5px;
+  color: var(--stov);
+}
+
+.vk-csub-after li::before {
+  content: "→";
+  color: var(--glod);
+}
+
+.vk-csub-strike {
+  margin: 16px 0 0;
+  font-size: 13.5px;
+  color: var(--stov);
+}
+
+.vk-csub-strike s {
+  text-decoration: none;
+  position: relative;
+  color: var(--papir);
+}
+
+.vk-csub-strike s::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: calc(50% - 1px);
+  height: 2px;
+  background: var(--glod);
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.vk-csub-strike[data-anim="pre"] s::after {
+  transform: scaleX(0);
+}
+
+.vk-csub-strike[data-anim="in"] s::after {
+  transition: transform 520ms var(--ease-work) 260ms;
+  transform: scaleX(1);
+}
+
+.vk-csub-strike strong {
+  color: var(--glod);
+  font-weight: 600;
+}
+
+/* ── The quote ── */
+
+.vk-csub-quote {
+  margin: clamp(40px, 6vw, 64px) 0 0;
+  padding-left: clamp(22px, 3vw, 34px);
+  border-left: 1px solid var(--hairline);
+  max-width: 60ch;
+}
+
+.vk-csub-quotemark {
+  display: block;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(40px, 4vw, 56px);
+  line-height: 1;
+  color: var(--glod);
+}
+
+.vk-csub-quote p {
+  margin: 8px 0 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(22px, 2.6vw, 32px);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--papir);
+}
+
+/* ── Next case ── */
+
+.vk-csub-nextgrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(16px, 2.4vw, 28px);
+  margin-top: clamp(32px, 4vw, 48px);
+}
+
+@media (min-width: 760px) {
+  .vk-csub-nextgrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.vk-csub-nextlabel {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--glod);
+}
+
+.vk-csub-nextlink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.vk-csub-nextlink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+}
+
+.vk-csub-back {
+  margin-top: clamp(24px, 3vw, 36px);
+}

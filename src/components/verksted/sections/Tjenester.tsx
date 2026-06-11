@@ -12,9 +12,6 @@ import { ThreadSegment, useThread } from "@/components/verksted/ThreadContext";
 type Bench = (typeof verkstedContent)["no"]["tjenester"]["benches"][number];
 type ChatSpec = NonNullable<Bench["vignette"]["chat"]>;
 
-// Stamps are the only rotated elements on the benches (containers stay level).
-const STAMP_ROT = ["vk-rot-a", "vk-rot-c", "vk-rot-b", "vk-rot-d"];
-
 // Tråden weaving the 38% spine between the benches — enters and exits on
 // the spine (x=50 in a container centered on it), peeking through the gaps
 // while the opaque benches sit above it (z>=1).
@@ -53,13 +50,8 @@ export function Tjenester() {
             <p className="vk-kicker">{tj.kicker}</p>
             <h2 className="vk-display vk-tj-heading">{tj.heading}</h2>
           </header>
-          {tj.benches.map((bench, i) => (
-            <BenchCard
-              key={bench.id}
-              bench={bench}
-              reduced={reduced}
-              rot={STAMP_ROT[i % STAMP_ROT.length] ?? "vk-rot-a"}
-            />
+          {tj.benches.map((bench) => (
+            <BenchCard key={bench.id} bench={bench} reduced={reduced} />
           ))}
           <ChalkNote text={tj.chalk} reduced={reduced} />
         </div>
@@ -71,11 +63,11 @@ export function Tjenester() {
 /* ── Bench: the linocut illustration leads, text recedes to
    stamp + title + benefit + proof. The chatboter chat vignette overlaps
    the artwork's feathered foot; the agenter log ticks one line under it. ── */
-function BenchCard({ bench, reduced, rot }: { bench: Bench; reduced: boolean; rot: string }) {
+function BenchCard({ bench, reduced }: { bench: Bench; reduced: boolean }) {
   const ref = useRef<HTMLElement>(null);
   return (
     <article ref={ref} className={`vk-tj-bench vk-tj-bench--${bench.id}`}>
-      <span className={`vk-stamp ${rot} vk-tj-label`}>{bench.stamp}</span>
+      <span className="vk-stamp vk-tj-label">{bench.stamp}</span>
       <h3 className="vk-tj-title">
         {bench.href ? (
           <Link href={bench.href} className="vk-tj-titlelink">

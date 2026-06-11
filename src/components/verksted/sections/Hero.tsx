@@ -7,6 +7,7 @@ import {
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
+  useTransform,
   type Variants,
 } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
@@ -139,8 +140,18 @@ export function Hero() {
     if (!scrolled && y > 8) setScrolled(true);
   });
 
+  /* The chalk annotation fades as the scraps finish gathering into the
+     line (canvas Phase C runs p 0.8→1 over this same section window). */
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: heroProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  });
+  const annotOpacity = useTransform(heroProgress, [0.68, 0.84], [1, 0]);
+  const annotY = useTransform(heroProgress, [0.68, 0.84], [0, -14]);
+
   return (
-    <section className={`vk-hero${assemble ? " vk-hero--intro" : ""}`}>
+    <section ref={sectionRef} className={`vk-hero${assemble ? " vk-hero--intro" : ""}`}>
       <HeroCanvas words={t.hero.scraps} label={t.a11y.threadLabel} avoid={footRef} />
       <div className="vk-hero-tail" aria-hidden="true">
         <ThreadSegment
@@ -189,8 +200,14 @@ export function Hero() {
           </h1>
 
           {/* Chalk annotation aims at the (aria-hidden) scrap drift — the
-              canvas already carries an sr-only description. */}
-          <div className="vk-hero-annot" aria-hidden="true">
+              canvas already carries an sr-only description. It points
+              up-LEFT toward the 38% spine where the scraps gather, and
+              fades out once the chaos has become the line. */}
+          <motion.div
+            className="vk-hero-annot"
+            aria-hidden="true"
+            style={reduced ? undefined : { opacity: annotOpacity, y: annotY }}
+          >
             <svg
               className="vk-hero-arrow"
               viewBox="0 0 64 64"
@@ -202,16 +219,16 @@ export function Hero() {
               <path
                 className="vk-hero-arrow-shaft"
                 pathLength={1}
-                d="M8 56 C 18 52, 21 40, 27 30 S 44 13, 53 9"
+                d="M56 56 C 46 52, 43 40, 37 30 S 20 13, 11 9"
               />
               <path
                 className="vk-hero-arrow-head"
                 pathLength={1}
-                d="M41 9.5 L 53 9 L 49.5 20.5"
+                d="M23 9.5 L 11 9 L 14.5 20.5"
               />
             </svg>
             <span className="vk-chalk vk-hero-chalk">{t.hero.chalk}</span>
-          </div>
+          </motion.div>
 
           <div className="vk-hero-foot" ref={footRef}>
             <p className="vk-hero-sub">{t.hero.sub}</p>

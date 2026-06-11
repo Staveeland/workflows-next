@@ -1,0 +1,411 @@
+/* ════════════════════════════════════════════════════════════════════
+   /automatiserte-flyter — page styles (prefix vk-flyter-).
+   The pipeline is the page's thread: a measured SVG path through the
+   four station nodes, lit by scroll, with the dot as the travelling
+   light. Poster law: resting state = line lit, all stations tent.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Pipeline (anatomien) ── */
+
+.vk-flyter-hint {
+  margin: 20px 0 0;
+  width: fit-content;
+  font-size: clamp(17px, 1.8vw, 20px);
+  rotate: var(--rot-b);
+}
+
+/* The hint promises a scroll-driven flow — hide it where motion is reduced
+   and the pipeline rests as the composed poster instead. */
+@media (prefers-reduced-motion: reduce) {
+  .vk-flyter-hint {
+    display: none;
+  }
+}
+
+.vk-flyter-track {
+  --vk-flyter-gut: 64px;
+  --vk-flyter-gap: clamp(72px, 10vw, 136px);
+  position: relative;
+  margin-top: clamp(48px, 7vw, 80px);
+}
+
+.vk-flyter-rail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.vk-flyter-rail-bg {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1.5;
+}
+
+.vk-flyter-rail-halo {
+  fill: none;
+  stroke: var(--glod-halo);
+  stroke-width: 6;
+  stroke-linecap: round;
+  opacity: 0.35;
+  filter: blur(4px);
+}
+
+.vk-flyter-rail-lit {
+  fill: none;
+  stroke: var(--glod);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+/* The travelling light. Hidden where offset-path is unsupported —
+   the lit rail and nodes still tell the whole story. */
+.vk-flyter-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 16px var(--glod-halo);
+  z-index: 2;
+  display: none;
+}
+
+@supports (offset-path: path("M0 0H8")) {
+  .vk-flyter-dot {
+    display: block;
+  }
+}
+
+.vk-flyter-stations {
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vk-flyter-gap);
+}
+
+.vk-flyter-station {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--vk-flyter-gut) minmax(0, 1fr);
+  column-gap: clamp(14px, 3vw, 30px);
+  max-width: 760px;
+}
+
+/* No-JS fallback: a straight amber line node-to-node, so the resting
+   page is always the composed poster. Hidden once the path is measured. */
+.vk-flyter-track[data-measured="false"] .vk-flyter-station:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: calc(var(--vk-flyter-gut) / 2 - 1px);
+  top: 11px;
+  width: 2px;
+  height: calc(100% + var(--vk-flyter-gap));
+  border-radius: 1px;
+  background: linear-gradient(180deg, var(--glod), var(--glod-halo));
+  opacity: 0.7;
+}
+
+.vk-flyter-node {
+  grid-column: 1;
+  grid-row: 1 / span 4;
+  justify-self: center;
+  align-self: start;
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bek);
+  border: 1.5px solid var(--stov);
+  transition:
+    background var(--dur-2) var(--ease-work),
+    border-color var(--dur-2) var(--ease-work),
+    box-shadow var(--dur-2) var(--ease-work);
+}
+
+.vk-flyter-station[data-lit="true"] .vk-flyter-node {
+  background: var(--glod);
+  border-color: var(--glod);
+  box-shadow: 0 0 18px rgba(226, 158, 51, 0.55);
+}
+
+.vk-flyter-step {
+  grid-column: 2;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stov);
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-flyter-station[data-lit="true"] .vk-flyter-step {
+  color: var(--glod);
+}
+
+.vk-flyter-title {
+  grid-column: 2;
+  margin: 10px 0 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--papir);
+}
+
+.vk-flyter-body {
+  grid-column: 2;
+  margin: 12px 0 0;
+  max-width: 54ch;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--stov);
+}
+
+/* The hidden delight: a mono whisper that fades in when «levert» lights.
+   Resting/no-JS/reduced state = visible (composed). */
+.vk-flyter-whisper {
+  grid-column: 2;
+  margin: 14px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--glod);
+  transition: opacity var(--dur-3) var(--ease-work);
+}
+
+.vk-flyter-station[data-lit="false"] .vk-flyter-whisper {
+  opacity: 0;
+}
+
+/* ── Før/etter (uten flyt / med flyt) ── */
+
+.vk-flyter-ba-card--ok {
+  border-color: rgba(255, 180, 84, 0.3);
+}
+
+.vk-flyter-ba-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vk-flyter-ba-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--stov);
+}
+
+.vk-flyter-ba-mark {
+  flex: none;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  color: var(--stov);
+  opacity: 0.75;
+}
+
+.vk-flyter-ba-mark[data-tone="ok"] {
+  color: var(--glod);
+  opacity: 1;
+}
+
+/* ── Triggere ── */
+
+.vk-flyter-trigg {
+  list-style: none;
+  margin: clamp(32px, 5vw, 48px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: clamp(28px, 4vw, 64px);
+  max-width: 980px;
+}
+
+@media (min-width: 760px) {
+  .vk-flyter-trigg {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.vk-flyter-trigg li {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding-block: 14px;
+  border-top: 1px solid var(--hairline);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--stov);
+}
+
+.vk-flyter-trigg-mark {
+  flex: none;
+  color: var(--glod);
+}
+
+/* ── AI som en del av flyten ── */
+
+.vk-flyter-prose {
+  margin-top: clamp(22px, 3vw, 34px);
+}
+
+.vk-flyter-prose p + p {
+  margin-top: 16px;
+}
+
+/* ── AI-strip (decorative mini-pipeline) ── */
+
+.vk-flyter-aistrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-top: clamp(28px, 4vw, 44px);
+}
+
+.vk-flyter-ainode {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--stov);
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 9px 14px;
+}
+
+.vk-flyter-ainode[data-ai="true"] {
+  color: var(--glod);
+  background: rgba(255, 180, 84, 0.07);
+  border-color: rgba(255, 180, 84, 0.4);
+  box-shadow: 0 0 18px rgba(226, 158, 51, 0.18);
+}
+
+.vk-flyter-aisep {
+  width: 22px;
+  height: 1px;
+  background: var(--hairline);
+}
+
+/* ── Integrasjoner ── */
+
+.vk-flyter-chips {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: clamp(28px, 4vw, 44px);
+  max-width: 900px;
+}
+
+.vk-flyter-chip {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--stov);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 10px 16px;
+}
+
+.vk-flyter-chips-chalk {
+  margin: 20px 0 0;
+  font-size: clamp(17px, 1.8vw, 20px);
+  width: fit-content;
+  rotate: var(--rot-c);
+}
+
+/* ── Bevis (ElementLab + CSUB) ── */
+
+@media (min-width: 900px) {
+  .vk-flyter-proofgrid {
+    grid-template-columns: 3fr 2fr;
+    align-items: start;
+  }
+}
+
+.vk-flyter-statinner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.vk-flyter-dateline {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--stov);
+}
+
+.vk-flyter-casename {
+  margin: 0;
+}
+
+.vk-flyter-statnum {
+  margin: 4px 0 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 144;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(72px, 10vw, 124px);
+  font-weight: 560;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--papir);
+}
+
+.vk-flyter-statpct {
+  color: var(--glod);
+  font-size: 0.52em;
+}
+
+.vk-flyter-statlabel {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-flyter-statchalk {
+  margin: 2px 0 0;
+  font-size: 17px;
+}
+
+.vk-flyter-proof-more {
+  margin-top: clamp(20px, 3vw, 32px);
+}
+
+/* ── Breakpoints ── */
+
+@media (max-width: 600px) {
+  .vk-flyter-track {
+    --vk-flyter-gut: 40px;
+  }
+
+  .vk-flyter-station {
+    column-gap: 14px;
+  }
+}

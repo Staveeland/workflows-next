@@ -1,0 +1,335 @@
+/* ════════════════════════════════════════════════════════════════════
+   VERKSTEDET — sub-page primitives (.vk-pg-*)
+   Shared opener, section rhythm, cards, prose and the closing CTA for
+   every route except "/". Same laws as the home layer: poster law,
+   amber-on-dark, hairline borders, mono kickers, Fraunces display.
+   Page-specific styles live in src/styles/verksted/pages/<page>.css.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Opener ── */
+
+.vk-pg-hero {
+  position: relative;
+  padding-top: clamp(140px, 22vh, 220px);
+  padding-bottom: clamp(56px, 9vw, 110px);
+  /* work-lamp pool — single-hue luminance gradient only */
+  background: radial-gradient(
+    ellipse 120% 85% at 26% 8%,
+    #211b15 0%,
+    #14100c 58%,
+    #171310 88%
+  );
+}
+
+.vk-pg-hero-thread {
+  top: 0;
+  left: 38%;
+  height: 100%;
+  aspect-ratio: 100 / 240;
+  transform: translateX(-50%);
+}
+
+.vk-pg-kicker {
+  margin: 0 0 18px;
+}
+
+.vk-pg-title {
+  margin: 0;
+  max-width: 14ch;
+  font-size: clamp(48px, 9vw, 132px);
+  font-weight: 560;
+  font-variation-settings: "opsz" 144, "WONK" 1;
+}
+
+.vk-pg-lead {
+  margin: clamp(24px, 4vw, 36px) 0 0;
+  max-width: 52ch;
+  font-size: clamp(19px, 2vw, 22px);
+  line-height: 1.55;
+  color: var(--papir);
+}
+
+.vk-pg-chalk {
+  margin: 22px 0 0;
+  font-size: clamp(17px, 1.8vw, 22px);
+  rotate: var(--rot-b);
+  width: fit-content;
+}
+
+/* ── Section rhythm ── */
+
+.vk-pg-s {
+  position: relative;
+  padding-block: clamp(72px, 10vw, 140px);
+  scroll-margin-top: 80px;
+}
+
+.vk-pg-s--tight {
+  padding-block: clamp(48px, 7vw, 96px);
+}
+
+.vk-pg-h2 {
+  margin: 0;
+  max-width: 24ch;
+  font-size: clamp(34px, 4.6vw, 64px);
+  font-weight: 560;
+  line-height: 1.04;
+}
+
+.vk-pg-sub {
+  margin: 18px 0 0;
+  max-width: 56ch;
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--stov);
+}
+
+/* ── Cards on the bench ── */
+
+.vk-pg-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(16px, 2.4vw, 28px);
+  margin-top: clamp(36px, 5vw, 56px);
+}
+
+@media (min-width: 700px) {
+  .vk-pg-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .vk-pg-grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .vk-pg-grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.vk-pg-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: clamp(22px, 3vw, 32px);
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  transition:
+    transform var(--dur-2) var(--ease-work),
+    border-color var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-pg-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 180, 84, 0.34);
+  }
+}
+
+.vk-pg-card-title {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(20px, 2vw, 24px);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--papir);
+}
+
+.vk-pg-card-body {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--stov);
+}
+
+.vk-pg-card-mono {
+  margin: auto 0 0;
+  padding-top: 10px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--stov);
+}
+
+/* ── Prose (FAQ answers, case bodies) ── */
+
+.vk-pg-prose {
+  max-width: 64ch;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--stov);
+}
+
+.vk-pg-prose strong {
+  color: var(--papir);
+  font-weight: 600;
+}
+
+.vk-pg-prose a {
+  color: var(--glod);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 180, 84, 0.45);
+  text-underline-offset: 0.24em;
+  transition: text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-pg-prose a:hover {
+    text-decoration-color: var(--glod);
+  }
+}
+
+/* ── Inline text link (read-more, back-links) ── */
+
+.vk-pg-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  width: fit-content;
+  color: var(--glod);
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 180, 84, 0.45);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  transition: text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-pg-link:hover {
+    text-decoration-color: var(--glod);
+  }
+}
+
+/* ── Closing CTA (id="kontakt" on every sub-page) ── */
+
+.vk-pg-cta {
+  overflow: clip;
+}
+
+.vk-pg-cta-lamp {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    min(920px, 90vw) min(640px, 80vh) at 30% 58%,
+    #211b15 0%,
+    #171310 72%
+  );
+}
+
+.vk-pg-cta .vk-wrap {
+  position: relative;
+}
+
+.vk-pg-cta-kicker {
+  margin: 0 0 18px;
+}
+
+.vk-pg-cta-heading {
+  margin: 0 0 22px;
+  max-width: 16ch;
+  font-size: clamp(40px, 6.5vw, 96px);
+  font-weight: 540;
+}
+
+.vk-pg-cta-disarm {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--stov);
+}
+
+.vk-pg-cta-row {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 22px;
+  margin-top: clamp(36px, 5vw, 52px);
+}
+
+.vk-pg-cta-thread {
+  left: 0;
+  bottom: calc(100% - 30px);
+  width: min(420px, 100%);
+  aspect-ratio: 100 / 124;
+}
+
+.vk-pg-cta-dot {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 12px var(--glod-halo);
+  transition: box-shadow var(--dur-2) var(--ease-work);
+}
+
+.vk-pg-cta--lit .vk-pg-cta-dot {
+  box-shadow: 0 0 18px var(--glod-halo);
+}
+
+.vk-pg-cta-btn {
+  position: relative;
+  z-index: 1;
+  min-height: 60px;
+  padding: 16px 32px;
+  font-size: 19px;
+  box-shadow: 0 0 0 rgba(255, 160, 46, 0.45);
+  transition: box-shadow 300ms var(--ease-stamp);
+}
+
+.vk-pg-cta--lit .vk-pg-cta-btn,
+.vk-pg-cta-btn:focus-visible {
+  box-shadow: 0 0 48px rgba(255, 160, 46, 0.45);
+}
+
+.vk-pg-cta-phone {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-schibsted), system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--papir);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 5px;
+  transition: text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-pg-cta-phone:hover {
+    text-decoration-color: var(--glod);
+  }
+}
+
+.vk-pg-cta-mono {
+  margin: 14px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--stov);
+}
+
+/* ── Breakpoints ── */
+
+@media (max-width: 768px) {
+  .vk-pg-hero {
+    padding-top: clamp(120px, 18vh, 160px);
+  }
+
+  .vk-pg-cta-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

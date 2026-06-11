@@ -189,18 +189,6 @@
   display: inline-block;
 }
 
-.vk-case-chapter .vk-case-stamp {
-  --vk-rot: var(--rot-c);
-}
-
-.vk-case-chapter--festiviteten .vk-case-stamp {
-  --vk-rot: var(--rot-a);
-}
-
-.vk-case-chapter--elementlab .vk-case-stamp {
-  --vk-rot: var(--rot-b);
-}
-
 .vk-case-inuse {
   display: inline-flex;
   align-items: center;
@@ -210,31 +198,6 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--stov);
-}
-
-/* --drift is semantic here: «i daglig bruk» = delivered (brief §3.1). */
-.vk-case-driftdot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--drift);
-  box-shadow: 0 0 6px rgba(127, 209, 185, 0.5);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .vk-case-driftdot {
-    animation: vk-case-drift-pulse 2.8s ease-in-out infinite;
-  }
-}
-
-@keyframes vk-case-drift-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 6px rgba(127, 209, 185, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 11px rgba(127, 209, 185, 0.8);
-  }
 }
 
 .vk-case-monoline {

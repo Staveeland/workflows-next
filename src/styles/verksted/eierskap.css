@@ -1,147 +1,132 @@
 /* ════════════════════════════════════════════════════════════════════
-   VERKSTEDET — Eierskap «Skjøtet» (brief §6, contract §6)
-   The heritage payoff: the old site's cream reborn as the deed the
-   visitor receives. Resting state = sheet full size, stamps landed.
+   VERKSTEDET — Eierskap «Åpen dør»
+   The one light beat on the page: a calm, modern panel that states the
+   no-lock-in promise — image-led. The dark spot illustration is tipped
+   in as a plate (cream border + chalk tape) and three quiet amber chips
+   name what the visitor owns.
+   Resting state = panel full size, chips landed (poster law).
    ════════════════════════════════════════════════════════════════════ */
 
 .vk-eie {
-  overflow: clip; /* thread container is wider than small viewports */
-  /* Layout law (brief §3.4): the sheet rides up toward the ElementLab
-     proof block instead of leaving a dead dark band between sections. */
-  margin-top: clamp(-200px, -14vw, -100px);
+  overflow: clip;
 }
 
-.vk-eie.vk-s {
-  padding-top: clamp(40px, 6vw, 80px);
-}
-
-/* ── Tråden beneath the sheet — ink bleeding through the paper ──
-   Container aspect-ratio matches the viewBox (100/150) so coordinates map
-   1:1; left 38% + centering puts path x=50 exactly on the spine. */
-.vk-eie-thread {
-  z-index: 2 !important; /* above the sheet (component inlines z-index 0) */
-  top: 0;
-  left: 38%;
-  height: 100%;
-  aspect-ratio: 100 / 150;
-  transform: translateX(-50%);
-}
-
-.vk-eie-thread path {
-  stroke: #171310; /* --blekk, out of the .vk-paper scope here */
-  stroke-width: 1.5;
-  opacity: 0.5;
-  filter: none !important;
-}
-
-/* Ink carries no glow — drop the halo pass entirely. */
-.vk-eie-thread path:first-of-type {
-  display: none;
-}
-
-/* ── The sheet ── */
-
-.vk-eie-sheetwrap {
+.vk-eie-panelwrap {
   position: relative;
   z-index: 1;
-  width: min(90vw, 1100px);
+  width: min(94vw, 1200px);
   margin-inline: auto;
-  /* drop-shadow (not box-shadow) so the torn silhouette casts it */
-  filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.45));
   will-change: transform;
 }
 
-.vk-eie-sheet {
+.vk-eie-panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 90vh;
-  min-height: 90svh;
-  padding: clamp(48px, 9vh, 104px) clamp(24px, 7vw, 100px) clamp(36px, 6vh, 72px);
+  gap: clamp(48px, 7vh, 88px);
+  padding: clamp(48px, 8vh, 96px) clamp(28px, 7vw, 96px) clamp(36px, 5vh, 64px);
   /* single-hue luminance gradient — paper catching the work-lamp */
   background:
     radial-gradient(120% 90% at 50% 0%, #f7f2e9 0%, var(--papir-flate) 55%, #efe8da 100%);
   color: var(--blekk);
-  /* torn edges: 14 irregular points top + bottom, ≤8px amplitude */
-  clip-path: polygon(
-    0 5px, 7% 1px, 14% 7px, 22% 3px, 31% 8px, 39% 2px, 47% 6px,
-    55% 1px, 63% 7px, 71% 3px, 79% 8px, 87% 2px, 94% 6px, 100% 3px,
-    100% calc(100% - 6px), 93% calc(100% - 2px), 85% calc(100% - 8px),
-    77% calc(100% - 3px), 69% calc(100% - 7px), 61% calc(100% - 1px),
-    53% calc(100% - 6px), 45% calc(100% - 2px), 37% calc(100% - 8px),
-    29% calc(100% - 4px), 21% calc(100% - 7px), 13% calc(100% - 2px),
-    6% calc(100% - 6px), 0 calc(100% - 4px)
-  );
+  border: 1px solid rgba(23, 19, 16, 0.1);
+  border-radius: 28px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
 }
 
-/* Printed deed frame inside the torn edge: crisp rule + fainter offset
-   ghost rule = the ink-bleed double line of an old certificate. */
-.vk-eie-sheet::before,
-.vk-eie-sheet::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-}
+/* ── Head ── */
 
-.vk-eie-sheet::before {
-  inset: 12px;
-  border: 1px solid rgba(23, 19, 16, 0.35);
-}
-
-.vk-eie-sheet::after {
-  inset: 16px;
-  border: 1px solid rgba(23, 19, 16, 0.12);
-}
-
-/* ── Type on paper ── */
-
-.vk-eie-sheet .vk-eie-kicker {
-  color: var(--glod-papir); /* amber-as-text on paper, AA */
+.vk-eie-panel .vk-eie-kicker {
   margin: 0;
+  color: var(--glod-papir); /* amber-as-text on paper, AA */
 }
 
-.vk-eie-sheet .vk-eie-heading {
+.vk-eie-panel .vk-eie-heading {
+  position: relative;
+  width: fit-content;
   margin: 20px 0 0;
-  max-width: 16ch;
-  font-size: clamp(40px, 6vw, 80px);
+  max-width: 14ch;
+  font-size: clamp(44px, 6.5vw, 92px);
   font-weight: 600;
   line-height: 1.02;
   color: var(--blekk);
 }
 
-/* ── Middle band: stamps + tipped-in plate + body ──
-   Mobile-first single column (stamps → image → body); ≥768px the plate
-   takes the right 38% and the stamps row runs across/over it. */
+/* Hand-drawn amber underline under the heading's last line. */
+.vk-eie-underline {
+  position: absolute;
+  left: 0.04em;
+  bottom: -0.16em;
+  width: min(100%, 7.2em);
+  height: 0.12em;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.vk-eie-underline path {
+  stroke: var(--glod-papir);
+  stroke-width: 5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
+}
+
+.vk-eie-body {
+  margin: clamp(28px, 4vh, 40px) 0 0;
+  max-width: 30ch;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-variation-settings: "opsz" 72, "SOFT" 40;
+  font-weight: 440;
+  font-size: clamp(21px, 2.4vw, 30px);
+  line-height: 1.35;
+  color: rgba(23, 19, 16, 0.85);
+  text-wrap: balance;
+}
+
+/* ── Middle band: ownership chips + the tipped-in plate ──
+   Mobile-first single column (chips → image); ≥768px the plate takes
+   the right 38% with the chips riding beside it. */
 
 .vk-eie-mid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  margin-top: clamp(36px, 6vh, 68px);
+  row-gap: 32px;
 }
 
-/* ── The three stamps ── */
-
 .vk-eie-stamps {
-  position: relative;
-  z-index: 2; /* impressions land on top of the pinned photo */
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 18px 26px;
+  align-content: flex-start;
+  gap: 12px 14px;
 }
 
-.vk-eie-sheet .vk-eie-stamp {
-  color: var(--stempel-papir);
-  border-width: 3px;
-  font-size: clamp(24px, 2.6vw, 33px); /* never below the 24px stamp floor */
-  padding: 10px 20px;
-  /* paper chip behind the ink: invisible on the cream sheet, but keeps
-     the red ≥3:1 (large text) where a stamp crosses the dark plate */
-  background: rgba(247, 242, 233, 0.94);
-  /* dry-ink mask inherited from base .vk-stamp (brief §3.3) */
+/* Chip recolored for the paper scope — base.css paints it in dark-bench
+   amber (var(--glod)), which fails contrast on cream. #8a5a14 on the
+   panel cream is ≥5:1, AA at chip size. */
+.vk-eie-panel .vk-eie-stamp {
+  color: var(--glod-papir);
+  background: rgba(138, 90, 20, 0.07);
+  border-color: rgba(138, 90, 20, 0.38);
 }
 
-/* ── The tipped-in plate: dark illustration pinned to the deed ──
+/* Pre-rise: hidden only after mount with motion allowed (poster law) —
+   mirrors the Kontakt/Kundecaser gating so chips never blink-and-replay. */
+.vk-eie-stamp[data-slam="pre"] {
+  opacity: 0;
+}
+
+/* rise sequence — 120ms apart (delays on top of base.css vk-stamp-slam) */
+.vk-eie-panel .vk-eie-stamp:nth-of-type(2)[data-slam="in"] {
+  animation-delay: var(--dur-1);
+}
+
+.vk-eie-panel .vk-eie-stamp:nth-of-type(3)[data-slam="in"] {
+  animation-delay: calc(var(--dur-1) * 2);
+}
+
+/* ── The tipped-in plate: dark illustration pinned to the panel ──
    8px cream photo border + chalk-tape corners turn the #171310 artwork
    into an intentional plate. Rotation rides the vk-rot-c token; this is
    the resting state (poster law) — no scroll-driven motion here. */
@@ -149,9 +134,9 @@
 .vk-eie-plate {
   position: relative;
   width: min(60vw, 300px);
-  margin: 32px auto 0;
+  margin-inline: auto;
   padding: 8px;
-  background: #fbf7ee; /* photo-border cream, a hair lighter than the sheet */
+  background: #fbf7ee; /* photo-border cream, a hair lighter than the panel */
   box-shadow: 0 12px 28px rgba(23, 19, 16, 0.22);
 }
 
@@ -159,7 +144,7 @@
   border-radius: 2px; /* tighter than base .vk-ill — reads as a print */
 }
 
-/* Chalk-blue tape across opposite corners (decorative). */
+/* Chalk-blue tape across opposite corners (decorative, --kritt hue). */
 .vk-eie-plate::before,
 .vk-eie-plate::after {
   content: "";
@@ -186,49 +171,18 @@
   transform: rotate(-45deg);
 }
 
-/* Pre-slam: hidden only after mount with motion allowed (poster law) —
-   mirrors the Kontakt/Kundecaser gating so stamps never blink-and-reslam. */
-.vk-eie-stamp[data-slam="pre"] {
-  opacity: 0;
-}
-
-/* hand-stamped: each impression lands at its own height */
-.vk-eie-stamps .vk-eie-stamp:nth-of-type(2) {
-  margin-top: 14px;
-}
-
-.vk-eie-stamps .vk-eie-stamp:nth-of-type(3) {
-  margin-top: 5px;
-}
-
-/* slam sequence — 480ms apart (delays on top of base.css vk-stamp-slam) */
-.vk-eie-sheet .vk-eie-stamp:nth-of-type(2)[data-slam="in"] {
-  animation-delay: var(--dur-3);
-}
-
-.vk-eie-sheet .vk-eie-stamp:nth-of-type(3)[data-slam="in"] {
-  animation-delay: calc(var(--dur-3) * 2);
-}
-
-/* ── Body, footnote, link ── */
-
-.vk-eie-body {
-  margin: clamp(32px, 5vh, 56px) 0 0;
-  max-width: 52ch;
-  font-size: clamp(18px, 1.6vw, 21px);
-  line-height: 1.6;
-  color: rgba(23, 19, 16, 0.9);
-}
+/* ── Footnote + link on the bottom rule ── */
 
 .vk-eie-foot {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: auto; /* fine print sits at the deed's bottom edge */
-  padding-top: clamp(36px, 7vh, 72px);
+  margin-top: auto;
+  padding-top: clamp(24px, 4vh, 40px);
+  border-top: 1px solid rgba(23, 19, 16, 0.12);
 }
 
-.vk-eie-sheet .vk-eie-footnote {
+.vk-eie-panel .vk-eie-footnote {
   margin: 0;
   color: rgba(23, 19, 16, 0.75); /* ≈#4A443C on cream — ~8:1, AA */
   letter-spacing: 0.01em;
@@ -243,7 +197,7 @@
   font-size: 17px;
   font-weight: 600;
   text-decoration: underline;
-  text-decoration-color: var(--stempel-papir);
+  text-decoration-color: var(--glod-papir);
   text-decoration-thickness: 2px;
   text-underline-offset: 5px;
   transition:
@@ -259,37 +213,32 @@
 }
 
 /* base.css amber outline is invisible on cream — repaint it in the
-   paper-scope amber (#8A5A14, ≥3:1 vs the sheet). */
-.vk-eie-sheet .vk-eie-link:focus-visible {
+   paper-scope amber (#8A5A14, ≥3:1 vs the panel). */
+.vk-eie-panel .vk-eie-link:focus-visible {
   outline-color: var(--glod-papir);
 }
 
-/* ── ≥768px: plate right at 38%, stamps slam across/over it;
-   footnote and link share the bottom rule line ── */
+/* ── ≥768px: plate right at 38%, chips beside it; footnote and link
+   share the bottom rule line ── */
 
 @media (min-width: 768px) {
   .vk-eie-mid {
     grid-template-columns: minmax(0, 1fr) 38%;
     column-gap: clamp(24px, 4vw, 48px);
-    align-items: start;
+    align-items: center;
   }
 
   .vk-eie-stamps {
-    grid-column: 1 / -1; /* full width: the row runs over the plate */
+    grid-column: 1;
     grid-row: 1;
   }
 
   .vk-eie-plate {
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 1;
     width: 100%;
     margin: 0;
     justify-self: end;
-  }
-
-  .vk-eie-body {
-    grid-column: 1;
-    grid-row: 2;
   }
 
   .vk-eie-foot {

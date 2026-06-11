@@ -69,6 +69,7 @@ export interface VerkstedContent {
     kicker: string;
     heading: string;
     stamps: [string, string, string];
+    facts: Array<{ title: string; body: string }>;
     alt: string;
     body: string;
     footnote: string;
@@ -92,7 +93,6 @@ export interface VerkstedContent {
     disarm: string;
     proof: string;
     mono: string;
-    ctaStamp: string;
     cta: string;
     emailLabel: string;
     phoneLabel: string;
@@ -145,10 +145,10 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
     },
     hero: {
       h1: "Kaos inn. Flyt ut.",
-      sub: "Chatboter, automatiseringer og AI-agenter for norske bedrifter. Bygget i Haugesund på 2–6 uker. Du eier alt.",
+      sub: "Chatboter, automatiseringer og AI-agenter for norske bedrifter. Bygget i Haugesund på 2–6 uker. Ingen bindingstid.",
       cta: "Book en gratis prat",
       proof: "6+ norske bedrifter bruker systemene våre hver dag.",
-      chalk: "dette er innboksen din ↑",
+      chalk: "dette er hverdagen din",
       tickerTemplate: "{time} · system: våken",
       scraps: [
         "faktura",
@@ -241,7 +241,7 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
         { n: 3, log: "du tester, vi strammer til" },
         { n: 4, log: "systemet møter hverdagen deres" },
         { n: 5, log: "opplæring — alle som skal bruke det, kan det" },
-        { n: 6, log: "nøklene er dine — repo, kode, data" },
+        { n: 6, log: "overlevering — alt i drift, dere er selvgående" },
       ],
       chalkCircle: "synlig fremdrift fra uke én",
       badgeBuilding: "BYGGES",
@@ -298,12 +298,26 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       },
     ],
     eierskap: {
-      kicker: "Skjøtet",
-      heading: "Du eier alt — svart på hvitt.",
-      stamps: ["KODEN: DIN", "DATAENE: DINE", "REPOET: DITT"],
+      kicker: "Åpen dør",
+      heading: "Ingen lås på døra.",
+      stamps: ["INGEN BINDINGSTID", "DATAENE BLIR MED DEG", "DOKUMENTERT OVERLEVERING"],
+      facts: [
+        {
+          title: "Ingen bindingstid",
+          body: "Avtalen løper måned for måned. Vil du gå, går du — uten gebyr og uten diskusjon.",
+        },
+        {
+          title: "Dataene blir med deg",
+          body: "Det dere legger inn, får dere med ut — i formater det neste systemet kan lese.",
+        },
+        {
+          title: "Dokumentert overlevering",
+          body: "Alt vi bygger er dokumentert, og teamet ditt får opplæring. Hverdagen går rundt uten oss.",
+        },
+      ],
       alt: "Et kremfarget skjøte med rødt vokssegl og en messingnøkkel knyttet fast med ravgul tråd.",
-      body: "Når vi leverer, er alt ditt: kode, design og data.",
-      footnote: "Ingen lisenser. Ingen bindingstid. Ingen data-norsk i kontrakten heller.",
+      body: "Vi tror ikke på innlåsing. Vi tror på å være så gode at du vil bli.",
+      footnote: "Ingen bindingstid. Ingen skjulte kostnader. Ingen data-norsk i kontrakten heller.",
       linkLabel: "Se overleveringen — uke for uke",
       linkHref: "#prosess",
     },
@@ -318,7 +332,7 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       person: { name: "Petter Staveland", role: "Daglig leder", initials: "PS" },
       values: [
         ["Vis, ikke fortell", "Synlig fremdrift fra uke én."],
-        ["Ditt, helt ditt", "Kode, design og data er dine."],
+        ["Aldri innelåst", "Ingen bindingstid — dataene blir med deg."],
         ["Norsk og nær", "På norsk, med GDPR fra start."],
       ],
     },
@@ -328,7 +342,6 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       disarm: "Som regel vet du etter 30 minutter om dette er noe for dere.",
       proof: "ElementLab sparte hundrevis av timer i året. Praten som startet det kostet ingenting.",
       mono: "svar innen én arbeidsdag",
-      ctaStamp: "FØRSTE PRAT: GRATIS",
       cta: "Book en gratis prat",
       emailLabel: "Skriv når det passer",
       phoneLabel: "Ring om det haster",
@@ -358,7 +371,7 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       consoleArt:
         "┌──────────────────────────────┐\n│  WORKFLOWS — VERKSTEDET      │\n│  lyset er på · Haugesund     │\n├──────────────────────────────┤\n│  kaos inn ─────────→ flyt ut │\n└──┬────────────────────────┬──┘\n   │                        │\n\nHei! Du titter i konsollen — det gjør vi også.\nVi har til og med skrevet /llms.txt for agentene dine.\nMennesker booker gratis prat på workflows.no/#kontakt.",
       kaffeToast: "Den første praten tar vi gjerne over en kaffe. Den er gratis.",
-      logoStampFinal: "FERDIG. DU EIER ALT.",
+      logoStampFinal: "FERDIG. I DRIFT.",
       coordsTooltipTemplate: "Tråden på denne siden følger vinden i Haugesund. Akkurat nå: {wind}.",
       wonkCaption: "vi har det litt gøy på jobb",
       konamiStamp: "NATTSKIFT GODKJENT ✓",
@@ -380,10 +393,10 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
     },
     hero: {
       h1: "Chaos in. Flow out.",
-      sub: "Chatbots, automations and AI agents for Norwegian businesses. Built in Haugesund in 2–6 weeks. You own everything.",
+      sub: "Chatbots, automations and AI agents for Norwegian businesses. Built in Haugesund in 2–6 weeks. No lock-in.",
       cta: "Book a free chat",
       proof: "6+ Norwegian companies use our systems every day.",
-      chalk: "this is your inbox ↑",
+      chalk: "this is your everyday",
       tickerTemplate: "{time} · system: awake",
       scraps: [
         "invoice",
@@ -476,7 +489,7 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
         { n: 3, log: "you test, we tighten the bolts" },
         { n: 4, log: "the system meets the real world" },
         { n: 5, log: "training — everyone who'll use it knows how" },
-        { n: 6, log: "the keys are yours — repo, code, data" },
+        { n: 6, log: "handover — everything live, your team runs it" },
       ],
       chalkCircle: "visible progress from week one",
       badgeBuilding: "BUILDING",
@@ -533,12 +546,26 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       },
     ],
     eierskap: {
-      kicker: "The deed",
-      heading: "You own everything — in black and white.",
-      stamps: ["THE CODE: YOURS", "THE DATA: YOURS", "THE REPO: YOURS"],
+      kicker: "Open door",
+      heading: "No lock on the door.",
+      stamps: ["NO MINIMUM TERM", "YOUR DATA LEAVES WITH YOU", "DOCUMENTED HANDOVER"],
+      facts: [
+        {
+          title: "No minimum term",
+          body: "The agreement runs month by month. If you want to leave, you leave — no fees, no fuss.",
+        },
+        {
+          title: "Your data leaves with you",
+          body: "What you put in, you take out — in formats the next system can read.",
+        },
+        {
+          title: "Documented handover",
+          body: "Everything we build is documented, and your team gets trained. The day-to-day runs without us.",
+        },
+      ],
       alt: "A cream deed with a red wax seal and a brass key tied with amber thread.",
-      body: "When we hand over, it's all yours: code, design and data.",
-      footnote: "No licences. No lock-in. No corporate-speak in the contract either.",
+      body: "We don't believe in lock-in. We believe in being good enough that you'll want to stay.",
+      footnote: "No minimum term. No hidden costs. No corporate-speak in the contract either.",
       linkLabel: "See the handover — week by week",
       linkHref: "#prosess",
     },
@@ -553,7 +580,7 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       person: { name: "Petter Staveland", role: "Managing director", initials: "PS" },
       values: [
         ["Show, don't tell", "Visible progress from week one."],
-        ["Yours, all yours", "Code, design and data are yours."],
+        ["Never locked in", "No lock-in — your data leaves with you."],
         ["Norwegian to the core", "In Norwegian, with GDPR from day one."],
       ],
     },
@@ -563,7 +590,6 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       disarm: "As a rule, you'll know within 30 minutes whether this is for you.",
       proof: "ElementLab saved hundreds of hours a year. The chat that started it cost nothing.",
       mono: "reply within one working day",
-      ctaStamp: "FIRST CHAT: FREE",
       cta: "Book a free chat",
       emailLabel: "Write when it suits you",
       phoneLabel: "Call if it's urgent",
@@ -593,7 +619,7 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       consoleArt:
         "┌──────────────────────────────┐\n│  WORKFLOWS — THE WORKSHOP    │\n│  the light is on · Haugesund │\n├──────────────────────────────┤\n│  chaos in ────────→ flow out │\n└──┬────────────────────────┬──┘\n   │                        │\n\nHi! You're peeking into the console — we do too.\nWe even wrote /llms.txt for your agents.\nHumans book a free chat at workflows.no/#kontakt.",
       kaffeToast: "We'd gladly take that first chat over a coffee. It's free.",
-      logoStampFinal: "DONE. YOU OWN EVERYTHING.",
+      logoStampFinal: "DONE. UP AND RUNNING.",
       coordsTooltipTemplate: "The thread on this page follows the wind in Haugesund. Right now: {wind}.",
       wonkCaption: "we have a bit of fun at work",
       konamiStamp: "NIGHT SHIFT APPROVED ✓",

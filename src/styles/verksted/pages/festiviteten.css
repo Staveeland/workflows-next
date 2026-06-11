@@ -1,0 +1,640 @@
+/* ════════════════════════════════════════════════════════════════════
+   FESTIVITETEN — kundecase (/kunder/festiviteten)
+   Et rom i verkstedet: historisk teater om natta. Nattlogg på benken,
+   fire kanaler flettet til én amber tråd, plakat på papir.
+   Poster law: hvilestilstanden er alltid ferdig komponert — animasjoner
+   kjører FRA from{} TIL naturlig tilstand, og armeres kun etter mount
+   med motion tillatt (styres fra FestivitetenCaseClient).
+   Prefix: vk-festiviteten-
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Hero: tilbakelenke, fakta, plakat ── */
+
+.vk-festiviteten-hero-extra {
+  margin-top: clamp(40px, 6vw, 64px);
+}
+
+.vk-festiviteten-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px 48px;
+  margin-top: 20px;
+}
+
+.vk-festiviteten-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px clamp(28px, 4vw, 56px);
+  margin: 0;
+}
+
+.vk-festiviteten-facts dt {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--stov);
+}
+
+.vk-festiviteten-facts dd {
+  margin: 6px 0 0;
+  max-width: 34ch;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--papir);
+}
+
+/* Teaterplakaten — logoen er mørk, så den henger på papir. */
+.vk-festiviteten-playbill {
+  flex: none;
+  width: min(250px, 64vw);
+  margin: 0;
+  padding: 20px 22px 12px;
+  background: var(--papir-flate);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  rotate: var(--rot-c);
+}
+
+.vk-festiviteten-playbill img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.vk-festiviteten-playbill figcaption {
+  margin-top: 8px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--blekk);
+  opacity: 0.65;
+}
+
+/* ── Felles seksjonsrytme ── */
+
+.vk-festiviteten-kick {
+  margin: 0 0 16px;
+}
+
+.vk-festiviteten-prose {
+  margin-top: clamp(24px, 4vw, 36px);
+}
+
+.vk-festiviteten-prose p {
+  margin: 0 0 1.25em;
+}
+
+.vk-festiviteten-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.vk-festiviteten-aside {
+  margin: 28px 0 0;
+  font-size: clamp(17px, 1.8vw, 20px);
+  rotate: var(--rot-b);
+  width: fit-content;
+}
+
+/* ── Kort oppsummert: tre fliser ── */
+
+.vk-festiviteten-tiles {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(14px, 2vw, 24px);
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 700px) {
+  .vk-festiviteten-tiles {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.vk-festiviteten-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: clamp(22px, 2.8vw, 32px);
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+}
+
+.vk-festiviteten-tile strong {
+  font-size: clamp(30px, 3.4vw, 44px);
+  font-weight: 560;
+}
+
+.vk-festiviteten-tile span {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--stov);
+}
+
+/* ── Løsningen: fire kanaler inn, én tråd ut ── */
+
+.vk-festiviteten-merge {
+  margin-top: clamp(32px, 5vw, 48px);
+  padding: clamp(22px, 3vw, 36px) clamp(18px, 3vw, 36px) clamp(22px, 3vw, 32px);
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+}
+
+.vk-festiviteten-merge-row {
+  list-style: none;
+  display: grid;
+  /* minmax(0, …): nowrap-chipsene får aldri sprenge panelet på smale
+     skjermer — de ellipses i stedet (full tekst står i sr-oppsummeringen). */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.vk-festiviteten-merge-row li {
+  justify-self: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 7px clamp(7px, 1.8vw, 12px);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: clamp(10px, 2.4vw, 13px);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: var(--stov);
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+}
+
+.vk-festiviteten-merge svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 8px;
+  overflow: visible;
+}
+
+.vk-festiviteten-lane {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.vk-festiviteten-amber-halo {
+  fill: none;
+  stroke: var(--glod-halo);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  opacity: 0.35;
+  filter: blur(4px);
+  vector-effect: non-scaling-stroke;
+}
+
+.vk-festiviteten-amber {
+  fill: none;
+  stroke: var(--glod);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.vk-festiviteten-dot {
+  fill: var(--glod);
+}
+
+.vk-festiviteten-dot-halo {
+  fill: var(--glod-halo);
+  opacity: 0.28;
+}
+
+.vk-festiviteten-merge-out {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 46ch;
+  margin: 16px auto 0;
+  text-align: center;
+}
+
+.vk-festiviteten-merge-out strong {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(20px, 2.4vw, 26px);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--papir);
+}
+
+.vk-festiviteten-merge-out span {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--stov);
+}
+
+/* Tegnetilstander: rest (SSR/no-JS/reduced) = ferdig tegnet.
+   armed = ventende (kun etter mount m/ motion), draw = animér inn. */
+.vk-festiviteten-merge[data-draw="armed"] .vk-festiviteten-lane,
+.vk-festiviteten-merge[data-draw="armed"] .vk-festiviteten-amber,
+.vk-festiviteten-merge[data-draw="armed"] .vk-festiviteten-amber-halo {
+  stroke-dashoffset: 1;
+}
+
+.vk-festiviteten-merge[data-draw="armed"] .vk-festiviteten-dot,
+.vk-festiviteten-merge[data-draw="armed"] .vk-festiviteten-dot-halo,
+.vk-festiviteten-merge[data-draw="armed"] .vk-festiviteten-merge-out {
+  opacity: 0;
+}
+
+.vk-festiviteten-merge[data-draw="draw"] .vk-festiviteten-lane {
+  animation: vk-festiviteten-draw 700ms var(--ease-work) both;
+}
+
+.vk-festiviteten-merge[data-draw="draw"] .vk-festiviteten-lane:nth-of-type(2) {
+  animation-delay: 90ms;
+}
+
+.vk-festiviteten-merge[data-draw="draw"] .vk-festiviteten-lane:nth-of-type(3) {
+  animation-delay: 180ms;
+}
+
+.vk-festiviteten-merge[data-draw="draw"] .vk-festiviteten-lane:nth-of-type(4) {
+  animation-delay: 270ms;
+}
+
+.vk-festiviteten-merge[data-draw="draw"] .vk-festiviteten-amber,
+.vk-festiviteten-merge[data-draw="draw"] .vk-festiviteten-amber-halo {
+  animation: vk-festiviteten-draw 560ms var(--ease-work) 620ms both;
+}
+
+.vk-festiviteten-merge[data-draw="draw"] .vk-festiviteten-dot,
+.vk-festiviteten-merge[data-draw="draw"] .vk-festiviteten-dot-halo {
+  animation: vk-festiviteten-fade 360ms var(--ease-work) 1080ms both;
+}
+
+.vk-festiviteten-merge[data-draw="draw"] .vk-festiviteten-merge-out {
+  animation: vk-festiviteten-rise 480ms var(--ease-work) 1120ms both;
+}
+
+@keyframes vk-festiviteten-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes vk-festiviteten-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes vk-festiviteten-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ── Løsningen: punktliste ── */
+
+.vk-festiviteten-points {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px 36px;
+  margin: clamp(28px, 4vw, 40px) 0 0;
+  padding: 0;
+  max-width: 110ch;
+}
+
+@media (min-width: 760px) {
+  .vk-festiviteten-points {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.vk-festiviteten-points li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--stov);
+}
+
+.vk-festiviteten-points li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  color: var(--glod);
+}
+
+/* ── Nattevakten ── */
+
+.vk-festiviteten-natt .vk-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.vk-festiviteten-natt-thread {
+  left: 38%;
+  top: 0;
+  height: 100%;
+  aspect-ratio: 100 / 200;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 959px) {
+  .vk-festiviteten-natt-thread {
+    display: none;
+  }
+}
+
+.vk-festiviteten-natt-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(36px, 5vw, 72px);
+  align-items: center;
+}
+
+@media (min-width: 960px) {
+  .vk-festiviteten-natt-grid {
+    grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+  }
+
+  /* Loggen står på tråden (38 %-ryggraden), teksten i lyset ved siden av. */
+  .vk-festiviteten-natt-grid > .vk-festiviteten-watch {
+    order: 1;
+  }
+
+  .vk-festiviteten-natt-grid > .vk-festiviteten-natt-copy {
+    order: 2;
+  }
+}
+
+.vk-festiviteten-natt-link {
+  margin-top: 22px;
+}
+
+.vk-festiviteten-watch {
+  position: relative;
+}
+
+.vk-festiviteten-log {
+  padding: 18px 20px 20px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  rotate: var(--rot-b);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.vk-festiviteten-log-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--stov);
+}
+
+.vk-festiviteten-log-head strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--glod);
+}
+
+.vk-festiviteten-log-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 10px var(--glod-halo);
+}
+
+.vk-festiviteten-log[data-live="true"] .vk-festiviteten-log-dot {
+  animation: vk-festiviteten-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes vk-festiviteten-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.vk-festiviteten-log-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.vk-festiviteten-log-line {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  color: var(--stov);
+  transition:
+    opacity var(--dur-3) var(--ease-work),
+    color var(--dur-3) var(--ease-work);
+}
+
+.vk-festiviteten-log-time {
+  flex: none;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  color: var(--glod);
+}
+
+.vk-festiviteten-log[data-live="true"] .vk-festiviteten-log-line {
+  opacity: 0.4;
+}
+
+.vk-festiviteten-log[data-live="true"] .vk-festiviteten-log-line[data-active="true"] {
+  opacity: 1;
+  color: var(--papir);
+}
+
+.vk-festiviteten-caret {
+  display: none;
+  width: 7px;
+  height: 13px;
+  flex: none;
+  background: var(--glod);
+  transform: translateY(2px);
+}
+
+.vk-festiviteten-log[data-live="true"]
+  .vk-festiviteten-log-line[data-active="true"]
+  .vk-festiviteten-caret {
+  display: inline-block;
+  animation: vk-festiviteten-blink 1.06s step-end infinite;
+}
+
+@keyframes vk-festiviteten-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Skjult hvisken — plakatloven: hvilestilstanden er synlig. Gjemmes kun
+   for fine pekere med motion tillatt, som henter den fram med hover/fokus;
+   touch/no-JS/reduced/print ser alltid linja. */
+.vk-festiviteten-whisper {
+  margin: 16px 6px 0;
+  width: fit-content;
+  font-size: 17px;
+  rotate: var(--rot-c);
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .vk-festiviteten-whisper {
+    opacity: 0;
+    transition: opacity var(--dur-3) var(--ease-work);
+  }
+
+  .vk-festiviteten-watch:hover .vk-festiviteten-whisper,
+  .vk-festiviteten-watch:focus-within .vk-festiviteten-whisper {
+    opacity: 1;
+  }
+}
+
+/* ── Resultatet: sitat ── */
+
+.vk-festiviteten-quote {
+  position: relative;
+  max-width: 60ch;
+  margin: clamp(36px, 6vw, 56px) 0 0;
+  padding-left: clamp(24px, 4vw, 40px);
+  border-left: 1px solid var(--hairline);
+}
+
+.vk-festiviteten-quote::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 6px;
+  width: 1px;
+  height: 56px;
+  background: var(--glod);
+}
+
+.vk-festiviteten-quote blockquote {
+  margin: 0;
+}
+
+.vk-festiviteten-quote p {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 84;
+  font-size: clamp(21px, 2.6vw, 28px);
+  font-weight: 450;
+  line-height: 1.42;
+  color: var(--papir);
+}
+
+/* ── Flere kundecaser ── */
+
+.vk-festiviteten-next-card .vk-stamp {
+  align-self: flex-start;
+}
+
+.vk-festiviteten-next-tag {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--stov);
+}
+
+.vk-festiviteten-next-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Strukket lenke: hele kortet er klikkflate (≥44px). */
+.vk-festiviteten-next-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+}
+
+.vk-festiviteten-next-card:focus-within {
+  border-color: rgba(255, 180, 84, 0.34);
+}
+
+.vk-festiviteten-next-cue {
+  color: var(--glod);
+}
+
+.vk-festiviteten-next-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px clamp(28px, 4vw, 48px);
+  margin-top: clamp(28px, 4vw, 44px);
+}
+
+/* ── Redusert bevegelse: plakaten står ferdig ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .vk-festiviteten-merge[data-draw] .vk-festiviteten-lane,
+  .vk-festiviteten-merge[data-draw] .vk-festiviteten-amber,
+  .vk-festiviteten-merge[data-draw] .vk-festiviteten-amber-halo {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .vk-festiviteten-merge[data-draw] .vk-festiviteten-merge-out,
+  .vk-festiviteten-merge[data-draw] .vk-festiviteten-dot {
+    opacity: 1;
+    animation: none;
+  }
+
+  .vk-festiviteten-merge[data-draw] .vk-festiviteten-dot-halo {
+    opacity: 0.28;
+    animation: none;
+  }
+
+  .vk-festiviteten-log-dot,
+  .vk-festiviteten-caret {
+    animation: none;
+  }
+}

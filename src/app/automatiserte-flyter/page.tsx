@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { urlFor } from "@/lib/site";
 import { buildBreadcrumb, buildService } from "@/lib/jsonLd";
-import Timeline from "@/components/visuals/Timeline";
-import IntegrationCloud from "@/components/visuals/IntegrationCloud";
-import BeforeAfter from "@/components/visuals/BeforeAfter";
-import { IconBolt, IconBuild, IconCheck } from "@/components/icons/ServiceIcons";
+import VerkstedShell from "@/components/verksted/VerkstedShell";
+import { PageHero } from "@/components/verksted/page/PageHero";
+import { PageCta } from "@/components/verksted/page/PageCta";
+import { Reveal } from "@/components/verksted/page/Reveal";
+import { FlyterPipeline, FlyterProof } from "@/components/verksted/pages/FlyterClient";
 
 export const metadata: Metadata = {
   title: "Automatiserte flyter — prosesser som kjører av seg selv",
@@ -51,6 +52,73 @@ const serviceJsonLd = buildService({
     "Utvikling av automatiserte flyter og systemintegrasjoner som kobler sammen bedriftens verktøy og fjerner manuelt arbeid.",
 });
 
+const TRIGGERS = [
+  "en e-post lander i en bestemt innboks",
+  "et skjema fylles ut på nettsiden",
+  "en fil legges i en mappe — OneDrive, Google Drive, Dropbox",
+  "en ordre opprettes i butikksystemet",
+  "en rad legges til i et regneark eller en database",
+  "klokka — hver natt, hver mandag klokka åtte, hver time",
+  "et webhook fra et hvilket som helst annet system",
+];
+
+const USE_CASES = [
+  {
+    title: "Fakturabehandling",
+    body:
+      "Leser innkommende fakturaer, trekker ut data, matcher mot ordre og sender til godkjenning — rett inn i regnskapssystemet.",
+    mono: "innboks → regnskap",
+  },
+  {
+    title: "Lead-routing",
+    body:
+      "Nye leads sorteres etter kilde og type, legges inn i CRM, og riktig selger får varsel.",
+    mono: "skjema → crm → selger",
+  },
+  {
+    title: "Rapportgenerering",
+    body:
+      "Henter data fra flere systemer, setter sammen rapporten og leverer den på e-post, i Slack eller Teams — til faste tidspunkter.",
+    mono: "data inn → rapport ut",
+  },
+  {
+    title: "Kundeoppfølging",
+    body:
+      "Etter kjøp eller booking sendes oppfølgingsmailer, anmeldelsesforespørsler og påminnelser automatisk.",
+    mono: "kjøp → takk → påminnelse",
+  },
+  {
+    title: "Datamigrering",
+    body:
+      "Data synkroniseres mellom systemer som ikke snakker sammen — uten manuell kopiering i mellomleddet.",
+    mono: "Tripletex ↔ CRM · Sheets ↔ database",
+  },
+  {
+    title: "Dokumentbehandling",
+    body:
+      "Innkommende dokumenter leses, kategoriseres og arkiveres automatisk — med AI på stegene som krever forståelse.",
+    mono: "lest → kategorisert → arkivert",
+  },
+];
+
+const INTEGRATIONS = [
+  "Tripletex",
+  "Visma",
+  "PowerOffice",
+  "24SevenOffice",
+  "Microsoft 365",
+  "Google Workspace",
+  "Slack",
+  "Teams",
+  "HubSpot",
+  "Salesforce",
+  "Shopify",
+  "WooCommerce",
+  "Airtable",
+  "Notion",
+  "Monday.com",
+];
+
 export default function AutomatiserteFlyterPage() {
   return (
     <>
@@ -63,196 +131,287 @@ export default function AutomatiserteFlyterPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
       />
 
-      <section className="page-hero">
-        <div className="wrap">
-          <span className="tag">Nivå 2 — Automatiserte flyter</span>
-          <h1>Automatiserte flyter</h1>
-          <p className="page-hero__sub">
-            En automatisert flyt er en prosess som triggeres av en hendelse og følger en fast
-            sekvens uten menneskelig input. Vi bygger flyter som kobler sammen systemene dine,
-            flytter data og bruker AI der det gir mening.
-          </p>
-        </div>
-      </section>
+      <VerkstedShell>
+        <PageHero
+          kicker="Tjenester · Benk 02 — går av seg selv"
+          title="Automatiserte flyter"
+          lead="En automatisert flyt er en prosess som starter av en hendelse og går samme vei hver gang — uten at noen rører et tastatur. Vi kobler sammen systemene dine, flytter data dit de skal, og bruker AI bare der det trengs forståelse."
+          chalk="fra innboks til levert — uten et tastetrykk"
+        />
 
-      <section className="section">
-        <div className="wrap">
-          <article className="longform">
-            <h2>Hva er en automatisert flyt?</h2>
-            <p>
-              En flyt består av tre deler som kjører samme vei hver gang. Det er det som gjør
-              den forutsigbar og pålitelig.
-            </p>
+        {/* Star: scroll-driven pipeline (client) */}
+        <FlyterPipeline />
 
-            <Timeline
-              steps={[
-                {
-                  icon: <IconBolt size={22} />,
-                  title: "Trigger",
-                  body:
-                    "Noe skjer — en e-post, et skjema, en ny ordre, en tidsplan eller et webhook fra et annet system.",
-                  meta: "Steg 1",
-                },
-                {
-                  icon: <IconBuild size={22} />,
-                  title: "Steg",
-                  body:
-                    "Data behandles, systemer oppdateres, varsler sendes. AI brukes bare der reglene er uklare og forståelse trengs.",
-                  meta: "Steg 2",
-                },
-                {
-                  icon: <IconCheck size={22} />,
-                  title: "Resultat",
-                  body:
-                    "Oppgaven er ferdig — fakturaen er bokført, kunden er fulgt opp, rapporten er sendt.",
-                  meta: "Steg 3",
-                },
-              ]}
-            />
-
-            <p>
-              Forskjellen på en flyt og en <Link href="/ai-agenter">AI-agent</Link> er at flyten
-              følger en bestemt plan, mens agenten lager sin egen. Flyter er billigere, mer
-              forutsigbare og enklere å feilsøke. Agenter er mer fleksible, men krever mer
-              testing og overvåking. De fleste bedrifter bør starte med flyter og bruke agenter
-              der kompleksiteten faktisk krever det.
-            </p>
-
-            <BeforeAfter
-              beforeTitle="Uten flyt"
-              before={[
-                { label: "Manuell kopiering mellom systemer" },
-                { label: "Glemte oppfølginger og misforståelser" },
-                { label: "Ingen oversikt over hva som er gjort" },
-              ]}
-              afterTitle="Med flyt"
-              after={[
-                { label: "Data flyter automatisk dit den skal" },
-                { label: "Hver hendelse følges opp, hver gang" },
-                { label: "Logg og varsling ved feil" },
-              ]}
-            />
-
-            <h2>Typiske triggere</h2>
-            <ul>
-              <li>En e-post kommer inn i en bestemt innboks.</li>
-              <li>Et skjema fylles ut på nettsiden.</li>
-              <li>En fil legges i en mappe (OneDrive, Google Drive, Dropbox).</li>
-              <li>En ordre opprettes i butikksystemet.</li>
-              <li>En rad legges til i et regneark eller en database.</li>
-              <li>Tid — hver natt, hver mandag klokken åtte, hver time.</li>
-              <li>Et webhook fra et annet system.</li>
-            </ul>
-
-            <h2>Typiske bruksområder</h2>
-            <ul>
-              <li>
-                <strong>Fakturabehandling</strong> — leser inn innkommende fakturaer, trekker ut
-                data, matcher mot ordrer, sender til godkjenning, legger inn i regnskapssystemet.
-              </li>
-              <li>
-                <strong>Lead-routing</strong> — nye leads sorteres etter kilde og type, legges
-                inn i CRM, og riktig selger får varsling.
-              </li>
-              <li>
-                <strong>Rapportgenerering</strong> — data hentes fra flere systemer, settes
-                sammen, og leveres som e-post eller i Slack/Teams til faste tidspunkter.
-              </li>
-              <li>
-                <strong>Kundeoppfølging</strong> — etter kjøp eller booking sendes
-                oppfølgingsmailer, anmeldelsesforespørsler eller påminnelser automatisk.
-              </li>
-              <li>
-                <strong>Datamigrering</strong> — data synkroniseres mellom systemer som ikke
-                snakker sammen (Tripletex ↔ CRM, Google Sheets ↔ database).
-              </li>
-              <li>
-                <strong>Dokumentbehandling</strong> — innkommende dokumenter leses, kategoriseres
-                og arkiveres automatisk, med AI på stegene som krever forståelse.
-              </li>
-            </ul>
-
-            <h2>AI som en del av flyten</h2>
-            <p>
-              Mange flyter inneholder steg der reglene er uklare eller varierer — for eksempel
-              «finn ut hvem denne e-posten skal sendes til» eller «trekk ut nøkkeldataene fra
-              dette dokumentet». Her bygger vi inn AI som et enkeltsteg i flyten. Resten av
-              flyten er forutsigbar kode, og AI-en brukes bare der den er nødvendig. Det gir
-              deg det beste fra begge verdener: forutsigbarhet der det er mulig, forståelse
-              der det trengs.
-            </p>
-
-            <h2>Systemer vi integrerer med</h2>
-            <p>
-              Vi kobler sammen de aller fleste verktøy — fra regnskap og CRM til samhandling og
-              e-handel. Og hvilket som helst system med et API eller webhook, inkludert
-              bransjespesifikke løsninger innen subsea, offshore, eiendom, helse og logistikk.
-            </p>
-
-            <IntegrationCloud
-              items={[
-                "Tripletex",
-                "Visma",
-                "PowerOffice",
-                "24SevenOffice",
-                "Microsoft 365",
-                "Google Workspace",
-                "Slack",
-                "Teams",
-                "HubSpot",
-                "Salesforce",
-                "Shopify",
-                "WooCommerce",
-                "Airtable",
-                "Notion",
-                "Monday.com",
-                "Webhook / API",
-              ]}
-            />
-
-            <h2>Teknologi</h2>
-            <p>
-              Vi bygger flyter på en kombinasjon av{" "}
-              <strong>n8n</strong> (open-source workflow-plattform) og egen kode der det gir mer
-              kontroll eller ytelse. For AI-stegene bruker vi OpenAI, Anthropic Claude eller
-              andre modeller avhengig av oppgaven. Alt kjører på robust infrastruktur (Vercel,
-              Azure, Google Cloud) innenfor EU når det er nødvendig.
-            </p>
-
-            <h2>Pålitelighet og overvåking</h2>
-            <p>
-              En flyt som feiler i stillhet er verre enn ingen flyt. Vi setter opp logging,
-              varsling ved feil, og automatiske retry-mekanismer. Du får oversikt over hva som
-              har kjørt, hva som feilet og hvorfor — slik at du kan stole på systemet.
-            </p>
-
-            <h2>Eksempel: CSUB</h2>
-            <p>
-              For <Link href="/kunder/csub">CSUB</Link> bygget vi flyter som automatisk samler
-              data fra Excel-filer og eksisterende systemer inn i et sentralisert dashboard.
-              Det som før krevte manuelt arbeid fra prosjektledere skjer nå av seg selv.
-            </p>
-
-            <h2>Kom i gang</h2>
-            <p>
-              Første samtale er uforpliktende. Vi ser på hvilke prosesser som tar mest tid hos
-              dere, og finner sammen hva som egner seg for automatisering.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section className="cta-section">
-        <div className="wrap">
-          <div className="cta">
-            <h2>Har du prosesser som tar for mye tid?</h2>
-            <p>Book en uforpliktende samtale. Vi finner ut sammen hva som kan automatiseres.</p>
-            <Link href="/#kontakt" className="btn btn--dark">
-              Start samtalen <span className="btn__arrow">&rarr;</span>
-            </Link>
+        {/* Flyt eller agent */}
+        <section className="vk-pg-s vk-pg-s--tight" aria-labelledby="vk-flyter-vs-h">
+          <div className="vk-wrap">
+            <Reveal as="p" className="vk-kicker" y={14}>
+              Flyt eller agent?
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h2 id="vk-flyter-vs-h" className="vk-display vk-pg-h2">
+                Flyten følger planen. Agenten lager sin egen.
+              </h2>
+            </Reveal>
+            <Reveal as="p" className="vk-pg-sub" delay={0.12}>
+              De fleste bedrifter bør starte med flyter — og ta i bruk agenter der
+              kompleksiteten faktisk krever det.
+            </Reveal>
+            <div className="vk-pg-grid">
+              <Reveal className="vk-pg-card" delay={0.08}>
+                <h3 className="vk-pg-card-title">Automatisert flyt</h3>
+                <p className="vk-pg-card-body">
+                  Følger en bestemt plan, samme vei hver gang. Billigere, mer forutsigbar
+                  og enklere å feilsøke.
+                </p>
+                <p className="vk-mono vk-pg-card-mono">forutsigbar · sporbar · rimelig</p>
+              </Reveal>
+              <Reveal className="vk-pg-card" delay={0.16}>
+                <h3 className="vk-pg-card-title">AI-agent</h3>
+                <p className="vk-pg-card-body">
+                  Lager sin egen plan underveis. Mer fleksibel, men krever mer testing og
+                  overvåking.
+                </p>
+                <Link href="/ai-agenter" className="vk-pg-link">
+                  Les mer om AI-agenter →
+                </Link>
+              </Reveal>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Før/etter */}
+        <section className="vk-pg-s vk-pg-s--tight" aria-labelledby="vk-flyter-ba-h">
+          <div className="vk-wrap">
+            <Reveal as="p" className="vk-kicker" y={14}>
+              Før og etter
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h2 id="vk-flyter-ba-h" className="vk-display vk-pg-h2">
+                Hverdagen, med og uten flyt
+              </h2>
+            </Reveal>
+            <div className="vk-pg-grid">
+              <Reveal className="vk-pg-card" delay={0.08}>
+                <h3 className="vk-pg-card-title">Uten flyt</h3>
+                <ul className="vk-flyter-ba-list">
+                  <li>
+                    <span className="vk-flyter-ba-mark" aria-hidden="true">
+                      ✕
+                    </span>
+                    Manuell kopiering mellom systemer
+                  </li>
+                  <li>
+                    <span className="vk-flyter-ba-mark" aria-hidden="true">
+                      ✕
+                    </span>
+                    Glemte oppfølginger og misforståelser
+                  </li>
+                  <li>
+                    <span className="vk-flyter-ba-mark" aria-hidden="true">
+                      ✕
+                    </span>
+                    Ingen oversikt over hva som er gjort
+                  </li>
+                </ul>
+              </Reveal>
+              <Reveal className="vk-pg-card vk-flyter-ba-card--ok" delay={0.16}>
+                <h3 className="vk-pg-card-title">Med flyt</h3>
+                <ul className="vk-flyter-ba-list">
+                  <li>
+                    <span className="vk-flyter-ba-mark" data-tone="ok" aria-hidden="true">
+                      →
+                    </span>
+                    Data flyter automatisk dit den skal
+                  </li>
+                  <li>
+                    <span className="vk-flyter-ba-mark" data-tone="ok" aria-hidden="true">
+                      →
+                    </span>
+                    Hver hendelse følges opp, hver gang
+                  </li>
+                  <li>
+                    <span className="vk-flyter-ba-mark" data-tone="ok" aria-hidden="true">
+                      →
+                    </span>
+                    Logg og varsling ved feil
+                  </li>
+                </ul>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* Triggere */}
+        <section className="vk-pg-s vk-pg-s--tight" aria-labelledby="vk-flyter-trigg-h">
+          <div className="vk-wrap">
+            <Reveal as="p" className="vk-kicker" y={14}>
+              Startskuddet
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h2 id="vk-flyter-trigg-h" className="vk-display vk-pg-h2">
+                Hva kan starte en flyt?
+              </h2>
+            </Reveal>
+            <Reveal as="p" className="vk-pg-sub" delay={0.12}>
+              En flyt ligger og lytter. Når noe skjer, går den i gang — uansett
+              klokkeslett.
+            </Reveal>
+            <Reveal delay={0.16}>
+              <ul className="vk-flyter-trigg">
+                {TRIGGERS.map((t) => (
+                  <li key={t}>
+                    <span className="vk-flyter-trigg-mark" aria-hidden="true">
+                      →
+                    </span>
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Bruksområder */}
+        <section className="vk-pg-s" aria-labelledby="vk-flyter-bruk-h">
+          <div className="vk-wrap">
+            <Reveal as="p" className="vk-kicker" y={14}>
+              Bruksområder
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h2 id="vk-flyter-bruk-h" className="vk-display vk-pg-h2">
+                Typiske bruksområder
+              </h2>
+            </Reveal>
+            <Reveal delay={0.12}>
+              <div className="vk-pg-grid vk-pg-grid--3">
+                {USE_CASES.map((u) => (
+                  <article key={u.title} className="vk-pg-card">
+                    <h3 className="vk-pg-card-title">{u.title}</h3>
+                    <p className="vk-pg-card-body">{u.body}</p>
+                    <p className="vk-mono vk-pg-card-mono">{u.mono}</p>
+                  </article>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* AI som en del av flyten */}
+        <section className="vk-pg-s vk-pg-s--tight" aria-labelledby="vk-flyter-ai-h">
+          <div className="vk-wrap">
+            <Reveal as="p" className="vk-kicker" y={14}>
+              Ett steg, ikke hele flyten
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h2 id="vk-flyter-ai-h" className="vk-display vk-pg-h2">
+                AI som en del av flyten
+              </h2>
+            </Reveal>
+            <Reveal delay={0.12}>
+              <div className="vk-pg-prose vk-flyter-prose">
+                <p>
+                  Mange flyter har steg der reglene er uklare eller varierer: «finn ut
+                  hvem denne e-posten skal til», «trekk ut nøkkeldataene fra dette
+                  dokumentet». Der bygger vi inn AI som ett enkelt steg i flyten.
+                </p>
+                <p>
+                  Resten av flyten er forutsigbar kode. AI brukes bare der den er
+                  nødvendig — <strong>forutsigbarhet der det er mulig, forståelse der
+                  det trengs</strong>. Skal flyten også svare kundene dine, kobler vi den
+                  til en <Link href="/chatboter">chatbot</Link>.
+                </p>
+              </div>
+            </Reveal>
+            <Reveal delay={0.18}>
+              <div className="vk-flyter-aistrip" aria-hidden="true">
+                <span className="vk-flyter-ainode">hentet</span>
+                <span className="vk-flyter-aisep" />
+                <span className="vk-flyter-ainode">sjekket</span>
+                <span className="vk-flyter-aisep" />
+                <span className="vk-flyter-ainode" data-ai="true">
+                  AI: forstår
+                </span>
+                <span className="vk-flyter-aisep" />
+                <span className="vk-flyter-ainode">sendt</span>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Integrasjoner */}
+        <section className="vk-pg-s vk-pg-s--tight" aria-labelledby="vk-flyter-int-h">
+          <div className="vk-wrap">
+            <Reveal as="p" className="vk-kicker" y={14}>
+              Integrasjoner
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h2 id="vk-flyter-int-h" className="vk-display vk-pg-h2">
+                Systemer vi integrerer med
+              </h2>
+            </Reveal>
+            <Reveal as="p" className="vk-pg-sub" delay={0.12}>
+              Vi kobler sammen de aller fleste verktøy — fra regnskap og CRM til
+              samhandling og e-handel. Det gjelder også bransjeløsninger innen subsea,
+              offshore, eiendom, helse og logistikk.
+            </Reveal>
+            <Reveal delay={0.16}>
+              <ul className="vk-flyter-chips">
+                {INTEGRATIONS.map((name) => (
+                  <li key={name} className="vk-flyter-chip">
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+            <Reveal as="p" className="vk-chalk vk-flyter-chips-chalk" delay={0.22} y={10}>
+              + alt som har et API eller webhook
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Teknologi og pålitelighet */}
+        <section className="vk-pg-s vk-pg-s--tight" aria-labelledby="vk-flyter-tek-h">
+          <div className="vk-wrap">
+            <Reveal as="p" className="vk-kicker" y={14}>
+              Under panseret
+            </Reveal>
+            <Reveal delay={0.06}>
+              <h2 id="vk-flyter-tek-h" className="vk-display vk-pg-h2">
+                Bygget for å tåle drift
+              </h2>
+            </Reveal>
+            <div className="vk-pg-grid">
+              <Reveal className="vk-pg-card" delay={0.08}>
+                <h3 className="vk-pg-card-title">Teknologi</h3>
+                <p className="vk-pg-card-body">
+                  Vi bygger flytene på <strong>n8n</strong> — en open source
+                  workflow-plattform — og egen kode der det gir mer kontroll eller
+                  ytelse. AI-stegene kjører på OpenAI, Anthropic Claude eller andre
+                  modeller, avhengig av oppgaven. Alt på robust infrastruktur: Vercel,
+                  Azure, Google Cloud — innenfor EU når det er nødvendig.
+                </p>
+                <p className="vk-mono vk-pg-card-mono">n8n + egen kode</p>
+              </Reveal>
+              <Reveal className="vk-pg-card" delay={0.16}>
+                <h3 className="vk-pg-card-title">Pålitelighet og overvåking</h3>
+                <p className="vk-pg-card-body">
+                  En flyt som feiler i stillhet er verre enn ingen flyt. Vi setter opp
+                  logging, varsling ved feil og automatiske nye forsøk. Du ser hva som
+                  har kjørt, hva som feilet og hvorfor — slik at du kan stole på
+                  systemet.
+                </p>
+                <p className="vk-mono vk-pg-card-mono">logg · varsling · retry</p>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* Bevis (client: count-up) */}
+        <FlyterProof />
+
+        <PageCta />
+      </VerkstedShell>
     </>
   );
 }

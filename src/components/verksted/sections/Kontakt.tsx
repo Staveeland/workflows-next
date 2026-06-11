@@ -117,12 +117,6 @@ export function Kontakt() {
           >
             {t.kontakt.cta}
           </motion.a>
-          <span
-            className="vk-stamp vk-rot-c vk-kon-stamp"
-            data-slam={lit ? "in" : undefined}
-          >
-            {t.kontakt.ctaStamp}
-          </span>
         </div>
 
         <p className="vk-mono vk-kon-proof">{t.kontakt.proof}</p>

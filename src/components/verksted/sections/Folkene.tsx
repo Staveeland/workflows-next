@@ -12,6 +12,7 @@ import {
 import Image from "next/image";
 import {
   motion,
+  useInView,
   useReducedMotion,
   useScroll,
   useTransform,
@@ -20,7 +21,6 @@ import {
 import { useLang } from "@/components/LanguageProvider";
 import { verkstedContent } from "@/lib/verkstedContent";
 
-const EGG_KEY = "vk-egg-coords";
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const VIEW = { once: true, amount: 0.25 } as const;
 
@@ -139,32 +139,51 @@ export function Folkene() {
   const fine = useFinePointer();
   const parallax = anim && fine;
 
-  const [glowOn, setGlowOn] = useState(false);
+  const [glow, setGlow] = useState(0); // 0 = off; >0 keys the flare instance
   const [tip, setTip] = useState<string | null>(null);
-  const fired = useRef(false);
   const pressTimer = useRef(0);
   const glowTimer = useRef(0);
+  const glowDelay = useRef(0);
+  const glowSeq = useRef(0);
+  const cachedTip = useRef<{ lang: string; text: string } | null>(null);
+  const fetching = useRef(false);
 
   const template = t.eggs.coordsTooltipTemplate;
 
+  const fireGlow = useCallback(() => {
+    if (reduced) return;
+    window.clearTimeout(glowTimer.current);
+    window.clearTimeout(glowDelay.current);
+    // async so callers inside effects stay pure; fresh key replays the flare
+    glowDelay.current = window.setTimeout(() => {
+      setGlow(++glowSeq.current);
+      glowTimer.current = window.setTimeout(() => setGlow(0), 1900);
+    }, 30);
+  }, [reduced]);
+
+  // The flare plays on every approach: fresh load, refresh mid-page, and
+  // each scroll back to the harbor (deliberately NOT once-per-session).
+  const stageInView = useInView(stageRef, { amount: 0.35 });
+  useEffect(() => {
+    if (stageInView) fireGlow();
+  }, [stageInView, fireGlow]);
+
   const trigger = useCallback(() => {
-    if (fired.current) return;
-    fired.current = true;
-    try {
-      if (window.sessionStorage.getItem(EGG_KEY)) return; // once per session
-      window.sessionStorage.setItem(EGG_KEY, "1");
-    } catch {
-      // storage unavailable — still fire once per mount
+    fireGlow();
+    const cached = cachedTip.current;
+    if (cached && cached.lang === lang) {
+      if (cached.text) setTip(cached.text);
+      return;
     }
-    if (!reduced) {
-      setGlowOn(true);
-      glowTimer.current = window.setTimeout(() => setGlowOn(false), 1900);
-    }
+    if (fetching.current) return;
+    fetching.current = true;
     void fetchWind(lang).then((wind) => {
+      fetching.current = false;
       const text = buildTooltip(template, wind);
+      cachedTip.current = { lang, text };
       if (text) setTip(text);
     });
-  }, [reduced, template, lang]);
+  }, [fireGlow, template, lang]);
 
   // Long-press (coarse pointers): 500ms hold on the coordinates line.
   const startPress = () => {
@@ -177,6 +196,7 @@ export function Folkene() {
     () => () => {
       window.clearTimeout(pressTimer.current);
       window.clearTimeout(glowTimer.current);
+      window.clearTimeout(glowDelay.current);
     },
     [],
   );
@@ -232,10 +252,11 @@ export function Folkene() {
               className="vk-ill vk-ill--feather"
             />
 
-            {/* Easter egg: the painted lighthouse flares once. Rendered only
-                during the flare; the glow itself is reduced-motion-gated.
+            {/* Easter egg: the painted lighthouse flares on every approach —
+                keyed on the sequence so each pass replays the glow. Rendered
+                only during the flare; the glow itself is reduced-motion-gated.
                 Lives inside the parallax wrapper so it tracks the artwork. */}
-            {glowOn && <div className="vk-folk-lys" aria-hidden="true" />}
+            {glow !== 0 && <div key={glow} className="vk-folk-lys" aria-hidden="true" />}
           </motion.div>
 
           <motion.figcaption

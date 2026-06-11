@@ -155,7 +155,7 @@
 
 .vk-hero-arrow {
   display: block;
-  margin-left: 90px; /* head reaches up-right, over the drift */
+  margin-left: -10px; /* head reaches up-left, toward the gathering line */
 }
 
 .vk-hero-arrow path {
@@ -344,7 +344,7 @@
   .vk-hero-arrow {
     width: 44px;
     height: 44px;
-    margin-left: 56px;
+    margin-left: -6px;
   }
 
   .vk-hero-chalk {
