@@ -1,6 +1,7 @@
 "use client";
 
 import "@/styles/verksted/kontakt.css";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   motion,
@@ -137,14 +138,24 @@ export function Kontakt() {
         <p className="vk-mono vk-kon-svar">{t.kontakt.mono}</p>
 
         <div className="vk-kon-cards">
-          <div className="vk-kon-card">
-            <h3 className="vk-kon-cardlabel">{t.kontakt.emailLabel}</h3>
-            <a className="vk-kon-cardlink" href={`mailto:${EMAIL}`}>
-              {EMAIL}
-            </a>
-            <p className="vk-mono vk-kon-cardmicro">
-              {t.folkene.person.name} · {t.folkene.person.role}
-            </p>
+          <div className="vk-kon-card vk-kon-card--person">
+            <Image
+              src="/verksted/petter-portrett.png"
+              alt={t.kontakt.portraitAlt}
+              width={640}
+              height={640}
+              sizes="96px"
+              className="vk-kon-portrait"
+            />
+            <div className="vk-kon-cardbody">
+              <h3 className="vk-kon-cardlabel">{t.kontakt.emailLabel}</h3>
+              <a className="vk-kon-cardlink" href={`mailto:${EMAIL}`}>
+                {EMAIL}
+              </a>
+              <p className="vk-mono vk-kon-cardmicro">
+                {t.folkene.person.name} · {t.folkene.person.role}
+              </p>
+            </div>
           </div>
           <div className="vk-kon-card">
             <h3 className="vk-kon-cardlabel">{t.kontakt.phoneLabel}</h3>

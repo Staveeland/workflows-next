@@ -151,6 +151,37 @@
   padding: 26px 28px 22px;
 }
 
+/* Person card: linocut portrait beside the contact details. */
+.vk-kon-card--person {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.vk-kon-portrait {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  border-radius: 10px;
+  border: 1px solid var(--hairline);
+  rotate: var(--rot-b);
+}
+
+.vk-kon-cardbody {
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .vk-kon-card--person {
+    gap: 16px;
+  }
+
+  .vk-kon-portrait {
+    width: 76px;
+    height: 76px;
+  }
+}
+
 .vk-kon-cardlabel {
   margin: 0 0 10px;
   font-family: var(--font-spline), ui-monospace, monospace;

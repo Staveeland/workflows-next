@@ -95,6 +95,7 @@ export interface VerkstedContent {
     mono: string;
     cta: string;
     emailLabel: string;
+    portraitAlt: string;
     phoneLabel: string;
   };
   kolofon: {
@@ -383,6 +384,7 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       mono: "svar innen én arbeidsdag",
       cta: "Book en gratis prat",
       emailLabel: "Skriv når det passer",
+      portraitAlt: "Petter Staveland som linosnitt-portrett i ambert lampelys",
       phoneLabel: "Ring om det haster",
     },
     kolofon: {
@@ -684,6 +686,7 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       mono: "reply within one working day",
       cta: "Book a free chat",
       emailLabel: "Write when it suits you",
+      portraitAlt: "Petter Staveland as a linocut portrait in warm amber lamplight",
       phoneLabel: "Call if it's urgent",
     },
     kolofon: {
