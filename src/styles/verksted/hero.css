@@ -1,7 +1,8 @@
 /* ════════════════════════════════════════════════════════════════════
    HERO — «Kaos inn. Flyt ut.» (brief §6 hero, §5 page-load)
-   260vh section = the brief's 160vh scroll runway above the sticky
-   100svh stage, so Phase A→C plays out over a full 160vh of pull.
+   200vh section = a 100vh scroll runway above the sticky 100svh stage
+   (tightened from the brief's 160vh on owner feedback — the gather took
+   too much scrolling), so Phase A→C plays out over 100vh of pull.
    Resting CSS state = fully composed state: every entrance animates
    FROM a from{} keyframe TO the natural state, and all hidden-initial
    states live behind no-preference media.
@@ -9,7 +10,7 @@
 
 .vk-hero {
   position: relative;
-  height: 260vh;
+  height: 200vh;
   /* work-lamp pool — single-hue luminance gradient only (brief §3.3) */
   background: radial-gradient(
     ellipse 120% 85% at 26% 22%,

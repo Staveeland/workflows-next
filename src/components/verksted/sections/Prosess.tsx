@@ -8,17 +8,14 @@ import {
   useInView,
   useMotionValueEvent,
   useScroll,
+  useSpring,
+  useTransform,
 } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
 import { verkstedContent, type VerkstedContent } from "@/lib/verkstedContent";
-import { ThreadSegment, useThread } from "@/components/verksted/ThreadContext";
+import { useThread } from "@/components/verksted/ThreadContext";
 
 type ProsessContent = VerkstedContent["prosess"];
-
-// Sine wave weaving through the six rail markers (zero-crossings every 144u).
-const RAIL_D =
-  "M 0 40 C 48 4 96 4 144 40 C 192 76 240 76 288 40 C 336 4 384 4 432 40 " +
-  "C 480 76 528 76 576 40 C 624 4 672 4 720 40";
 
 // Hand-drawn chalk ellipse — open start/end overlap, slightly lopsided.
 const CHALK_D =
@@ -126,6 +123,30 @@ function Pinned({ p }: { p: ProsessContent }) {
   // Sync immediately for mid-page reloads / mode switches.
   useEffect(() => sync(scrollYProgress.get()), []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Amber rail line, spring-smoothed. Head fraction == runway progress, so
+  // the head sits exactly on stop n at offset (n-1)/5 — the same offset the
+  // stop's button scrolls to, and inside week n's active band [n-1,n)/6.
+  const railSpring = useSpring(scrollYProgress, {
+    stiffness: 130,
+    damping: 27,
+    restDelta: 0.001,
+  });
+  const railScale = useTransform(railSpring, (v) => Math.min(1, Math.max(0, v)));
+  // The head lane rests fully advanced (CSS right: 0 — poster law); x backs
+  // it out in track-relative % so no pixel measurement is ever needed.
+  const railHead = useTransform(railScale, (v) => `${(v - 1) * 100}%`);
+
+  // Click/keyboard: scroll the runway so week i becomes the scrubbed week.
+  const goToWeek = (i: number) => {
+    const el = outer.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const top =
+      window.scrollY + rect.top + (i / 5) * (rect.height - window.innerHeight);
+    const instant = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top, behavior: instant ? "instant" : "smooth" });
+  };
+
   const wk = p.weeks[Math.min(week, p.weeks.length - 1)];
   const live = week === 5;
 
@@ -201,30 +222,43 @@ function Pinned({ p }: { p: ProsessContent }) {
             </div>
           </div>
 
-          <div className="vk-pro-railrow" aria-hidden="true">
-            <div className="vk-pro-rail">
-              <ThreadSegment d={RAIL_D} viewBox="0 0 720 80" className="vk-pro-thread" />
+          <div className="vk-pro-railrow">
+            {/* All six weeks, permanently visible and pressable — the rail
+                doubles as scrub indicator and in-section navigation. */}
+            <nav className="vk-pro-rail" aria-label={`${p.weekLabel} 1–6`}>
+              <div className="vk-pro-track" aria-hidden="true">
+                <motion.div className="vk-pro-trackline" style={{ scaleX: railScale }} />
+                <motion.div className="vk-pro-headlane" style={{ x: railHead }}>
+                  <span className="vk-pro-headknot" />
+                </motion.div>
+              </div>
               {p.weeks.map((w, i) => (
-                <span
+                <button
                   key={w.n}
-                  className="vk-pro-marker"
+                  type="button"
+                  className="vk-pro-stop"
                   data-state={i < week ? "passed" : i === week ? "current" : "future"}
+                  aria-current={i === week ? "step" : undefined}
+                  aria-label={`${p.weekLabel} ${w.n}`}
                   style={{ "--vk-rot": ROTS[i % 4] } as React.CSSProperties}
+                  onClick={() => goToWeek(i)}
                 >
-                  {w.n}
-                </span>
+                  <span className="vk-pro-stop-num">{w.n}</span>
+                  <span className="vk-pro-stop-cap">{p.weekLabel}</span>
+                </button>
               ))}
-              {/* The key slides 80px across the thread to the visitor's side. */}
+              {/* The key slides 80px across the rail to the visitor's side. */}
               <motion.span
                 className="vk-pro-key"
+                aria-hidden="true"
                 initial={false}
                 animate={{ x: live ? 80 : 0, opacity: live ? 1 : 0 }}
                 transition={{ type: "spring", stiffness: 280, damping: 24 }}
               >
                 <KeyGlyph />
               </motion.span>
-            </div>
-            <div className="vk-pro-badge">
+            </nav>
+            <div className="vk-pro-badge" aria-hidden="true">
               <motion.span
                 className="vk-pro-badge-face vk-pro-badge-face--live"
                 initial={false}

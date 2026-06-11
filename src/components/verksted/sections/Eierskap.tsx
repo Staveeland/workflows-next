@@ -1,6 +1,7 @@
 "use client";
 
 import "@/styles/verksted/eierskap.css";
+import Image from "next/image";
 import { useRef, useSyncExternalStore } from "react";
 import {
   motion,
@@ -68,18 +69,32 @@ export function Eierskap() {
           <h2 id="vk-eie-heading" className="vk-display vk-eie-heading">
             {t.eierskap.heading}
           </h2>
-          <div ref={stampsRef} className="vk-eie-stamps">
-            {t.eierskap.stamps.map((stamp, i) => (
-              <span
-                key={stamp}
-                className={`vk-stamp vk-eie-stamp ${ROT[i] ?? ROT[0]}`}
-                data-slam={slam}
-              >
-                {stamp}
-              </span>
-            ))}
+          <div className="vk-eie-mid">
+            <div ref={stampsRef} className="vk-eie-stamps">
+              {t.eierskap.stamps.map((stamp, i) => (
+                <span
+                  key={stamp}
+                  className={`vk-stamp vk-eie-stamp ${ROT[i] ?? ROT[0]}`}
+                  data-slam={slam}
+                >
+                  {stamp}
+                </span>
+              ))}
+            </div>
+            {/* Tipped-in plate: the dark spot illustration pinned to the
+                deed — cream photo border + chalk tape (poster-static). */}
+            <div className="vk-eie-plate vk-rot-c">
+              <Image
+                className="vk-ill vk-eie-plate-img"
+                src="/verksted/eierskap-spot.webp"
+                alt={t.eierskap.alt}
+                width={1024}
+                height={1024}
+                sizes="(max-width: 768px) 60vw, 340px"
+              />
+            </div>
+            <p className="vk-eie-body">{t.eierskap.body}</p>
           </div>
-          <p className="vk-eie-body">{t.eierskap.body}</p>
           <div className="vk-eie-foot">
             <p className="vk-mono vk-eie-footnote">{t.eierskap.footnote}</p>
             <a className="vk-eie-link" href={t.eierskap.linkHref}>

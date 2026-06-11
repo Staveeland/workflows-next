@@ -20,6 +20,14 @@ export const metadata: Metadata = {
     title: "AI-agenter og softwareutvikling i Haugesund | Workflows",
     description:
       "AI-byrå i Haugesund. Vi bygger smarte agenter, kunstig intelligens og skreddersydde systemer for norske bedrifter.",
+    images: [
+      {
+        url: "/og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Kaos inn. Flyt ut. — Workflows, AI og softwareutvikling i Haugesund",
+      },
+    ],
   },
 };
 

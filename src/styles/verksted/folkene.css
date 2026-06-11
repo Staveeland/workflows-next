@@ -1,15 +1,15 @@
 /* ════════════════════════════════════════════════════════════════════
    FOLKENE — «Haugesund, etter stengetid»
-   No photos: type, specimen plates, a hand-drawn Karmsundet, one lit dot.
+   Centerpiece: the harbor linocut. The heading hangs into its sky,
+   the name story sits at its waterline, the rest is a short caption.
    Resting CSS state is ALWAYS the fully-composed state (poster law).
    ════════════════════════════════════════════════════════════════════ */
 
-/* ── Header — heading left, person plate hanging at the bench edge ── */
+/* ── Header — kicker + display heading, overlapping the image sky ── */
 
 .vk-folk-head {
-  display: grid;
-  gap: clamp(28px, 4vw, 40px);
-  margin-bottom: clamp(64px, 9vw, 120px);
+  position: relative;
+  z-index: 2;
 }
 
 .vk-folk-h2 {
@@ -19,40 +19,102 @@
   max-width: 12ch;
 }
 
-.vk-folk-body {
-  margin: clamp(18px, 2.4vw, 28px) 0 0;
-  max-width: 50ch;
-  font-size: clamp(18px, 1.5vw, 21px);
-  line-height: 1.6;
-  color: var(--papir);
+/* ── Stage — the harbor at night, full-bleed-ish, feathered into bek ── */
+
+.vk-folk-stage {
+  position: relative;
+  max-width: 1100px;
+  /* Pull the night sky up under the heading — deeper on wide screens. */
+  margin: clamp(-110px, -7vw, -28px) auto 0;
 }
 
-@media (min-width: 1024px) {
-  .vk-folk-head {
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: clamp(40px, 6vw, 96px);
-    align-items: end;
+/* Edge-to-edge on small screens: cancel the wrap padding. */
+@media (max-width: 767px) {
+  .vk-folk-stage {
+    margin-inline: calc(-1 * clamp(20px, 4vw, 48px));
   }
 }
 
-/* ── Person plate — 72px specimen plate, no photo, just initials ── */
-
-.vk-folk-person {
+.vk-folk-ill {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 18px;
+  z-index: 0;
+}
+
+/* ── Lighthouse flare — easter-egg visual. The element exists only
+      during the flare; the glow itself is gated to no-preference, so
+      reduced motion never paints it. Anchored over the painted
+      lighthouse (right edge, on the horizon). ── */
+
+.vk-folk-lys {
+  position: absolute;
+  top: 34%;
+  right: -2%;
+  width: 24%;
+  aspect-ratio: 1;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-folk-lys::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    mix-blend-mode: screen;
+    background: radial-gradient(
+      circle,
+      rgba(255, 180, 84, 0.55),
+      rgba(255, 180, 84, 0.2) 42%,
+      transparent 70%
+    );
+    /* Resting = flare finished, faded out (both keeps the end frame). */
+    animation: vk-folk-flare 1.9s var(--ease-work) 1 both;
+  }
+}
+
+@keyframes vk-folk-flare {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+
+  22% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  74% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+}
+
+/* ── Caption plate — name story + coordinates AT the waterline ── */
+
+.vk-folk-caption {
+  position: relative;
+  /* Above the local grain (z 12): the rotate() below traps descendant
+     z-indices in this plate's stacking context, so the tooltip can only
+     clear the grain if the plate itself does. */
+  z-index: 13;
   width: fit-content;
-  max-width: 100%;
-  padding: 16px 24px 16px 16px;
+  max-width: min(560px, calc(100% - 36px));
+  margin: clamp(-64px, -4vw, -20px) 0 0 clamp(18px, 5vw, 72px);
+  padding: clamp(18px, 2.5vw, 26px) clamp(20px, 3vw, 32px) clamp(12px, 1.8vw, 18px);
+  background: var(--benk);
   border: 1px solid var(--hairline);
-  background: transparent;
+  border-radius: 3px;
   transform: rotate(var(--rot-b)); /* resting tilt = framer's final frame */
 }
 
 /* Chalk corner ticks — specimen mounting marks, two opposing corners. */
-.vk-folk-person::before,
-.vk-folk-person::after {
+.vk-folk-caption::before,
+.vk-folk-caption::after {
   content: "";
   position: absolute;
   width: 14px;
@@ -61,269 +123,28 @@
   pointer-events: none;
 }
 
-.vk-folk-person::before {
+.vk-folk-caption::before {
   top: -8px;
   left: -8px;
   border-top: 1px solid var(--kritt);
   border-left: 1px solid var(--kritt);
 }
 
-.vk-folk-person::after {
+.vk-folk-caption::after {
   bottom: -8px;
   right: -8px;
   border-bottom: 1px solid var(--kritt);
   border-right: 1px solid var(--kritt);
 }
 
-.vk-folk-plate {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 72px;
-  height: 72px;
-  background: var(--benk);
-  border: 1px solid var(--hairline);
-}
-
-.vk-folk-plate span {
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-variation-settings: "opsz" 144;
-  font-size: 32px;
-  font-weight: 560;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  color: var(--glod);
-}
-
-.vk-folk-person-meta {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  min-width: 0;
-}
-
-.vk-folk-person-name {
-  font-family: var(--font-spline), ui-monospace, monospace;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--papir);
-}
-
-.vk-folk-person-role {
-  font-family: var(--font-spline), ui-monospace, monospace;
-  font-size: 13px;
-  color: var(--stov);
-}
-
-/* ── Values — three specimen bench cards. No-uniform law: every card
-      gets its own padding, radius and vertical offset. ── */
-
-.vk-folk-values {
-  list-style: none;
-  display: grid;
-  gap: clamp(18px, 2.5vw, 28px);
-  margin: 0 0 clamp(72px, 10vw, 130px);
-  padding: 0;
-}
-
-.vk-folk-value {
-  position: relative;
-  background: var(--benk);
-  border: 1px solid var(--hairline);
-}
-
-.vk-folk-value:nth-child(1) {
-  padding: 30px 26px 36px;
-  border-radius: 2px;
-}
-
-.vk-folk-value:nth-child(2) {
-  padding: 38px 30px 30px;
-  border-radius: 16px 3px 16px 3px;
-}
-
-.vk-folk-value:nth-child(3) {
-  padding: 26px 24px 42px;
-  border-radius: 8px;
-}
-
-/* Ruler tick strip along the top edge — specimen-label detail. */
-.vk-folk-value::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 18px;
-  right: 18px;
-  height: 5px;
-  background: repeating-linear-gradient(
-    to right,
-    var(--hairline) 0 1px,
-    transparent 1px 10px
-  );
-  pointer-events: none;
-}
-
-.vk-folk-value-idx {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  font-family: var(--font-spline), ui-monospace, monospace;
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  color: var(--stov);
-  opacity: 0.7;
-}
-
-.vk-folk-value-title {
-  margin: 0 0 10px;
-  font-family: var(--font-spline), ui-monospace, monospace;
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  color: var(--glod);
-}
-
-.vk-folk-bracket {
-  color: var(--stov);
-  font-weight: 400;
-}
-
-.vk-folk-value-body {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--stov);
-}
-
-@media (min-width: 768px) {
-  .vk-folk-values {
-    grid-template-columns: 1.08fr 0.92fr 1fr;
-    align-items: start;
-  }
-
-  /* Desynced vertical offsets — tools on a wall, not a card grid. */
-  .vk-folk-value:nth-child(2) {
-    margin-top: 44px;
-  }
-
-  .vk-folk-value:nth-child(3) {
-    margin-top: 18px;
-  }
-}
-
-/* ── Oslo line — pull-quote with an oversized quotation dash ── */
-
-.vk-folk-pull {
-  display: flex;
-  align-items: flex-start;
-  gap: clamp(16px, 2.5vw, 32px);
-  margin: 0 0 clamp(72px, 10vw, 140px);
-}
-
-.vk-folk-pull-dash {
-  flex: none;
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-variation-settings: "opsz" 144;
-  font-size: clamp(56px, 8vw, 110px);
-  font-weight: 400;
-  line-height: 0.9;
-  color: var(--glod);
-  transform: translateY(-0.08em);
-  user-select: none;
-}
-
-.vk-folk-oslo {
-  margin: 0;
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-style: italic;
-  font-size: clamp(24px, 3vw, 40px);
-  font-weight: 460;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  color: var(--papir);
-  max-width: 26ch;
-}
-
-@media (min-width: 1024px) {
-  /* Diagonal flow: the quote sets to the right of the values block. */
-  .vk-folk-pull {
-    margin-left: 22%;
-  }
-}
-
-/* ── Leia — Karmsundet map beside the name story ── */
-
-.vk-folk-leia {
-  display: grid;
-  gap: clamp(36px, 5vw, 72px);
-  align-items: center;
-}
-
-.vk-folk-map {
-  justify-self: center;
-  width: min(100%, 260px);
-  transform: rotate(var(--rot-c)); /* chart pinned to the wall */
-}
-
-.vk-folk-map-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-
-.vk-folk-coast {
-  fill: none;
-  stroke: var(--kritt);
-  stroke-width: 2px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Old sailing lane — dotted route down the strait. Resting opacity is the
-   composed state; the in-view animation only fades up to it. */
-.vk-folk-route {
-  fill: none;
-  stroke: var(--kritt);
-  stroke-width: 2px;
-  stroke-linecap: round;
-  stroke-dasharray: 1 8;
-  opacity: 0.55;
-}
-
-/* Haugesund — the one lit window on the map. */
-.vk-folk-town {
-  fill: var(--glod);
-}
-
-.vk-folk-town-halo {
-  fill: none;
-  stroke: var(--glod);
-  stroke-width: 1px;
-  opacity: 0.35;
-}
-
 .vk-folk-namestory {
-  margin: 0 0 clamp(20px, 3vw, 30px);
+  margin: 0 0 6px;
   font-family: var(--font-fraunces), Georgia, serif;
-  font-size: clamp(20px, 2.2vw, 27px);
+  font-size: clamp(18px, 2vw, 24px);
   font-weight: 420;
   line-height: 1.45;
   color: var(--papir);
-  max-width: 30ch;
-}
-
-@media (min-width: 768px) {
-  .vk-folk-leia {
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  }
-
-  .vk-folk-map {
-    justify-self: start;
-    width: min(100%, 340px);
-  }
+  max-width: 34ch;
 }
 
 /* ── Coordinates — easter-egg host. A button styled as a chalk-mono
@@ -414,59 +235,218 @@
   }
 }
 
-/* ── Lighthouse beam — conic wedge sweeping the section once.
-      Element exists only during the sweep; wedge is gated to
-      no-preference, so reduced motion never paints it. ── */
+/* ── Meta row — the one-line origin story + the person plate ── */
 
-.vk-folk-beam {
+.vk-folk-meta {
+  display: grid;
+  gap: clamp(28px, 4vw, 48px);
+  margin: clamp(48px, 7vw, 88px) 0 clamp(56px, 8vw, 100px);
+}
+
+.vk-folk-body {
+  margin: 0;
+  max-width: 44ch;
+  font-size: clamp(18px, 1.5vw, 21px);
+  line-height: 1.6;
+  color: var(--papir);
+}
+
+@media (min-width: 768px) {
+  .vk-folk-meta {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: clamp(40px, 6vw, 96px);
+    align-items: center;
+  }
+}
+
+/* ── Person plate — 72px specimen plate, no photo, just initials ── */
+
+.vk-folk-person {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 16px 24px 16px 16px;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  transform: rotate(var(--rot-b)); /* resting tilt = framer's final frame */
+}
+
+.vk-folk-plate {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+}
+
+.vk-folk-plate span {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 144;
+  font-size: 32px;
+  font-weight: 560;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--glod);
+}
+
+.vk-folk-person-meta {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  min-width: 0;
+}
+
+.vk-folk-person-name {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--papir);
+}
+
+.vk-folk-person-role {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--stov);
+}
+
+/* ── Values — compact specimen row. No-uniform law: each plate keeps
+      its own radius and a slight vertical desync. ── */
+
+.vk-folk-values {
+  list-style: none;
+  display: grid;
+  gap: clamp(14px, 2vw, 22px);
+  margin: 0 0 clamp(64px, 9vw, 110px);
+  padding: 0;
+}
+
+.vk-folk-value {
+  position: relative;
+  padding: 20px 18px 22px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+}
+
+.vk-folk-value:nth-child(1) {
+  border-radius: 2px;
+}
+
+.vk-folk-value:nth-child(2) {
+  border-radius: 12px 3px 12px 3px;
+}
+
+.vk-folk-value:nth-child(3) {
+  border-radius: 8px;
+}
+
+/* Ruler tick strip along the top edge — specimen-label detail. */
+.vk-folk-value::before {
+  content: "";
   position: absolute;
-  inset: 0;
-  overflow: hidden;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 5px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--hairline) 0 1px,
+    transparent 1px 10px
+  );
   pointer-events: none;
-  z-index: 13;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .vk-folk-beam::before {
-    content: "";
-    position: absolute;
-    left: 14%;
-    bottom: 8%;
-    width: 300vmax;
-    height: 300vmax;
-    margin: 0 0 -150vmax -150vmax; /* center the disc on the anchor */
-    mix-blend-mode: screen;
-    background: conic-gradient(
-      from 0deg,
-      transparent 0deg,
-      rgba(255, 180, 84, 0.05) 7deg,
-      rgba(255, 180, 84, 0.26) 12deg,
-      rgba(255, 180, 84, 0.05) 17deg,
-      transparent 24deg
-    );
-    transform: rotate(140deg); /* resting = sweep completed, faded out */
-    animation: vk-folk-sweep 1.6s var(--ease-work) 1 both;
-    will-change: transform;
+.vk-folk-value-idx {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--stov);
+  opacity: 0.7;
+}
+
+.vk-folk-value-title {
+  margin: 0 0 8px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--glod);
+}
+
+.vk-folk-bracket {
+  color: var(--stov);
+  font-weight: 400;
+}
+
+.vk-folk-value-body {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--stov);
+}
+
+@media (min-width: 640px) {
+  .vk-folk-values {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  /* Light desync — tools on a wall, not a card grid. */
+  .vk-folk-value:nth-child(2) {
+    margin-top: 14px;
+  }
+
+  .vk-folk-value:nth-child(3) {
+    margin-top: 6px;
   }
 }
 
-@keyframes vk-folk-sweep {
-  from {
-    transform: rotate(8deg);
-    opacity: 0;
-  }
+/* ── Oslo line — pull-quote with an oversized quotation dash ── */
 
-  10% {
-    opacity: 1;
-  }
+.vk-folk-pull {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(16px, 2.5vw, 32px);
+  margin: 0;
+}
 
-  82% {
-    opacity: 1;
-  }
+.vk-folk-pull-dash {
+  flex: none;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 144;
+  font-size: clamp(56px, 8vw, 110px);
+  font-weight: 400;
+  line-height: 0.9;
+  color: var(--glod);
+  transform: translateY(-0.08em);
+  user-select: none;
+}
 
-  to {
-    transform: rotate(140deg);
-    opacity: 0;
+.vk-folk-oslo {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(24px, 3vw, 40px);
+  font-weight: 460;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--papir);
+  max-width: 26ch;
+}
+
+@media (min-width: 1024px) {
+  /* Diagonal flow: the quote sets to the right of the values row. */
+  .vk-folk-pull {
+    margin-left: 22%;
   }
 }
 

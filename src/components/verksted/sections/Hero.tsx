@@ -26,16 +26,22 @@ const STAMP_Y = ["0.4em", "0.16em", "-0.032em", "0.006em", "0em"];
 
 /* SVG hand-off (brief §4 Phase C): traces the canvas line's lower stretch
    (y 0.6H→H of the section, x around the 38% spine of the container) and
-   draws in over the exact scroll window where the canvas fades, so the
-   pulled thread persists below the hero. Coordinates reproduce the canvas
-   formula x = x38 + amp·sin(2πt)·sin(πt) sampled at y-steps of 0.05H. */
+   draws in over the exact scroll window where the canvas draws its line,
+   so the pulled thread persists below the hero once the canvas fades.
+   Coordinates reproduce the canvas formula
+   x = x38 + amp·sin(2πt)·sin(πt) sampled at y-steps of 0.05H — both axes
+   are fractions of section height/container width, so the path is valid
+   at any section height. */
 const TAIL_D =
   "M 410 0 C 400 25 390 50 380 75 C 370 100 358 125 350 150 " +
   "C 342 175 334 200 330 225 C 326 250 325 275 326 300 " +
   "C 327 325 332 350 337 375 C 342 400 350 425 356 450 " +
   "C 362 475 369 500 373 525 C 377 550 378 575 380 600";
-// Tail top sits at 1.56·viewH; canvas Phase C runs scrollY 1.28→1.6·viewH.
-const TAIL_OFFSET: ThreadSegmentProps["offset"] = ["start 0.28", "start 0"];
+// 200vh section ⇒ runway ≈ 1.0·viewH; the canvas line draws over Phase C
+// p 0.62→0.82 = scrollY 0.62→0.82·viewH. Tail top sits at 1.2·viewH (60%
+// of the section), so its viewport position over that window runs
+// 0.58→0.38·viewH — the draw window below maps progress exactly onto it.
+const TAIL_OFFSET: ThreadSegmentProps["offset"] = ["start 0.58", "start 0.38"];
 
 const charVariants: Variants = {
   laid: (c: [number, number]) => ({ y: "0.4em", rotate: c[1] }),

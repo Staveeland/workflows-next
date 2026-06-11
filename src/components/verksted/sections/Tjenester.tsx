@@ -1,16 +1,16 @@
 "use client";
 
 import "@/styles/verksted/tjenester.css";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useInView } from "framer-motion";
+import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
 import { verkstedContent } from "@/lib/verkstedContent";
 import { ThreadSegment, useThread } from "@/components/verksted/ThreadContext";
 
 type Bench = (typeof verkstedContent)["no"]["tjenester"]["benches"][number];
 type ChatSpec = NonNullable<Bench["vignette"]["chat"]>;
-type CodeSpec = NonNullable<Bench["vignette"]["code"]>;
 
 // Stamps are the only rotated elements on the benches (containers stay level).
 const STAMP_ROT = ["vk-rot-a", "vk-rot-c", "vk-rot-b", "vk-rot-d"];
@@ -21,6 +21,22 @@ const STAMP_ROT = ["vk-rot-a", "vk-rot-c", "vk-rot-b", "vk-rot-d"];
 const SPINE_D =
   "M 50 0 C 42 60 64 120 56 190 C 50 235 38 270 36 330 " +
   "C 34 380 58 430 56 480 C 54 530 46 565 47 600";
+
+const ILL_SIZES = "(max-width: 768px) 92vw, (max-width: 1280px) 45vw, 520px";
+
+// Fine-pointer probe — SSR/coarse default false, so the parallax style is
+// simply absent at rest (poster law: resting CSS = composed state).
+function useFinePointer() {
+  const [fine, setFine] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setFine(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return fine;
+}
 
 export function Tjenester() {
   const { lang } = useLang();
@@ -52,9 +68,13 @@ export function Tjenester() {
   );
 }
 
+/* ── Bench: the linocut illustration leads, text recedes to
+   stamp + title + benefit + proof. The chatboter chat vignette overlaps
+   the artwork's feathered foot; the agenter log ticks one line under it. ── */
 function BenchCard({ bench, reduced, rot }: { bench: Bench; reduced: boolean; rot: string }) {
+  const ref = useRef<HTMLElement>(null);
   return (
-    <article className={`vk-tj-bench vk-tj-bench--${bench.id}`}>
+    <article ref={ref} className={`vk-tj-bench vk-tj-bench--${bench.id}`}>
       <span className={`vk-stamp ${rot} vk-tj-label`}>{bench.stamp}</span>
       <h3 className="vk-tj-title">
         {bench.href ? (
@@ -65,22 +85,52 @@ function BenchCard({ bench, reduced, rot }: { bench: Bench; reduced: boolean; ro
           bench.title
         )}
       </h3>
-      <p className="vk-tj-benefit">{bench.benefit}</p>
-      <div className="vk-tj-vignette">
+      <div className="vk-tj-fig">
+        <BenchArt id={bench.id} alt={bench.alt} target={ref} reduced={reduced} />
         {bench.vignette.chat && <ChatVignette chat={bench.vignette.chat} reduced={reduced} />}
-        {bench.vignette.pipeline && (
-          <FlowVignette labels={bench.vignette.pipeline} reduced={reduced} />
-        )}
-        {bench.vignette.agentLog && (
-          <LogVignette lines={bench.vignette.agentLog} reduced={reduced} />
-        )}
-        {bench.vignette.code && <CodeVignette code={bench.vignette.code} reduced={reduced} />}
       </div>
+      {bench.vignette.agentLog && (
+        <LogVignette lines={bench.vignette.agentLog} reduced={reduced} />
+      )}
+      <p className="vk-tj-benefit">{bench.benefit}</p>
       <p className="vk-tj-proof">
         <span aria-hidden="true">→ </span>
         {bench.proof}
       </p>
     </article>
+  );
+}
+
+/* ── The illustration. Parallax-light: ±12px y-drift scrubbed off the
+   bench's scroll window — fine pointers only, never under reduced motion.
+   Resting state (SSR/coarse/reduced) carries no transform at all. ── */
+function BenchArt({
+  id,
+  alt,
+  target,
+  reduced,
+}: {
+  id: Bench["id"];
+  alt: string;
+  target: React.RefObject<HTMLElement | null>;
+  reduced: boolean;
+}) {
+  const fine = useFinePointer();
+  const { scrollYProgress } = useScroll({ target, offset: ["start end", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], [12, -12]);
+  const drift = fine && !reduced;
+
+  return (
+    <motion.div className="vk-tj-illwrap" style={drift ? { y } : undefined}>
+      <Image
+        src={`/verksted/tj-${id}.webp`}
+        alt={alt}
+        width={1024}
+        height={1024}
+        sizes={ILL_SIZES}
+        className="vk-ill vk-ill--feather vk-tj-ill"
+      />
+    </motion.div>
   );
 }
 
@@ -161,63 +211,10 @@ function ChatBubble({
   );
 }
 
-/* ── Flyter: mini-pipeline. The amber dot travels the path on a 4s CSS
-   offset-path loop, only while in view; it rests at the last node. ── */
-const FLOW_D =
-  "M14 36C47 22 78 20 111 28C144 36 175 52 208 44C241 36 273 24 306 32";
-const FLOW_NODES: ReadonlyArray<readonly [number, number]> = [
-  [14, 36],
-  [111, 28],
-  [208, 44],
-  [306, 32],
-];
-
-function FlowVignette({ labels, reduced }: { labels: string[]; reduced: boolean }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.4 });
-  const live = !reduced && inView;
-  const shown = labels.slice(0, FLOW_NODES.length);
-
-  return (
-    <div
-      ref={ref}
-      className="vk-tj-flow"
-      data-live={live ? "true" : "false"}
-      aria-hidden="true"
-    >
-      <svg viewBox="0 0 320 92" aria-hidden="true" focusable="false">
-        <path className="vk-tj-flow-path" d={FLOW_D} />
-        {shown.map((label, i) => {
-          const node = FLOW_NODES[i];
-          if (!node) return null;
-          const [x, y] = node;
-          const last = i === shown.length - 1;
-          return (
-            <g key={label}>
-              <circle className="vk-tj-flow-node" cx={x} cy={y} r={5} />
-              <text
-                className="vk-tj-flow-tag"
-                x={i === 0 ? x - 6 : last ? x + 6 : x}
-                y={76}
-                textAnchor={i === 0 ? "start" : last ? "end" : "middle"}
-              >
-                {label}
-              </text>
-            </g>
-          );
-        })}
-        <g className="vk-tj-flow-dotg" style={{ offsetPath: `path("${FLOW_D}")` }}>
-          <circle className="vk-tj-flow-halo" r={7} />
-          <circle className="vk-tj-flow-dot" r={3.5} />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-/* ── Agenter: mono log. All three lines are always in the DOM (stable
-   layout, composed resting state); while live the active line cycles
-   every 4s with a blinking caret, the rest dim. ── */
+/* ── Agenter: ONE ticking mono log line under the artwork. All lines are
+   stacked in the same grid cell (stable layout); only the active one is
+   visible, cycling every 4s while live. Resting/no-JS/reduced state =
+   the final line ("varsel sendt"), the composed end of the story. ── */
 function LogVignette({ lines, reduced }: { lines: string[]; reduced: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { amount: 0.5 });
@@ -244,39 +241,10 @@ function LogVignette({ lines, reduced }: { lines: string[]; reduced: boolean }) 
     >
       {lines.map((line, i) => (
         <p key={line} className="vk-tj-logline" data-active={i === active ? "true" : "false"}>
-          <span>{line}</span>
           <span className="vk-tj-caret" />
+          <span>{line}</span>
         </p>
       ))}
-    </div>
-  );
-}
-
-/* ── Software: the spreadsheet formula crossfades into a small UI chip
-   once in view. Resting/reduced/no-JS state = chip shown. ── */
-function CodeVignette({ code, reduced }: { code: CodeSpec; reduced: boolean }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.6 });
-  const [armed, setArmed] = useState(false);
-  const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    if (!reduced) setArmed(true);
-  }, [reduced]);
-
-  useEffect(() => {
-    if (!armed || !inView || done) return;
-    const id = window.setTimeout(() => setDone(true), 900); // beat to read the formula
-    return () => window.clearTimeout(id);
-  }, [armed, inView, done]);
-
-  const compiled = !armed || done;
-  return (
-    <div ref={ref} className="vk-tj-code" data-compiled={compiled ? "true" : "false"}>
-      <code className="vk-tj-code-before" aria-hidden="true">
-        {code.before}
-      </code>
-      <span className="vk-tj-chip">{code.after}</span>
     </div>
   );
 }

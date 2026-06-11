@@ -87,10 +87,10 @@ export const metadata: Metadata = {
       "AI-agenter, kunstig intelligens og skreddersydd software for bedrifter i Haugesund og Norge.",
     images: [
       {
-        url: "/logo-square.jpg",
+        url: "/og.jpg",
         width: 1200,
         height: 630,
-        alt: "Workflows – AI og softwareutvikling i Haugesund",
+        alt: "Kaos inn. Flyt ut. — Workflows, AI og softwareutvikling i Haugesund",
       },
     ],
   },
@@ -99,7 +99,7 @@ export const metadata: Metadata = {
     title: "Workflows – AI og softwareutvikling i Haugesund",
     description:
       "AI-agenter, kunstig intelligens og skreddersydd software for bedrifter i Haugesund og Norge.",
-    images: ["/logo-square.jpg"],
+    images: ["/og.jpg"],
   },
   icons: {
     icon: [

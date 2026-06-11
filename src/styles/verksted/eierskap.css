@@ -109,14 +109,25 @@
   color: var(--blekk);
 }
 
+/* ── Middle band: stamps + tipped-in plate + body ──
+   Mobile-first single column (stamps → image → body); ≥768px the plate
+   takes the right 38% and the stamps row runs across/over it. */
+
+.vk-eie-mid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: clamp(36px, 6vh, 68px);
+}
+
 /* ── The three stamps ── */
 
 .vk-eie-stamps {
+  position: relative;
+  z-index: 2; /* impressions land on top of the pinned photo */
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 18px 26px;
-  margin-top: clamp(36px, 6vh, 68px);
 }
 
 .vk-eie-sheet .vk-eie-stamp {
@@ -124,7 +135,55 @@
   border-width: 3px;
   font-size: clamp(24px, 2.6vw, 33px); /* never below the 24px stamp floor */
   padding: 10px 20px;
+  /* paper chip behind the ink: invisible on the cream sheet, but keeps
+     the red ≥3:1 (large text) where a stamp crosses the dark plate */
+  background: rgba(247, 242, 233, 0.94);
   /* dry-ink mask inherited from base .vk-stamp (brief §3.3) */
+}
+
+/* ── The tipped-in plate: dark illustration pinned to the deed ──
+   8px cream photo border + chalk-tape corners turn the #171310 artwork
+   into an intentional plate. Rotation rides the vk-rot-c token; this is
+   the resting state (poster law) — no scroll-driven motion here. */
+
+.vk-eie-plate {
+  position: relative;
+  width: min(60vw, 300px);
+  margin: 32px auto 0;
+  padding: 8px;
+  background: #fbf7ee; /* photo-border cream, a hair lighter than the sheet */
+  box-shadow: 0 12px 28px rgba(23, 19, 16, 0.22);
+}
+
+.vk-eie-plate .vk-eie-plate-img {
+  border-radius: 2px; /* tighter than base .vk-ill — reads as a print */
+}
+
+/* Chalk-blue tape across opposite corners (decorative). */
+.vk-eie-plate::before,
+.vk-eie-plate::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 58px;
+  height: 20px;
+  background: linear-gradient(rgba(143, 184, 222, 0.52), rgba(143, 184, 222, 0.38));
+  box-shadow: 0 1px 2px rgba(23, 19, 16, 0.14);
+  /* torn tape ends */
+  clip-path: polygon(0 15%, 5% 0, 100% 8%, 96% 85%, 100% 100%, 4% 92%);
+  pointer-events: none;
+}
+
+.vk-eie-plate::before {
+  top: -7px;
+  left: -19px;
+  transform: rotate(-45deg);
+}
+
+.vk-eie-plate::after {
+  right: -19px;
+  bottom: -7px;
+  transform: rotate(-45deg);
 }
 
 /* Pre-slam: hidden only after mount with motion allowed (poster law) —
@@ -205,9 +264,34 @@
   outline-color: var(--glod-papir);
 }
 
-/* ── ≥768px: footnote and link share the bottom rule line ── */
+/* ── ≥768px: plate right at 38%, stamps slam across/over it;
+   footnote and link share the bottom rule line ── */
 
 @media (min-width: 768px) {
+  .vk-eie-mid {
+    grid-template-columns: minmax(0, 1fr) 38%;
+    column-gap: clamp(24px, 4vw, 48px);
+    align-items: start;
+  }
+
+  .vk-eie-stamps {
+    grid-column: 1 / -1; /* full width: the row runs over the plate */
+    grid-row: 1;
+  }
+
+  .vk-eie-plate {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 100%;
+    margin: 0;
+    justify-self: end;
+  }
+
+  .vk-eie-body {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
   .vk-eie-foot {
     flex-direction: row;
     align-items: center;

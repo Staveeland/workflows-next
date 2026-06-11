@@ -9,7 +9,14 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { motion, useReducedMotion, type MotionProps } from "framer-motion";
+import Image from "next/image";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  type MotionProps,
+} from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
 import { verkstedContent } from "@/lib/verkstedContent";
 
@@ -23,6 +30,20 @@ const useMounted = () =>
   useSyncExternalStore(
     noopSubscribe,
     () => true,
+    () => false,
+  );
+
+// Fine-pointer probe (external store): false on server, tracks the MQ live.
+const FINE_MQ = "(hover: hover) and (pointer: fine)";
+const subscribeFine = (cb: () => void) => {
+  const mq = window.matchMedia(FINE_MQ);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+};
+const useFinePointer = () =>
+  useSyncExternalStore(
+    subscribeFine,
+    () => window.matchMedia(FINE_MQ).matches,
     () => false,
   );
 
@@ -98,86 +119,6 @@ function buildTooltip(template: string, wind: string | null): string {
   return stop === -1 ? "" : template.slice(0, stop + 1).trim();
 }
 
-/* Single-stroke, hand-drawn Karmsundet: two roughly-parallel wobbly
-   coastlines (Karmøy west, mainland east), the old sailing lane as
-   dashes, and Haugesund as the one lit dot. */
-const COAST_WEST =
-  "M 63 14 C 55 36, 69 58, 60 82 C 52 104, 66 124, 58 146 C 49 170, 64 190, 56 214 C 49 236, 62 260, 52 288";
-const COAST_EAST =
-  "M 126 8 C 133 26, 120 44, 129 60 C 122 68, 121 76, 131 82 C 139 102, 125 126, 134 148 C 142 172, 128 194, 137 218 C 145 242, 131 264, 140 292";
-const ROUTE =
-  "M 96 12 C 91 62, 101 112, 94 164 C 89 210, 100 254, 93 290";
-
-function KarmsundetMap({ anim }: { anim: boolean }) {
-  const draw = (delay: number): MotionProps =>
-    anim
-      ? {
-          initial: { pathLength: 0 },
-          whileInView: { pathLength: 1 },
-          viewport: { once: true, amount: 0.5 },
-          transition: { duration: 1.2, ease: EASE, delay },
-        }
-      : { initial: false };
-  const fade = (delay: number, to: number): MotionProps =>
-    anim
-      ? {
-          initial: { opacity: 0 },
-          whileInView: { opacity: to },
-          viewport: { once: true, amount: 0.5 },
-          transition: { duration: 0.5, ease: EASE, delay },
-        }
-      : { initial: false };
-
-  return (
-    <svg
-      className="vk-folk-map-svg"
-      viewBox="0 0 200 300"
-      aria-hidden="true"
-      focusable="false"
-    >
-      {/* key on `anim` remounts so the draw/fade initial states apply */}
-      <motion.path
-        key={`west-${anim}`}
-        className="vk-folk-coast"
-        d={COAST_WEST}
-        vectorEffect="non-scaling-stroke"
-        {...draw(0)}
-      />
-      <motion.path
-        key={`east-${anim}`}
-        className="vk-folk-coast"
-        d={COAST_EAST}
-        vectorEffect="non-scaling-stroke"
-        {...draw(0.15)}
-      />
-      <motion.path
-        key={`route-${anim}`}
-        className="vk-folk-route"
-        d={ROUTE}
-        vectorEffect="non-scaling-stroke"
-        {...fade(0.95, 0.55)}
-      />
-      <motion.circle
-        key={`halo-${anim}`}
-        className="vk-folk-town-halo"
-        cx={143}
-        cy={62}
-        r={10}
-        vectorEffect="non-scaling-stroke"
-        {...fade(1.05, 0.35)}
-      />
-      <motion.circle
-        key={`town-${anim}`}
-        className="vk-folk-town"
-        cx={143}
-        cy={62}
-        r={4.5}
-        {...fade(1.05, 1)}
-      />
-    </svg>
-  );
-}
-
 export function Folkene() {
   const { lang } = useLang();
   const t = verkstedContent[lang];
@@ -187,11 +128,22 @@ export function Folkene() {
   const headingId = useId();
   const tipId = useId();
 
-  const [beamOn, setBeamOn] = useState(false);
+  // Parallax-light: the harbor drifts a few px against the scroll.
+  // Fine pointers only; reduced motion and touch stay static.
+  const stageRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: stageRef,
+    offset: ["start end", "end start"],
+  });
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [24, -24]);
+  const fine = useFinePointer();
+  const parallax = anim && fine;
+
+  const [glowOn, setGlowOn] = useState(false);
   const [tip, setTip] = useState<string | null>(null);
   const fired = useRef(false);
   const pressTimer = useRef(0);
-  const beamTimer = useRef(0);
+  const glowTimer = useRef(0);
 
   const template = t.eggs.coordsTooltipTemplate;
 
@@ -205,8 +157,8 @@ export function Folkene() {
       // storage unavailable — still fire once per mount
     }
     if (!reduced) {
-      setBeamOn(true);
-      beamTimer.current = window.setTimeout(() => setBeamOn(false), 1900);
+      setGlowOn(true);
+      glowTimer.current = window.setTimeout(() => setGlowOn(false), 1900);
     }
     void fetchWind(lang).then((wind) => {
       const text = buildTooltip(template, wind);
@@ -224,7 +176,7 @@ export function Folkene() {
   useEffect(
     () => () => {
       window.clearTimeout(pressTimer.current);
-      window.clearTimeout(beamTimer.current);
+      window.clearTimeout(glowTimer.current);
     },
     [],
   );
@@ -247,31 +199,83 @@ export function Folkene() {
     <section id="folkene" className="vk-s vk-folk" aria-labelledby={headingId}>
       <div className="vk-wrap">
         <header className="vk-folk-head">
-          <div className="vk-folk-head-main">
-            <motion.p
-              key={`kicker-${anim}`}
-              className="vk-kicker vk-folk-kicker"
-              {...rise(anim, 0)}
-            >
-              {t.folkene.kicker}
-            </motion.p>
-            <motion.h2
-              key={`h2-${anim}`}
-              id={headingId}
-              className="vk-display vk-folk-h2"
-              {...rise(anim, 0.07)}
-            >
-              {t.folkene.heading}
-            </motion.h2>
-            <motion.p key={`body-${anim}`} className="vk-folk-body" {...rise(anim, 0.16)}>
-              {t.folkene.body}
-            </motion.p>
-          </div>
+          <motion.p
+            key={`kicker-${anim}`}
+            className="vk-kicker vk-folk-kicker"
+            {...rise(anim, 0)}
+          >
+            {t.folkene.kicker}
+          </motion.p>
+          <motion.h2
+            key={`h2-${anim}`}
+            id={headingId}
+            className="vk-display vk-folk-h2"
+            {...rise(anim, 0.07)}
+          >
+            {t.folkene.heading}
+          </motion.h2>
+        </header>
+
+        {/* ── Centerpiece: the harbor at night. The heading hangs into its
+              sky; the name story sits at its waterline as a caption plate. ── */}
+        <figure className="vk-folk-stage" ref={stageRef}>
+          <motion.div
+            className="vk-folk-ill"
+            style={parallax ? { y: parallaxY } : undefined}
+          >
+            <Image
+              src="/verksted/folkene.webp"
+              alt={t.folkene.alt}
+              width={1536}
+              height={1024}
+              sizes="(max-width: 1147px) 100vw, 1100px"
+              className="vk-ill vk-ill--feather"
+            />
+
+            {/* Easter egg: the painted lighthouse flares once. Rendered only
+                during the flare; the glow itself is reduced-motion-gated.
+                Lives inside the parallax wrapper so it tracks the artwork. */}
+            {glowOn && <div className="vk-folk-lys" aria-hidden="true" />}
+          </motion.div>
+
+          <motion.figcaption
+            key={`caption-${anim}`}
+            className="vk-folk-caption"
+            {...rise(anim, 0.12)}
+          >
+            <p className="vk-folk-namestory">{t.folkene.nameStory}</p>
+            <span className="vk-folk-coordswrap">
+              <button
+                type="button"
+                className="vk-folk-coords"
+                onMouseEnter={trigger}
+                onClick={trigger}
+                onPointerDown={startPress}
+                onPointerUp={cancelPress}
+                onPointerLeave={cancelPress}
+                onPointerCancel={cancelPress}
+                aria-describedby={tip ? tipId : undefined}
+              >
+                {t.folkene.coordinates}
+              </button>
+              {tip && (
+                <span role="tooltip" id={tipId} className="vk-folk-tip">
+                  {tip}
+                </span>
+              )}
+            </span>
+          </motion.figcaption>
+        </figure>
+
+        <div className="vk-folk-meta">
+          <motion.p key={`body-${anim}`} className="vk-folk-body" {...rise(anim, 0)}>
+            {t.folkene.body}
+          </motion.p>
 
           <motion.div
             key={`person-${anim}`}
             className="vk-folk-person"
-            {...stampIn(anim, 0.26)}
+            {...stampIn(anim, 0.15)}
           >
             <div className="vk-folk-plate" aria-hidden="true">
               <span>{t.folkene.person.initials}</span>
@@ -281,7 +285,7 @@ export function Folkene() {
               <span className="vk-folk-person-role">{t.folkene.person.role}</span>
             </p>
           </motion.div>
-        </header>
+        </div>
 
         <ul className="vk-folk-values">
           {t.folkene.values.map(([title, body], i) => (
@@ -313,39 +317,8 @@ export function Folkene() {
           </span>
           <p className="vk-folk-oslo">{t.folkene.osloLine}</p>
         </motion.figure>
-
-        <div className="vk-folk-leia">
-          <div className="vk-folk-map" aria-hidden="true">
-            <KarmsundetMap anim={anim} />
-          </div>
-
-          <motion.div key={`leia-${anim}`} className="vk-folk-leia-text" {...rise(anim, 0.1)}>
-            <p className="vk-folk-namestory">{t.folkene.nameStory}</p>
-            <span className="vk-folk-coordswrap">
-              <button
-                type="button"
-                className="vk-folk-coords"
-                onMouseEnter={trigger}
-                onClick={trigger}
-                onPointerDown={startPress}
-                onPointerUp={cancelPress}
-                onPointerLeave={cancelPress}
-                onPointerCancel={cancelPress}
-                aria-describedby={tip ? tipId : undefined}
-              >
-                {t.folkene.coordinates}
-              </button>
-              {tip && (
-                <span role="tooltip" id={tipId} className="vk-folk-tip">
-                  {tip}
-                </span>
-              )}
-            </span>
-          </motion.div>
-        </div>
       </div>
 
-      {beamOn && <div className="vk-folk-beam" aria-hidden="true" />}
       <div className="vk-grain vk-grain--heavy vk-folk-grain" aria-hidden="true" />
     </section>
   );

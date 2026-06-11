@@ -260,3 +260,35 @@ html:has(.vk) {
 .vk-grain--heavy {
   opacity: 0.15;
 }
+
+/* ════════════════════════════════════════════
+   Illustrations — linocut suite, baked on #171310.
+   Minimal primitives; sections handle their own layout.
+   ════════════════════════════════════════════ */
+
+.vk-ill {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+/* Frame wrapper: hairline inset ring over the artwork. */
+.vk-ill-frame {
+  position: relative;
+}
+
+.vk-ill-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--hairline);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Feather variant: square illustrations melt into the dark page. */
+.vk-ill--feather {
+  -webkit-mask-image: radial-gradient(120% 120% at 50% 45%, #000 62%, transparent 98%);
+  mask-image: radial-gradient(120% 120% at 50% 45%, #000 62%, transparent 98%);
+}

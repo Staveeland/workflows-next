@@ -29,6 +29,7 @@ export interface VerkstedContent {
       id: "chatboter" | "flyter" | "agenter" | "software";
       stamp: string;
       title: string;
+      alt: string;
       benefit: string;
       proof: string;
       href: string | null;
@@ -54,6 +55,7 @@ export interface VerkstedContent {
     slug: "csub" | "festiviteten" | "elementlab";
     name: string;
     dateline: string;
+    alt: string;
     lead: string;
     body: string;
     stamp: string;
@@ -67,6 +69,7 @@ export interface VerkstedContent {
     kicker: string;
     heading: string;
     stamps: [string, string, string];
+    alt: string;
     body: string;
     footnote: string;
     linkLabel: string;
@@ -75,6 +78,7 @@ export interface VerkstedContent {
   folkene: {
     kicker: string;
     heading: string;
+    alt: string;
     body: string;
     osloLine: string;
     nameStory: string;
@@ -177,7 +181,8 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
           id: "chatboter",
           stamp: "SVARER 24/7",
           title: "Chatboter",
-          benefit: "En chatbot som svarer kundene på norsk — også klokka tre om natta.",
+          alt: "En talebobleformet lampe lyser over en arbeidsbenk om natten — chatten er våken.",
+          benefit: "Svarer kundene på norsk — også klokka tre om natta.",
           proof: "CSUB spør assistenten sin — og får svar rett fra egne prosjektdokumenter.",
           href: "/chatboter",
           vignette: {
@@ -191,7 +196,8 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
           id: "flyter",
           stamp: "GÅR AV SEG SELV",
           title: "Automatiserte flyter",
-          benefit: "Rutinejobbene gjør seg selv: fra innboks til ferdig rapport uten at noen rører et tastatur.",
+          alt: "Krøllete papirer trekkes inn på en ravgul tråd gjennom en stemplemaskin og kommer ut som en ryddig stabel.",
+          benefit: "Rutinejobbene gjør seg selv — fra innboks til ferdig rapport.",
           proof: "ElementLab: 80 % raskere rapporter, hundrevis av timer frigjort i året.",
           href: "/automatiserte-flyter",
           vignette: { pipeline: ["innboks", "hentet", "behandlet", "levert"] },
@@ -200,7 +206,8 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
           id: "agenter",
           stamp: "PÅ NATTEVAKT",
           title: "AI-agenter",
-          benefit: "En agent som følger med døgnet rundt — og sier fra før små avvik blir dyre.",
+          alt: "En liten nattevakt-automat med lykt til hode går runden mellom arkivskap med notatboka klar.",
+          benefit: "Følger med døgnet rundt — varsler før avvik blir dyre.",
           proof: "Festiviteten: agenten overvåker billettsalg og annonser, og varsler ved svakt salg.",
           href: "/ai-agenter",
           vignette: {
@@ -211,7 +218,8 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
           id: "software",
           stamp: "BYGD FRA BUNNEN",
           title: "Skreddersydd programvare",
-          benefit: "Passer ikke hyllevaren, bygger vi verktøyet rundt måten dere faktisk jobber på.",
+          alt: "Hender skjærer ut et glødende grensesnittpanel av tre med stemjern.",
+          benefit: "Passer ikke hyllevaren, bygger vi verktøyet rundt dere.",
           proof: "CSUB: prosjektdata som lå spredt i Excel, samlet i ett dashbord.",
           href: null,
           vignette: {
@@ -250,8 +258,9 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
         slug: "csub",
         name: "CSUB",
         dateline: "subsea-engineering",
-        lead: "Prosjektdata lå spredt i Excel-ark. Nå ligger alt i ett dashbord.",
-        body: "RAG-assistenten på toppen svarer på spørsmål, finner statistikk og lager rapporter — rett fra deres egne dokumenter. Ingen leting, bare svar.",
+        alt: "Subsea-konstruksjoner under vannlinjen, bundet med en ravgul tråd til et ryddig dashbord på en skriveplate over.",
+        lead: "Prosjektdata lå spredt i Excel — nå ligger alt i ett dashbord.",
+        body: "Assistenten svarer rett fra deres egne dokumenter — ingen leting.",
         stamp: "ALT PÅ ETT BRETT",
         chalk: "dette lå i excel før ↑",
         statValue: null,
@@ -263,8 +272,9 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
         slug: "festiviteten",
         name: "Festiviteten",
         dateline: "historisk teater, haugesund",
-        lead: "Et historisk teater med en nattevakt som aldri blunker. AI-en følger billettsalg og annonser på Meta, Google og radio — i sanntid.",
-        body: "Svikter salget for en forestilling, kommer varselet med en gang. Scenen får oppmerksomheten — systemet tar tallene.",
+        alt: "Et historisk teater om natten, der billetter flyr som en fugleflokk mot dørene.",
+        lead: "Et historisk teater med en nattevakt som aldri blunker.",
+        body: "Svikter salget, kommer varselet med en gang.",
         stamp: "FULLT HUS",
         chalk: "teateret sover — agenten gjør ikke",
         statValue: null,
@@ -276,8 +286,9 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
         slug: "elementlab",
         name: "ElementLab",
         dateline: "norsk bedrift, rapporttung hverdag",
+        alt: "Et timeglass forvandler et kaos av papirer til ett rent, glødende dokument — en stoppeklokke står ved siden av.",
         lead: "Hundrevis av timer frigjort — hvert år.",
-        body: "Flyten henter tallene, bygger rapporten og legger den klar. Timene går tilbake til arbeid som trenger et menneske.",
+        body: "Flyten bygger rapporten — timene går tilbake til menneskene.",
         stamp: "TIMER FRIGJORT",
         chalk: "ekte tall — vi har målt",
         statValue: "80%",
@@ -290,7 +301,8 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       kicker: "Skjøtet",
       heading: "Du eier alt — svart på hvitt.",
       stamps: ["KODEN: DIN", "DATAENE: DINE", "REPOET: DITT"],
-      body: "Når vi leverer, er alt ditt: kode, design, data. Vil du bytte oss ut i morgen, kan du det — alt ligger allerede hos deg.",
+      alt: "Et kremfarget skjøte med rødt vokssegl og en messingnøkkel knyttet fast med ravgul tråd.",
+      body: "Når vi leverer, er alt ditt: kode, design og data.",
       footnote: "Ingen lisenser. Ingen bindingstid. Ingen data-norsk i kontrakten heller.",
       linkLabel: "Se overleveringen — uke for uke",
       linkHref: "#prosess",
@@ -298,15 +310,16 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
     folkene: {
       kicker: "Folkene",
       heading: "Haugesund, etter stengetid",
-      body: "Workflows ble startet i Haugesund i 2024. Ingen selgere her — du snakker med han som bygger.",
+      alt: "Norske sjøhus ved et sund om natten — ett verkstedsvindu lyser, fiskebåter ligger ved kai og et fyrtårn vokter leia.",
+      body: "Startet i Haugesund i 2024 — du snakker med han som bygger.",
       osloLine: "Vi er ikke et byrå i Oslo med pitch-deck. Vi er et verksted i Haugesund med lys i vinduet.",
       nameStory: "Leia utenfor kontoret vårt ga Norge navn. Vi bygger nye veier for arbeid — fra Haugesund.",
       coordinates: "59.4138° N, 5.2679° Ø",
-      person: { name: "Petter Staveland", role: "Grunnlegger og daglig leder", initials: "PS" },
+      person: { name: "Petter Staveland", role: "Daglig leder", initials: "PS" },
       values: [
-        ["Vis, ikke fortell", "Synlig fremdrift fra uke én. Du ser hva vi bygger mens vi bygger det."],
-        ["Ditt, helt ditt", "Kode, design og data er dine. Ingen bindingstid, ingen innlåsing."],
-        ["Norsk og nær", "Bygget for norske bedrifter, på norsk, med GDPR i bakhodet fra første linje."],
+        ["Vis, ikke fortell", "Synlig fremdrift fra uke én."],
+        ["Ditt, helt ditt", "Kode, design og data er dine."],
+        ["Norsk og nær", "På norsk, med GDPR fra start."],
       ],
     },
     kontakt: {
@@ -403,7 +416,8 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
           id: "chatboter",
           stamp: "ANSWERS 24/7",
           title: "Chatbots",
-          benefit: "A chatbot that answers your customers in Norwegian — even at three in the morning.",
+          alt: "A speech-bubble-shaped lamp glowing over a workbench at night — the chat is awake.",
+          benefit: "Answers your customers in Norwegian — even at 3 a.m.",
           proof: "CSUB asks their assistant — and gets answers straight from their own project documents.",
           href: "/chatboter",
           vignette: {
@@ -417,7 +431,8 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
           id: "flyter",
           stamp: "RUNS ITSELF",
           title: "Automated workflows",
-          benefit: "Routine jobs run themselves: from inbox to finished report without anyone touching a keyboard.",
+          alt: "Crumpled papers pulled onto an amber thread through a stamping machine, coming out as a neat stack.",
+          benefit: "Routine jobs run themselves — from inbox to finished report.",
           proof: "ElementLab: 80% faster reports, hundreds of hours freed up every year.",
           href: "/automatiserte-flyter",
           vignette: { pipeline: ["inbox", "fetched", "processed", "delivered"] },
@@ -426,7 +441,8 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
           id: "agenter",
           stamp: "ON NIGHT WATCH",
           title: "AI agents",
-          benefit: "An agent that keeps watch around the clock — and speaks up before small problems become expensive ones.",
+          alt: "A small lantern-headed night-watchman automaton patrolling between filing cabinets, notebook at the ready.",
+          benefit: "Keeps watch around the clock — alerts before problems get expensive.",
           proof: "Festiviteten: the agent monitors ticket sales and ads, and raises the alarm when sales dip.",
           href: "/ai-agenter",
           vignette: {
@@ -437,7 +453,8 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
           id: "software",
           stamp: "BUILT FROM SCRATCH",
           title: "Custom software",
-          benefit: "When off-the-shelf doesn't fit, we build the tool around the way you actually work.",
+          alt: "Hands carving a glowing interface panel from wood with a chisel.",
+          benefit: "When off-the-shelf doesn't fit, we build around how you work.",
           proof: "CSUB: project data scattered across Excel, gathered into one dashboard.",
           href: null,
           vignette: {
@@ -476,8 +493,9 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
         slug: "csub",
         name: "CSUB",
         dateline: "subsea engineering",
-        lead: "Project data was scattered across Excel sheets. Now it all lives in one dashboard.",
-        body: "The RAG assistant on top answers questions, digs out statistics and builds reports — straight from their own documents. No hunting, just answers.",
+        alt: "Subsea structures below the waterline, tied by an amber thread to a tidy dashboard clipboard above.",
+        lead: "Project data was scattered across Excel — now it lives in one dashboard.",
+        body: "The assistant answers straight from their own documents — no hunting.",
         stamp: "ALL IN ONE PLACE",
         chalk: "this used to live in excel ↑",
         statValue: null,
@@ -489,8 +507,9 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
         slug: "festiviteten",
         name: "Festiviteten",
         dateline: "historic theatre, haugesund",
-        lead: "A historic theatre with a night watchman who never blinks. The AI tracks ticket sales and ads across Meta, Google and radio — in real time.",
-        body: "If a show is selling slowly, the alert lands straight away. The stage gets the attention — the system minds the numbers.",
+        alt: "A historic theatre at night, tickets flying like a flock of birds toward the doors.",
+        lead: "A historic theatre with a night watchman who never blinks.",
+        body: "If a show sells slowly, the alert lands straight away.",
         stamp: "FULL HOUSE",
         chalk: "the theatre sleeps — the agent doesn't",
         statValue: null,
@@ -502,8 +521,9 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
         slug: "elementlab",
         name: "ElementLab",
         dateline: "norwegian company, buried in reports",
+        alt: "An hourglass turning a chaos of papers into one clean glowing document, a stopwatch beside it.",
         lead: "Hundreds of hours freed up — every year.",
-        body: "The workflow pulls the numbers, builds the report and leaves it ready. The hours go back to work that needs a human.",
+        body: "The workflow builds the report — the hours go back to people.",
         stamp: "HOURS RECLAIMED",
         chalk: "real numbers — we measured",
         statValue: "80%",
@@ -516,7 +536,8 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       kicker: "The deed",
       heading: "You own everything — in black and white.",
       stamps: ["THE CODE: YOURS", "THE DATA: YOURS", "THE REPO: YOURS"],
-      body: "When we hand over, it's all yours: code, design, data. Want to swap us out tomorrow? Go ahead — everything already lives with you.",
+      alt: "A cream deed with a red wax seal and a brass key tied with amber thread.",
+      body: "When we hand over, it's all yours: code, design and data.",
       footnote: "No licences. No lock-in. No corporate-speak in the contract either.",
       linkLabel: "See the handover — week by week",
       linkHref: "#prosess",
@@ -524,15 +545,16 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
     folkene: {
       kicker: "The people",
       heading: "Haugesund, after closing time",
-      body: "Workflows was founded in Haugesund in 2024. No salespeople here — you talk to the person who builds it.",
+      alt: "Norwegian wharf houses by a strait at night — one workshop window lit, fishing boats moored, a lighthouse keeping watch.",
+      body: "Founded in Haugesund in 2024 — you talk to the person who builds.",
       osloLine: "We're not an Oslo agency with a pitch deck. We're a workshop in Haugesund with the light still on.",
       nameStory: "The sea lane outside our office gave Norway its name. We're building new ways to work — from Haugesund.",
       coordinates: "59.4138° N, 5.2679° E",
-      person: { name: "Petter Staveland", role: "Founder and managing director", initials: "PS" },
+      person: { name: "Petter Staveland", role: "Managing director", initials: "PS" },
       values: [
-        ["Show, don't tell", "Visible progress from week one. You see what we're building while we build it."],
-        ["Yours, all yours", "Code, design and data belong to you. No lock-in, no minimum term."],
-        ["Norwegian to the core", "Built for Norwegian businesses, in Norwegian, with GDPR in mind from the first line."],
+        ["Show, don't tell", "Visible progress from week one."],
+        ["Yours, all yours", "Code, design and data are yours."],
+        ["Norwegian to the core", "In Norwegian, with GDPR from day one."],
       ],
     },
     kontakt: {

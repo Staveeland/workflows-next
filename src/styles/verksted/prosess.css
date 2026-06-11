@@ -159,7 +159,11 @@
   pointer-events: none;
 }
 
-/* ── Rail: six date-stamp markers + thread weaving behind ── */
+/* ── Rail: six pressable week stops + the amber progress line ──
+   The rail is a <nav> of real buttons — the visitor sees all six weeks at
+   once and can press any of them instead of scrolling. The amber line draws
+   stop-centre to stop-centre; its head rides scroll progress and lands on
+   stop n exactly at the runway offset the stop's own button scrolls to. */
 
 .vk-pro-railrow {
   display: flex;
@@ -178,48 +182,131 @@
   justify-content: space-between;
 }
 
-/* ThreadSegment wrapper — position/z-index come inline from the engine. */
-.vk-pro-thread {
-  left: 17px;
-  right: 17px;
+/* Track base — hairline, behind the plates (they mask it, timetable-style).
+   Resting CSS state is the fully-lit line (poster law); JS scales it live. */
+.vk-pro-track {
+  position: absolute;
+  left: 27px; /* half a stop plate — centre-to-centre */
+  right: 27px;
   top: 50%;
+  height: 2px;
   translate: 0 -50%;
-  aspect-ratio: 720 / 80;
+  background: var(--hairline);
+  pointer-events: none;
 }
 
-.vk-pro-marker {
+.vk-pro-trackline {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: var(--glod);
+  box-shadow: 0 0 10px var(--glod-halo);
+}
+
+/* Full-track-width lane: driving its x in % moves the knot in track units,
+   so the head needs no pixel measurement. Rests fully advanced (knot on 6). */
+.vk-pro-headlane {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 0;
+}
+
+.vk-pro-headknot {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  translate: 50% -50%;
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 14px 3px rgba(255, 180, 84, 0.5);
+}
+
+/* ── The six week stops — stamp plates, pressable, >=44px targets ── */
+
+.vk-pro-stop {
   position: relative;
   z-index: 1;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
+  appearance: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 54px;
+  min-height: 54px;
+  padding: 7px 4px;
   font-family: var(--font-spline), ui-monospace, monospace;
-  font-size: 14px;
-  font-weight: 500;
   background: var(--bek);
   border: 1.5px solid var(--hairline);
-  color: var(--hairline);
+  border-radius: 0;
+  cursor: pointer;
   rotate: var(--vk-rot, 0deg);
   transition:
-    color var(--dur-2) var(--ease-work),
     border-color var(--dur-2) var(--ease-work),
-    box-shadow var(--dur-2) var(--ease-work);
+    box-shadow var(--dur-2) var(--ease-work),
+    scale var(--dur-1) var(--ease-work);
 }
 
-.vk-pro-marker[data-state="passed"] {
+.vk-pro-stop:active {
+  scale: 0.97;
+}
+
+.vk-pro-stop-num {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+  /* future weeks: muted but AA-readable — hairline stays border-only */
+  color: var(--stov);
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-pro-stop-cap {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+/* Hover brightens future stops; passed/current rules below win the cascade. */
+.vk-pro-stop:hover {
+  border-color: var(--stov);
+}
+
+.vk-pro-stop:hover .vk-pro-stop-num {
+  color: var(--papir);
+}
+
+.vk-pro-stop[data-state="passed"] {
   border-color: var(--glod);
+}
+
+.vk-pro-stop[data-state="passed"] .vk-pro-stop-num,
+.vk-pro-stop[data-state="passed"] .vk-pro-stop-cap {
   color: var(--glod);
 }
 
-.vk-pro-marker[data-state="current"] {
+.vk-pro-stop[data-state="current"] {
   border-color: var(--glod);
-  color: var(--papir);
   box-shadow: 0 0 14px rgba(255, 180, 84, 0.35);
 }
 
+.vk-pro-stop[data-state="current"] .vk-pro-stop-num {
+  color: var(--papir);
+}
+
+.vk-pro-stop[data-state="current"] .vk-pro-stop-cap {
+  color: var(--glod);
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  .vk-pro-marker[data-state="current"] {
+  .vk-pro-stop[data-state="current"] {
     animation: vk-pro-pulse 1.8s var(--ease-work) infinite;
   }
 }

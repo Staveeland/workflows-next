@@ -34,7 +34,6 @@ const smooth = (a: number, b: number, v: number) => {
   const t = clamp01((v - a) / (b - a));
   return t * t * (3 - 2 * t);
 };
-const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
 // Hydration probe: false on the server/hydration pass, true after mount.
 const noopSubscribe = () => () => {};
@@ -283,7 +282,7 @@ export function HeroCanvas({ words, label, avoid }: HeroCanvasProps) {
         ROT[i] = (rand(i, 3) - 0.5) * 0.5; SEED[i] = Math.floor(rand(i, 0) * 1e4);
         SC[i] = 0.8 + 0.4 * rand(i, 4); RSPD[i] = (rand(i, 6) - 0.5) * 0.6;
         FROT[i] = ROT_SET[Math.floor(rand(i, 5) * 4) % 4];
-        ACT[i] = 0.45 + i * 0.0018; // staggered activation
+        ACT[i] = 0.3 + i * 0.0012; // tight stagger — the cluster converges as a group
         WORD[i] = i % uniq.length;
         if (exHW > 0) {
           // never spawn on the copy block — lift the scrap above the zone
@@ -353,8 +352,9 @@ export function HeroCanvas({ words, label, avoid }: HeroCanvasProps) {
     };
     const onLeave = () => { ptTX = ptTY = -1e4; };
 
-    // Frame loop state.
-    let raf = 0, prevTime = 0, prevP = -1, ftI = 0, ftN = 0;
+    // Frame loop state. smP = lerped scroll progress the canvas renders —
+    // fast scroll steps play out as smooth motion instead of jumps.
+    let raf = 0, prevTime = 0, prevP = -1, smP = 0, ftI = 0, ftN = 0;
     let running = false, inView = false, faded = false;
     let pulse = 1; // own velocity lerp — no per-frame style reads
     let live = count;
@@ -377,10 +377,13 @@ export function HeroCanvas({ words, label, avoid }: HeroCanvasProps) {
       const far = Math.abs(ptTX - ptX) > 400 || Math.abs(ptTY - ptY) > 400;
       ptX = far ? ptTX : ptX + (ptTX - ptX) * 0.18;
       ptY = far ? ptTY : ptY + (ptTY - ptY) * 0.18;
-      const driftAmp = 1 - smooth(0.3, 0.45, p); // noise eases out toward the gather
+      // Phase map (200vh runway): A drift damps 0→0.30 · B steer 0.30→0.62
+      // · C line draw + alpha-fuse 0.62→0.82 · D fade/hand-off 0.82→1.0.
+      // All boundaries are smoothstepped — no hard cutoffs between phases.
+      const driftAmp = 1 - smooth(0, 0.3, p); // noise eases out toward the gather
       const damp = Math.exp(-2.6 * dt);
-      const lp = easeOutCubic(clamp01((p - 0.8) / 0.2)); // Phase C line progress
-      const globalFade = 1 - smooth(0.93, 0.995, p);
+      const lp = smooth(0.62, 0.82, p); // Phase C line progress
+      const globalFade = 1 - smooth(0.82, 0.96, p);
       const exYNow = exY + p * scrollRange; // copy block rides the sticky stage
 
       for (let i = 0; i < live; i++) {
@@ -412,7 +415,7 @@ export function HeroCanvas({ words, label, avoid }: HeroCanvasProps) {
           VX[i] *= damp; VY[i] *= damp;
           X[i] += VX[i] * dt; Y[i] += VY[i] * dt;
           ROT[i] += RSPD[i] * dt * driftAmp;
-          if (p < 0.45) {
+          if (p < 0.3) {
             // soft wrap keeps the drift inside the first viewport
             if (X[i] < -60) X[i] += W + 120;
             else if (X[i] > W + 60) X[i] -= W + 120;
@@ -426,7 +429,9 @@ export function HeroCanvas({ words, label, avoid }: HeroCanvasProps) {
             BCX[i] = (X[i] + SLX[i]) / 2 + (rand(i, 17) - 0.5) * 180;
             BCY[i] = (Y[i] + SLY[i]) / 2 + (rand(i, 19) - 0.5) * 90;
           }
-          const q = easeOutCubic(clamp01((p - a) / Math.max(0.05, 0.8 - a)));
+          // smoothstep a→0.62: gentle pickup out of the damped drift, gentle
+          // landing on the slot just as the line starts to draw
+          const q = smooth(a, Math.max(a + 0.05, 0.62), p);
           const u = 1 - q;
           X[i] = u * u * B0X[i] + 2 * u * q * BCX[i] + q * q * SLX[i];
           Y[i] = u * u * B0Y[i] + 2 * u * q * BCY[i] + q * q * SLY[i];
@@ -478,10 +483,14 @@ export function HeroCanvas({ words, label, avoid }: HeroCanvasProps) {
         pulse += (1 + Math.min(v, 3000) / 1000 - pulse) * 0.08;
       }
       prevP = p;
+      // render a lerped progress (snap on load/resume so a paused tab or
+      // anchor jump never replays a catch-up sweep; snap once settled)
+      smP = first ? p : smP + (p - smP) * 0.12;
+      if (Math.abs(p - smP) < 0.0004) smP = p;
       // hand-off: ease the canvas out as the SVG segments take over
-      if (p >= 0.98 && !faded) { container.style.opacity = "0"; faded = true; }
-      else if (p < 0.98 && faded) { container.style.opacity = "1"; faded = false; }
-      draw(p, now / 1000, dt);
+      if (smP >= 0.98 && !faded) { container.style.opacity = "0"; faded = true; }
+      else if (smP < 0.98 && faded) { container.style.opacity = "1"; faded = false; }
+      draw(smP, now / 1000, dt);
       raf = requestAnimationFrame(frame);
     };
 
