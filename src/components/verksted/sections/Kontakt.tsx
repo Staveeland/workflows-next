@@ -9,7 +9,6 @@ import {
   useReducedMotion,
   useScroll,
   useSpring,
-  useTransform,
 } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
 import { verkstedContent } from "@/lib/verkstedContent";
@@ -30,31 +29,6 @@ const THREAD_D =
 const MAGNET_REACH = 120; // px from the button edge
 const MAGNET_MAX = 6; // px max translate
 
-const RING_INSET = 1; // stroke center sits mid-border (2px border)
-const RING_R = 9; // 10px outer radius − 1px inset
-
-// CTA perimeter path, starting at the LEFT-EDGE MIDPOINT heading DOWN —
-// the same point and direction Tråden arrives in, so the hand-off reads
-// as one continuous line tracing the button outline.
-function ringPath(w: number, h: number): string {
-  const i = RING_INSET;
-  const r = RING_R;
-  const x2 = w - i;
-  const y2 = h - i;
-  return [
-    `M ${i} ${h / 2}`,
-    `L ${i} ${y2 - r}`,
-    `Q ${i} ${y2} ${i + r} ${y2}`,
-    `L ${x2 - r} ${y2}`,
-    `Q ${x2} ${y2} ${x2} ${y2 - r}`,
-    `L ${x2} ${i + r}`,
-    `Q ${x2} ${i} ${x2 - r} ${i}`,
-    `L ${i + r} ${i}`,
-    `Q ${i} ${i} ${i} ${i + r}`,
-    "Z",
-  ].join(" ");
-}
-
 export function Kontakt() {
   const { lang } = useLang();
   const t = verkstedContent[lang];
@@ -62,48 +36,23 @@ export function Kontakt() {
   const ctaRef = useRef<HTMLAnchorElement>(null);
   const reduced = useReducedMotion() === true;
   const [lit, setLit] = useState(false);
-  // trace = the SVG ring owns the button border (JS + fine pointer + motion
-  // OK). SSR/no-JS/reduced/coarse never set it, so the fully-drawn CSS
-  // border carries the poster state there.
-  const [trace, setTrace] = useState(false);
-  const [ringDims, setRingDims] = useState<{ w: number; h: number } | null>(null);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start 0.8", "center center"],
   });
-  // Latches once — lit never unsets.
+  // Latches once — lit never unsets. The thread lands on the button edge
+  // and the lamp inside blooms; the crisp CSS border never steps aside.
   useMotionValueEvent(scrollYProgress, "change", (p) => {
     if (p >= 0.98) setLit(true);
   });
 
-  // The outline trace rides the LAST stretch of the section progress: it
-  // picks up as Tråden arrives (thread window ends at "end 0.72" below)
-  // and completes just before the .vk-kon-lit latch at 0.98.
-  const ringProgress = useTransform(scrollYProgress, [0.8, 0.97], [0, 1]);
-  const ringLength = useSpring(ringProgress, { stiffness: 120, damping: 30 });
-
   // Reduced motion or coarse pointer: the finale is pre-lit (poster law).
-  // Otherwise the SVG ring takes over the border and draws on scroll.
   useEffect(() => {
     if (reduced || window.matchMedia("(pointer: coarse)").matches) {
       setLit(true);
-    } else {
-      setTrace(true);
     }
   }, [reduced]);
-
-  // Ring geometry follows the button's layout box (language/viewport).
-  useEffect(() => {
-    if (!trace) return;
-    const btn = ctaRef.current;
-    if (!btn) return;
-    const measure = () => setRingDims({ w: btn.offsetWidth, h: btn.offsetHeight });
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(btn);
-    return () => ro.disconnect();
-  }, [trace]);
 
   // Magnetic CTA — fine pointers only, <=6px toward the cursor, spring return.
   const mx = useMotionValue(0);
@@ -153,7 +102,7 @@ export function Kontakt() {
     <section
       id="kontakt"
       ref={sectionRef}
-      className={`vk-s vk-kon${lit ? " vk-kon-lit" : ""}${trace ? " vk-kon-trace" : ""}`}
+      className={`vk-s vk-kon${lit ? " vk-kon-lit" : ""}`}
     >
       <div className="vk-kon-lamp" aria-hidden="true" />
       <div className="vk-wrap">
@@ -168,26 +117,12 @@ export function Kontakt() {
             className="vk-kon-thread"
             offset={["start 0.9", "end 0.72"]}
           />
-          {/* Magnet + press live on the wrapper so the traced outline moves
-              with the button as one piece. */}
+          {/* Magnet + press live on the wrapper. */}
           <motion.div
             className="vk-kon-ctawrap"
             style={{ x: sx, y: sy }}
             whileTap={{ scale: 0.97 }}
           >
-            {trace && ringDims && (
-              <svg className="vk-kon-ring" aria-hidden="true" focusable="false">
-                <motion.path
-                  d={ringPath(ringDims.w, ringDims.h)}
-                  fill="none"
-                  stroke="var(--glod)"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ pathLength: ringLength }}
-                />
-              </svg>
-            )}
             <a
               ref={ctaRef}
               href={`mailto:${EMAIL}`}

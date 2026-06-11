@@ -95,45 +95,22 @@
     color var(--dur-2) var(--ease-work);
 }
 
-/* While the ring traces the perimeter the CSS border steps aside — the SVG
-   IS the border HERE ONLY. SSR/no-JS/reduced/coarse never get
-   .vk-kon-trace, so the fully-drawn CSS border carries the poster state. */
-.vk-kon-trace .vk-kon-cta {
-  border-color: transparent;
-}
-
 /* The wrapper owns press scale (whileTap) — disable the base :active nudge
    so the press isn't applied twice. */
-.vk-kon-trace .vk-kon-cta:active {
+.vk-kon-cta:active {
   transform: none;
 }
 
-/* Traced outline — stroke geometry matches the 2px/10px CSS border exactly;
-   the drop-shadow is the wire's own glow while it draws. */
-.vk-kon-ring {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-  filter: drop-shadow(0 0 6px rgba(226, 158, 51, 0.45));
-  transition: filter 300ms var(--ease-stamp);
-}
-
-/* The finale: interior lamp blooms to 0.28 (300ms spring), halo widens,
-   ring glow steps up. */
+/* The finale: the solid border stays (same crisp language as the header
+   pill); arrival of the thread lights the lamp inside — interior blooms,
+   halo widens. */
 .vk-kon.vk-kon-lit .vk-kon-cta {
-  box-shadow: 0 0 40px rgba(226, 158, 51, 0.4);
+  box-shadow: 0 0 28px rgba(226, 158, 51, 0.45);
 }
 
 .vk-kon.vk-kon-lit .vk-kon-cta::before {
   opacity: 1; /* 0.28 effective — gradient is authored at the bloom max */
   transition: opacity 300ms var(--ease-stamp);
-}
-
-.vk-kon.vk-kon-lit .vk-kon-ring {
-  filter: drop-shadow(0 0 11px rgba(226, 158, 51, 0.6));
 }
 
 /* ── Proof + microcopy ── */

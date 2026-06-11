@@ -327,8 +327,16 @@ html:has(.vk) {
   pointer-events: none;
 }
 
-/* Feather variant: square illustrations melt into the dark page. */
+/* Feather variant: all four edges fade fully out — guarantees a seamless
+   melt into the page even where an illustration's baked background drifts
+   a touch from --bek (webp compression). Corners get both fades. */
 .vk-ill--feather {
-  -webkit-mask-image: radial-gradient(120% 120% at 50% 45%, #000 62%, transparent 98%);
-  mask-image: radial-gradient(120% 120% at 50% 45%, #000 62%, transparent 98%);
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 8%, #000 92%, transparent),
+    linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 8%, #000 92%, transparent),
+    linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+  mask-composite: intersect;
 }
