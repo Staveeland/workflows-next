@@ -132,7 +132,7 @@ const organizationJsonLd = {
   image: urlFor("/logo-square.jpg"),
   description:
     "Workflows er et AI- og softwareutviklingsselskap i Haugesund som bygger smarte agenter, kunstig intelligens og skreddersydde systemer for norske bedrifter.",
-  foundingDate: "2024",
+  foundingDate: "2026",
   email: "petter@workflows.no",
   telephone: "+47 930 77 915",
   priceRange: "$$",
