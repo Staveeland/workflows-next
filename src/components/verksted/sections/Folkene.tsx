@@ -292,8 +292,15 @@ export function Folkene() {
             className="vk-folk-person"
             {...stampIn(anim, 0.15)}
           >
-            <div className="vk-folk-plate" aria-hidden="true">
-              <span>{t.folkene.person.initials}</span>
+            <div className="vk-folk-plate">
+              <Image
+                src="/verksted/petter-portrett.png"
+                alt={t.kontakt.portraitAlt}
+                width={640}
+                height={640}
+                sizes="72px"
+                className="vk-folk-plate-img"
+              />
             </div>
             <p className="vk-folk-person-meta">
               <span className="vk-folk-person-name">{t.folkene.person.name}</span>

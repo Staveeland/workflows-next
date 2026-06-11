@@ -247,16 +247,6 @@ function Pinned({ p }: { p: ProsessContent }) {
                   <span className="vk-pro-stop-cap">{p.weekLabel}</span>
                 </button>
               ))}
-              {/* The key slides 80px across the rail to the visitor's side. */}
-              <motion.span
-                className="vk-pro-key"
-                aria-hidden="true"
-                initial={false}
-                animate={{ x: live ? 80 : 0, opacity: live ? 1 : 0 }}
-                transition={{ type: "spring", stiffness: 280, damping: 24 }}
-              >
-                <KeyGlyph />
-              </motion.span>
             </nav>
             <div className="vk-pro-badge" aria-hidden="true">
               <motion.span
@@ -308,21 +298,6 @@ function TypeLine({ text }: { text: string }) {
         <span className="vk-pro-caret" />
       </span>
     </p>
-  );
-}
-
-function KeyGlyph() {
-  return (
-    <svg viewBox="0 0 48 20" width="48" height="20" aria-hidden="true" focusable="false">
-      <circle cx="9" cy="10" r="5.75" fill="none" stroke="currentColor" strokeWidth="2.5" />
-      <path
-        d="M14.75 10H44M37 10v6M42 10v4.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-    </svg>
   );
 }
 
