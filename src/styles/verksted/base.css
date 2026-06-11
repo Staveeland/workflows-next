@@ -19,6 +19,7 @@ html:has(.vk) {
   --bek: #171310;       /* page ground, never #000 */
   --benk: #211b15;      /* raised surface */
   --hairline: #3a3027;  /* 1px decorative borders, never shadow-only */
+  --feltkant: rgba(201, 187, 168, 0.55); /* functional form-field borders — ≥3:1 on bek/benk (WCAG 1.4.11) */
   --papir: #f4ede3;     /* primary text, ≈15:1 on bek */
   --stov: #c9bba8;      /* secondary text, ≈9.8:1 on bek */
   --glod: #ffb454;      /* accent light: thread, links, glow cores */

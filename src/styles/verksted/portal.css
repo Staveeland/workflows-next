@@ -1,0 +1,911 @@
+/* ════════════════════════════════════════════════════════════════════
+   KUNDEPORTALEN («programmet» on /start) — skeleton layer.
+   Tokens come from base.css (.vk scope) — NOTHING hardcoded here that
+   exists as a token. Poster law applies: resting CSS state is the fully
+   composed state; any future animation runs FROM a from{} keyframe TO
+   the natural state, gated behind prefers-reduced-motion + JS.
+   Mobile is first-class at 360px; every target ≥44px.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Full-viewport program stage ── */
+
+.vk-portal-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* ── Minimal header: wordmark home-link + the escape hatch ── */
+
+.vk-portal-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  max-width: var(--vk-container);
+  margin-inline: auto;
+  padding: 10px clamp(20px, 4vw, 48px);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.vk-portal-wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--papir);
+}
+
+.vk-portal-logosvg {
+  width: clamp(120px, 16vw, 150px);
+  height: auto;
+  display: block;
+}
+
+.vk-portal-avbryt {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 4px;
+  color: var(--stov);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-portal-avbryt:hover {
+  color: var(--glod);
+  text-decoration-color: var(--glod);
+}
+
+.vk-portal-mockbadge {
+  padding: 2px 8px;
+  border: 1px dashed var(--hairline);
+  color: var(--kritt);
+}
+
+/* ── Stage: centered working column, program-like ── */
+
+.vk-portal-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+  padding: clamp(32px, 6vh, 72px) clamp(20px, 4vw, 48px);
+}
+
+.vk-portal-h1 {
+  margin: 0;
+  font-size: clamp(32px, 6vw, 56px);
+  font-weight: 500;
+}
+
+.vk-portal-lead {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--stov);
+}
+
+/* ════════════════════════════════════════════
+   Level rail — 1 KARTLEGGING → 5 SKJØTET.
+   Same visual language as the prosess rail (.vk-pro-*): hairline track,
+   amber progress line, pressable stamp-plate stops ≥44px. Base classes
+   only — the builder wires progression (aria-current="step" = current).
+   ════════════════════════════════════════════ */
+
+.vk-portal-rail {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+  padding: 16px clamp(20px, 4vw, 48px) 0;
+}
+
+/* Track base — hairline behind the plates; resting state = fully lit line
+   up to the current stop (set inline via --vk-rail-progress, 0..1). */
+.vk-portal-track {
+  position: absolute;
+  left: calc(clamp(20px, 4vw, 48px) + 24px);
+  right: calc(clamp(20px, 4vw, 48px) + 24px);
+  top: 40px; /* plate centre */
+  height: 2px;
+  background: var(--hairline);
+  pointer-events: none;
+}
+
+.vk-portal-trackline {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(var(--vk-rail-progress, 0));
+  background: var(--glod);
+  box-shadow: 0 0 10px var(--glod-halo);
+}
+
+/* ── Level stops — stamp plates, ≥44px targets ── */
+
+.vk-portal-stop {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 6px 4px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  background: var(--bek);
+  border: 1.5px solid var(--hairline);
+  color: var(--stov);
+}
+
+.vk-portal-stop-num {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.vk-portal-stop-navn {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* Current level — amber plate, the work lamp points here. */
+.vk-portal-stop[aria-current="step"] {
+  border-color: var(--glod);
+  color: var(--papir);
+  box-shadow: 0 0 14px rgba(255, 180, 84, 0.25);
+}
+
+/* Completed levels keep the lit number; future levels stay dim. */
+.vk-portal-stop[data-done="true"] .vk-portal-stop-num {
+  color: var(--glod);
+}
+
+/* List wrapper inside the rail nav — the stops are an ordered list. */
+.vk-portal-rail-ol {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Past stops as real buttons — clickable BACKWARD only. */
+button.vk-portal-stop {
+  appearance: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-2) var(--ease-work),
+    scale var(--dur-1) var(--ease-work);
+}
+
+button.vk-portal-stop:hover {
+  border-color: var(--stov);
+}
+
+button.vk-portal-stop:active {
+  scale: 0.97;
+}
+
+/* The work lamp pulses on the current stop — motion only by consent;
+   the resting box-shadow above IS the composed state. */
+@media (prefers-reduced-motion: no-preference) {
+  .vk-portal-stop[aria-current="step"] {
+    animation: vk-portal-pulse 1.8s var(--ease-work) infinite;
+  }
+}
+
+@keyframes vk-portal-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px rgba(255, 180, 84, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 18px 2px rgba(255, 180, 84, 0.45);
+  }
+}
+
+/* ── Mobile (≥360px first-class): numbers carry the rail, only the
+      current level keeps its name. Full names live in a11y labels. ── */
+@media (max-width: 560px) {
+  .vk-portal-stop {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .vk-portal-stop:not([aria-current="step"]) .vk-portal-stop-navn {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* ════════════════════════════════════════════
+   Shared screen furniture
+   ════════════════════════════════════════════ */
+
+/* Wide stage for the forslag reveal — sheet + assessment side by side. */
+.vk-portal-stage--wide {
+  max-width: 1040px;
+}
+
+/* Quiet mono escape link — used by intro, error and ikke-states. */
+.vk-portal-quietlink {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+  background: transparent;
+  border: 0;
+  color: var(--stov);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-portal-quietlink:hover {
+  color: var(--glod);
+  text-decoration-color: var(--glod);
+}
+
+.vk-portal-intro,
+.vk-portal-err {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vk-portal-intro .vk-kicker {
+  margin: 0;
+}
+
+.vk-portal-introrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  margin-top: 12px;
+}
+
+/* Error text — papir on bek with the stamp-red strike as a border accent
+   (the stempel color is decorative-only, NEVER body text). */
+.vk-portal-feilmelding {
+  margin: 0;
+  max-width: 52ch;
+  padding-left: 12px;
+  border-left: 3px solid var(--stempel);
+  color: var(--papir);
+}
+
+/* ════════════════════════════════════════════
+   Wizard — one question per screen
+   ════════════════════════════════════════════ */
+
+.vk-portal-wiz {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.vk-portal-stepcount {
+  margin: 0;
+  color: var(--stov);
+}
+
+.vk-portal-step {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Slide + settle (240ms, the working ease). Resting state = composed;
+   reduced motion gets the instant cut. */
+@media (prefers-reduced-motion: no-preference) {
+  .vk-portal-step[data-dir="fwd"] {
+    animation: vk-portal-in-fwd var(--dur-2) var(--ease-work) both;
+  }
+
+  .vk-portal-step[data-dir="back"] {
+    animation: vk-portal-in-back var(--dur-2) var(--ease-work) both;
+  }
+}
+
+@keyframes vk-portal-in-fwd {
+  from {
+    opacity: 0;
+    translate: 28px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes vk-portal-in-back {
+  from {
+    opacity: 0;
+    translate: -28px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.vk-portal-q {
+  margin: 0;
+  font-size: clamp(28px, 5.4vw, 46px);
+  font-weight: 500;
+}
+
+.vk-portal-hint {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--stov);
+}
+
+/* Step 6 (drømmen) — the chalk annotation gives it ceremony. */
+.vk-portal-hint--chalk {
+  margin: 0;
+  max-width: 46ch;
+  font-size: clamp(18px, 2.4vw, 22px);
+  rotate: var(--rot-b);
+  transform-origin: left center;
+  width: fit-content;
+}
+
+/* ── Chips — stamp-plate buttons, ≥44px targets ── */
+
+.vk-portal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.vk-portal-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  background: var(--bek);
+  border: 1.5px solid var(--hairline);
+  border-radius: 0;
+  color: var(--stov);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-2) var(--ease-work),
+    color var(--dur-2) var(--ease-work),
+    box-shadow var(--dur-2) var(--ease-work),
+    scale var(--dur-1) var(--ease-work);
+}
+
+.vk-portal-chip:hover {
+  border-color: var(--stov);
+  color: var(--papir);
+}
+
+.vk-portal-chip:active {
+  scale: 0.97;
+}
+
+/* Selected = amber border + lit. */
+.vk-portal-chip[aria-pressed="true"] {
+  border-color: var(--glod);
+  color: var(--glod);
+  background: rgba(255, 180, 84, 0.07);
+  box-shadow: 0 0 12px rgba(255, 180, 84, 0.18);
+}
+
+/* ── Fritekst — the paper line ── */
+
+.vk-portal-input {
+  width: 100%;
+  max-width: 480px;
+  min-height: 44px;
+  padding: 8px 2px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1.5px solid var(--feltkant);
+  border-radius: 0;
+  color: var(--papir);
+  font-family: var(--font-schibsted), system-ui, sans-serif;
+  font-size: 19px;
+  transition: border-color var(--dur-2) var(--ease-work);
+}
+
+.vk-portal-input::placeholder {
+  color: rgba(201, 187, 168, 0.7);
+}
+
+.vk-portal-input:focus {
+  border-bottom-color: var(--glod);
+}
+
+/* ── Step 6 ceremony — the big dream textarea ── */
+
+.vk-portal-textarea {
+  width: 100%;
+  max-width: 640px;
+  min-height: 160px;
+  padding: 14px 16px;
+  background: var(--benk);
+  border: 1.5px solid var(--feltkant);
+  border-radius: 6px;
+  color: var(--papir);
+  font-family: var(--font-schibsted), system-ui, sans-serif;
+  font-size: 19px;
+  line-height: 1.6;
+  resize: vertical;
+  transition: border-color var(--dur-2) var(--ease-work);
+}
+
+.vk-portal-textarea::placeholder {
+  color: rgba(201, 187, 168, 0.7);
+}
+
+.vk-portal-textarea:focus {
+  border-color: var(--glod);
+}
+
+/* ── Bedrift step (first screen) — name + optional website ── */
+
+.vk-portal-bedrift {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.vk-portal-felt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* «valgfritt — vi titter gjerne» — quiet, lowercase, inside the label. */
+.vk-portal-label-hint {
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--stov);
+}
+
+/* ── The lookup moment — «slår opp i Brønnøysundregistrene …» ── */
+
+.vk-portal-lookup {
+  justify-content: center;
+  min-height: 120px;
+  outline: none;
+}
+
+/* Same voice as the generating status line. */
+.vk-portal-lookupline {
+  margin: 0;
+  min-height: 1.6em;
+  color: var(--glod);
+}
+
+/* Quiet note when the bransje step was skipped — margin annotation. */
+.vk-portal-skipnote {
+  margin: -10px 0 0;
+  color: var(--stov);
+}
+
+/* ── The confirmation card — benk plate, Verkstedet-stil ── */
+
+.vk-portal-funn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 560px;
+  padding: 20px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+}
+
+.vk-portal-funn-tittel {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-portal-funn-navn {
+  margin: 0;
+  font-size: clamp(22px, 3.4vw, 30px);
+  font-weight: 500;
+  color: var(--papir);
+}
+
+.vk-portal-funn-meta {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--stov);
+}
+
+.vk-portal-funn .vk-portal-chips {
+  margin-top: 8px;
+}
+
+/* ── Wizard controls ── */
+
+.vk-portal-wizrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.vk-portal-back {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 8px 0 0;
+  background: transparent;
+  border: 0;
+  color: var(--stov);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-portal-back:hover {
+  color: var(--papir);
+}
+
+.vk-portal-next[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .vk-portal-next {
+    flex: 1 1 auto;
+  }
+}
+
+/* ════════════════════════════════════════════
+   AuthGate — log in before the expensive drawing
+   ════════════════════════════════════════════ */
+
+.vk-portal-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 560px;
+}
+
+.vk-portal-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.vk-portal-label {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-portal-auth-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.vk-portal-input--epost {
+  flex: 1 1 240px;
+}
+
+.vk-portal-sent {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--glod);
+}
+
+.vk-portal-cooldown {
+  margin: 0;
+  color: var(--stov);
+}
+
+.vk-portal-mocksession {
+  margin: 0;
+  padding: 8px 12px;
+  width: fit-content;
+  border: 1px dashed var(--hairline);
+  color: var(--kritt);
+}
+
+/* ════════════════════════════════════════════
+   Generating — the lantern moment
+   ════════════════════════════════════════════ */
+
+.vk-portal-gen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 40vh;
+  text-align: center;
+}
+
+/* The lamp: composed resting state is a soft, steady amber pool;
+   the pulse is motion-by-consent on top. */
+.vk-portal-lantern {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(320px, 80vw);
+  height: min(320px, 80vw);
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 180, 84, 0.16), transparent 70%);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-portal-lantern {
+    animation: vk-portal-lantern 2.6s var(--ease-work) infinite;
+  }
+}
+
+@keyframes vk-portal-lantern {
+  0%,
+  100% {
+    opacity: 0.7;
+    scale: 0.96;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.05;
+  }
+}
+
+.vk-portal-gentittel {
+  position: relative;
+  margin: 0;
+  font-size: clamp(28px, 5.4vw, 46px);
+  font-weight: 500;
+}
+
+.vk-portal-genline {
+  position: relative;
+  margin: 0;
+  min-height: 1.6em;
+  color: var(--glod);
+}
+
+/* ════════════════════════════════════════════
+   Forslaget — the reveal
+   ════════════════════════════════════════════ */
+
+.vk-portal-forslag {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.vk-portal-fkicker {
+  margin: 0;
+  color: var(--glod);
+}
+
+.vk-portal-chalksub {
+  margin: -8px 0 0;
+  font-size: clamp(18px, 2.4vw, 22px);
+}
+
+.vk-portal-fgrid {
+  display: grid;
+  grid-template-columns: minmax(260px, 420px) 1fr;
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+  margin-top: 8px;
+}
+
+.vk-portal-fgrid--solo {
+  grid-template-columns: 1fr;
+  max-width: 640px;
+}
+
+@media (max-width: 820px) {
+  .vk-portal-fgrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The pinned blueprint sheet — paper frame, tape corners, slight rot. */
+.vk-portal-sheet {
+  position: relative;
+  margin: 0;
+  padding: 10px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+}
+
+.vk-portal-sheet::before,
+.vk-portal-sheet::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  width: 64px;
+  height: 22px;
+  background: rgba(244, 237, 227, 0.16);
+  border: 1px solid rgba(244, 237, 227, 0.1);
+  pointer-events: none;
+}
+
+.vk-portal-sheet::before {
+  left: 18px;
+  rotate: -6deg;
+}
+
+.vk-portal-sheet::after {
+  right: 18px;
+  rotate: 5deg;
+}
+
+.vk-portal-mockup {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.vk-portal-fbody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vk-portal-avsnitt {
+  margin: 0;
+  max-width: 58ch;
+  color: var(--stov);
+}
+
+.vk-portal-flabel {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+/* Løsningsskissen — checklist with amber ticks. */
+.vk-portal-skisse {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vk-portal-skisse li {
+  position: relative;
+  padding-left: 28px;
+  max-width: 58ch;
+  color: var(--papir);
+}
+
+.vk-portal-skisse li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--glod);
+  font-family: var(--font-spline), ui-monospace, monospace;
+}
+
+.vk-portal-fline {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--stov);
+}
+
+.vk-portal-flinelabel {
+  margin-right: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--glod);
+}
+
+.vk-portal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+/* ── Videre (likt): level 3 waiting state + kontaktkort-light ── */
+
+.vk-portal-videre {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 10px;
+  padding: 20px;
+  max-width: 560px;
+  background: rgba(255, 180, 84, 0.05);
+  border: 1px solid rgba(255, 180, 84, 0.28);
+}
+
+.vk-portal-videre-tekst {
+  margin: 0;
+  color: var(--papir);
+}
+
+.vk-portal-kort {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.vk-portal-kort-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vk-portal-kort-label {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-portal-kort-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--glod);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+.vk-portal-kort-link:hover {
+  text-decoration-color: var(--glod);
+}
