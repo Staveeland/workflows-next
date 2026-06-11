@@ -118,6 +118,40 @@ export interface VerkstedContent {
     };
     based: string;
   };
+  chat: {
+    hatchLabel: string;
+    hatchAria: string;
+    title: string;
+    subtitle: string;
+    welcome: string;
+    placeholder: string;
+    send: string;
+    sendAria: string;
+    thinking: string;
+    modeAi: string;
+    modePetter: string;
+    backToAi: string;
+    close: string;
+    petterStamp: string;
+    directInfo: string;
+    idle: string;
+    a11yNewMsg: string;
+    a11yDialog: string;
+    workorder: {
+      title: string;
+      name: string;
+      email: string;
+      request: string;
+      requestHint: string;
+      submit: string;
+      sending: string;
+      sent: string;
+      retry: string;
+      failTitle: string;
+      failBody: string;
+      stampSent: string;
+    };
+  };
   eggs: {
     consoleArt: string;
     kaffeToast: string;
@@ -367,6 +401,41 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
       },
       based: "Workflows AS · Haugesund, Norge · 59.4138° N, 5.2679° Ø",
     },
+    chat: {
+      hatchLabel: "verkstedet er våkent",
+      hatchAria: "Åpne chatten — nattevakten i verkstedet svarer",
+      title: "Nattevakten",
+      subtitle: "lyset er på — spør i vei",
+      welcome:
+        "Godt du fant luka. Spør meg om AI og automatisering — eller skriv direkte til Petter, så svarer han selv.",
+      placeholder: "Skriv en lapp …",
+      send: "Send",
+      sendAria: "Send melding",
+      thinking: "nattevakten skriver …",
+      modeAi: "Nattevakten",
+      modePetter: "Skriv direkte til Petter",
+      backToAi: "Tilbake til nattevakten",
+      close: "Lukk chatten",
+      petterStamp: "FRA PETTER",
+      directInfo: "Nå skriver du direkte til Petter. Svaret lander her i chatten.",
+      idle: "nattevakten hviler øynene …",
+      a11yNewMsg: "Ny melding i chatten",
+      a11yDialog: "Chat med Workflows — nattevakten i verkstedet",
+      workorder: {
+        title: "ARBEIDSORDRE",
+        name: "Navn",
+        email: "E-post",
+        request: "Hva gjelder det?",
+        requestHint: "kort er fint — vi spør om resten",
+        submit: "Send til Petter",
+        sending: "sender …",
+        sent: "Levert. Petter svarer her i chatten — og på e-posten du oppga.",
+        retry: "Prøv igjen",
+        failTitle: "Den kom ikke fram",
+        failBody: "Noe butta i maskineriet akkurat nå. Send en e-post eller ring oss i stedet — vi svarer raskt.",
+        stampSent: "LEVERT",
+      },
+    },
     eggs: {
       consoleArt:
         "┌──────────────────────────────┐\n│  WORKFLOWS — VERKSTEDET      │\n│  lyset er på · Haugesund     │\n├──────────────────────────────┤\n│  kaos inn ─────────→ flyt ut │\n└──┬────────────────────────┬──┘\n   │                        │\n\nHei! Du titter i konsollen — det gjør vi også.\nVi har til og med skrevet /llms.txt for agentene dine.\nMennesker booker gratis prat på workflows.no/#kontakt.",
@@ -614,6 +683,41 @@ export const verkstedContent: Record<Lang, VerkstedContent> = {
         aiHaugesund: "AI in Haugesund",
       },
       based: "Workflows AS · Haugesund, Norway · 59.4138° N, 5.2679° E",
+    },
+    chat: {
+      hatchLabel: "the workshop is awake",
+      hatchAria: "Open the chat — the workshop's night watchman answers",
+      title: "The Night Watchman",
+      subtitle: "the light is on — ask away",
+      welcome:
+        "Glad you found the hatch. Ask me about AI and automation — or write directly to Petter, and he'll answer himself.",
+      placeholder: "Write a note …",
+      send: "Send",
+      sendAria: "Send message",
+      thinking: "the night watchman is writing …",
+      modeAi: "The night watchman",
+      modePetter: "Write directly to Petter",
+      backToAi: "Back to the night watchman",
+      close: "Close the chat",
+      petterStamp: "FROM PETTER",
+      directInfo: "You're now writing directly to Petter. His reply lands right here in the chat.",
+      idle: "the night watchman is resting his eyes …",
+      a11yNewMsg: "New message in the chat",
+      a11yDialog: "Chat with Workflows — the workshop's night watchman",
+      workorder: {
+        title: "WORK ORDER",
+        name: "Name",
+        email: "Email",
+        request: "What do you need?",
+        requestHint: "short is fine — we'll ask about the rest",
+        submit: "Send to Petter",
+        sending: "sending …",
+        sent: "Delivered. Petter answers here in the chat — and at the email you gave.",
+        retry: "Try again",
+        failTitle: "It didn't get through",
+        failBody: "Something jammed in the machinery just now. Email or call us instead — we answer fast.",
+        stampSent: "DELIVERED",
+      },
     },
     eggs: {
       consoleArt:

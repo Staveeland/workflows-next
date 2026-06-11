@@ -3,11 +3,11 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
-// ChatWidget is a non-critical, interactive overlay. It pulls in framer-motion,
-// react-markdown, remark-gfm and rehype-sanitize — combined ~330KB of client JS.
-// We defer mounting until the browser is idle so it doesn't block first paint or
-// LCP. The widget itself only shows a small button until the user opens it.
-const ChatWidget = dynamic(() => import("@/components/ChatWidget"), {
+// VerkstedChat («Nattevakten») is a non-critical, interactive overlay. It
+// pulls in react-markdown, remark-gfm and rehype-sanitize — a sizable chunk
+// of client JS. We defer mounting until the browser is idle so it doesn't
+// block first paint or LCP. The widget only shows the hatch until opened.
+const VerkstedChat = dynamic(() => import("@/components/verksted/VerkstedChat"), {
   ssr: false,
   loading: () => null,
 });
@@ -38,5 +38,5 @@ export default function ChatWidgetLazy() {
   }, []);
 
   if (!shouldMount) return null;
-  return <ChatWidget />;
+  return <VerkstedChat />;
 }

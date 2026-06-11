@@ -10,7 +10,11 @@ html:has(.vk) {
   background: #171310;
 }
 
-.vk {
+/* Tokens are shared with .vk-chatroot — the chat mounts outside the .vk
+   page root (via layout) and needs the full token set, but NOT the page
+   background/typography side effects (those stay on .vk below). */
+.vk,
+.vk-chatroot {
   /* ── Palette (WCAG-verified pairs, brief §3.1) ── */
   --bek: #171310;       /* page ground, never #000 */
   --benk: #211b15;      /* raised surface */
@@ -38,7 +42,10 @@ html:has(.vk) {
   --rot-d: 2.5deg;
 
   --vk-container: 1280px;
+}
 
+/* Page-root side effects — .vk ONLY, never .vk-chatroot. */
+.vk {
   background: var(--bek);
   color: var(--stov);
   font-family: var(--font-schibsted), system-ui, sans-serif;
@@ -48,7 +55,8 @@ html:has(.vk) {
 }
 
 /* Scoped paper tokens — exist ONLY inside the light panel. */
-.vk .vk-paper {
+.vk .vk-paper,
+.vk-chatroot .vk-paper {
   --papir-flate: #f4efe5;
   --blekk: #171310;
   --glod-papir: #8a5a14; /* amber-as-text on paper */
@@ -68,12 +76,14 @@ html:has(.vk) {
 }
 
 /* ── Focus & selection ── */
-.vk *:focus-visible {
+.vk *:focus-visible,
+.vk-chatroot *:focus-visible {
   outline: 2px solid var(--glod);
   outline-offset: 3px;
 }
 
-.vk ::selection {
+.vk ::selection,
+.vk-chatroot ::selection {
   background: var(--glod);
   color: #171310;
 }

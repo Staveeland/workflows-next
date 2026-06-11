@@ -1,0 +1,1049 @@
+/* ════════════════════════════════════════════════════════════════════
+   NATTEVAKTEN — chat (service-hatch launcher + night-watch panel)
+   Mounts OUTSIDE the .vk page root (via layout) — tokens come from the
+   .vk-chatroot scope in base.css. Resting CSS = the fully-composed
+   state (poster law); all motion sits behind prefers-reduced-motion:
+   no-preference. Layering: grain (70) < hatch (9000) < panel (9010).
+   Solid surfaces only — no glassmorphism.
+   ════════════════════════════════════════════════════════════════════ */
+
+.vk-chatroot {
+  font-family: var(--font-schibsted), system-ui, sans-serif;
+}
+
+/* ════════════════════════════════════════════
+   Launcher — the wooden service hatch
+   ════════════════════════════════════════════ */
+
+.vk-chat-hatch {
+  position: fixed;
+  right: clamp(14px, 2.5vw, 24px);
+  bottom: calc(clamp(14px, 2.5vw, 24px) + env(safe-area-inset-bottom, 0px));
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  width: 112px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-hatch {
+    animation: vk-hatch-in 480ms var(--ease-work) both;
+  }
+}
+
+@keyframes vk-hatch-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.vk-chat-hatch--hidden {
+  visibility: hidden;
+}
+
+/* Warm light leaking out of the hatch — steady at rest, breathing when
+   motion is allowed. */
+.vk-chat-hatchimg {
+  position: relative;
+  display: block;
+  width: 112px;
+  height: 112px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  box-shadow: 0 0 22px rgba(226, 158, 51, 0.28);
+  transition:
+    box-shadow var(--dur-2) var(--ease-work),
+    transform var(--dur-2) var(--ease-work);
+}
+
+.vk-chat-hatchimg img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-hatchimg {
+    animation: vk-hatch-glow 4s ease-in-out infinite;
+  }
+}
+
+@keyframes vk-hatch-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 22px rgba(226, 158, 51, 0.28);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(226, 158, 51, 0.14);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-chat-hatch:hover .vk-chat-hatchimg {
+    animation: none;
+    box-shadow: 0 0 34px rgba(226, 158, 51, 0.5);
+    transform: rotate(1deg);
+  }
+}
+
+/* Backing plate so the label keeps ≥4.5:1 even when cream page surfaces
+   scroll beneath the fixed launcher (stov on this plate over papir-flate
+   worst case ≈ 6.6:1). */
+.vk-chat-hatchlabel {
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(23, 19, 16, 0.85);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--stov);
+}
+
+/* Unread badge — visual dot; the text inside is SR-only. */
+.vk-chat-hatchdot {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--bek);
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 10px var(--glod-halo);
+}
+
+@media (max-width: 479px) {
+  .vk-chat-hatch {
+    width: 88px;
+  }
+
+  .vk-chat-hatchimg {
+    width: 88px;
+    height: 88px;
+  }
+
+  .vk-chat-hatchlabel {
+    display: none;
+  }
+}
+
+/* ════════════════════════════════════════════
+   Panel — right drawer (desktop) / full sheet (mobile)
+   ════════════════════════════════════════════ */
+
+.vk-chat-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9010;
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 92vw);
+  height: 100vh; /* fallback */
+  height: 100dvh;
+  overflow: hidden;
+  overflow-x: clip;
+  border-left: 1px solid var(--hairline);
+  background: var(--bek);
+  color: var(--stov);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-panel {
+    animation: vk-panel-in 420ms var(--ease-work) both;
+  }
+}
+
+@keyframes vk-panel-in {
+  from {
+    transform: translateX(calc(100% + 24px));
+  }
+}
+
+@media (max-width: 767px) {
+  .vk-chat-panel {
+    width: 100%;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .vk-chat-panel {
+    animation-name: vk-panel-up;
+  }
+}
+
+@keyframes vk-panel-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+/* ── Header ── */
+
+.vk-chat-head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px 12px 20px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--bek);
+}
+
+.vk-chat-title {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 22px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: var(--papir);
+}
+
+.vk-chat-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 3px 0 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--stov);
+}
+
+.vk-chat-statusdot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 8px var(--glod-halo);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-statusdot {
+    animation: vk-chat-pulse 2.2s var(--ease-work) infinite;
+  }
+}
+
+@keyframes vk-chat-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px var(--glod-halo);
+  }
+  50% {
+    box-shadow: 0 0 2px var(--glod-halo);
+  }
+}
+
+/* The lamp rests with the watchman. */
+.vk-chat-statusdot.is-idle {
+  animation: none;
+  box-shadow: 0 0 4px var(--glod-halo);
+  opacity: 0.8;
+}
+
+.vk-chat-close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--stov);
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease-work);
+}
+
+.vk-chat-close:hover {
+  color: var(--papir);
+}
+
+/* ════════════════════════════════════════════
+   Main — the scene (bottom) + the conversation wall (above)
+   ════════════════════════════════════════════ */
+
+.vk-chat-main {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+/* The watchman at his desk, pinned to the panel floor. The container
+   keeps the artwork's aspect so the lantern overlay can use % anchors. */
+.vk-chat-scene {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  aspect-ratio: 1024 / 1536;
+  pointer-events: none;
+  transition: filter 600ms var(--ease-work);
+}
+
+.vk-chat-scene.is-idle {
+  filter: brightness(0.8); /* the lantern dims while he rests */
+}
+
+.vk-chat-sceneimg {
+  object-fit: cover;
+  object-position: bottom;
+}
+
+/* Luminance fade — high notes stay readable against the dark wall.
+   Sits over the scene, under the log; anchored to the PANEL top so it
+   holds on short viewports where the scene's top is cropped. */
+.vk-chat-fade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 45%;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--bek) 0%,
+    rgba(23, 19, 16, 0.85) 40%,
+    rgba(23, 19, 16, 0) 100%
+  );
+}
+
+/* Lantern glow over the automaton's head — only breathes while the
+   watchman is "writing"; reduced motion gets the mono line only. */
+.vk-chat-lantern {
+  position: absolute;
+  top: 64%;
+  left: 42%;
+  width: 42%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 180, 84, 0.38) 0%,
+    rgba(255, 180, 84, 0.12) 45%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-scene.is-typing .vk-chat-lantern {
+    opacity: 1;
+    animation: vk-lantern 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes vk-lantern {
+  0%,
+  100% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+}
+
+/* ── Easter egg: «kaffe» — a fresh cup rises by the watchman ── */
+
+.vk-chat-kaffe {
+  position: absolute;
+  top: 72%;
+  left: 58%;
+  width: 11%;
+}
+
+.vk-chat-kaffesteam {
+  fill: none;
+  stroke: var(--kritt); /* chalk steam */
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-kaffe {
+    animation: vk-kaffe 3s var(--ease-work) both;
+  }
+
+  .vk-chat-kaffesteam {
+    animation: vk-kaffesteam 1.2s ease-in-out infinite;
+  }
+
+  .vk-chat-kaffesteam--late {
+    animation-delay: 0.5s;
+  }
+}
+
+@keyframes vk-kaffe {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes vk-kaffesteam {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* ── Message log — paper notes on the dark wall ── */
+
+.vk-chat-log {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 20px 180px; /* fallback */
+  padding: 20px 20px clamp(150px, 26dvh, 230px);
+  overflow-y: auto;
+  overflow-x: clip;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+}
+
+.vk-chat-note {
+  position: relative;
+  max-width: 82%;
+  padding: 12px 14px;
+  font-size: 15px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+/* Entrance: slide up from the desk and settle. Stagger (--vk-d) applies
+   to the batch present when the hatch opens; new notes enter at once. */
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-note {
+    animation: vk-note-in 240ms var(--ease-stamp) both;
+    animation-delay: var(--vk-d, 0ms);
+  }
+}
+
+@keyframes vk-note-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(var(--vk-rot, 0deg));
+  }
+}
+
+/* Visitor: cream paper slip pinned from the right (rotation via tokens). */
+.vk-chat-note--user {
+  align-self: flex-end;
+  border-radius: 2px 6px 3px 5px;
+  background: var(--papir-flate);
+  color: var(--blekk);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* Watchman: dark benk-plate with an amber edge-glow from the desk. */
+.vk-chat-note--ai {
+  align-self: flex-start;
+  border: 1px solid var(--hairline);
+  border-bottom-color: rgba(255, 180, 84, 0.38);
+  border-radius: 6px;
+  background: var(--benk);
+  color: var(--papir);
+  box-shadow: 0 12px 26px -14px rgba(226, 158, 51, 0.35);
+}
+
+/* Petter: cream note with the small red FRA PETTER stamp. */
+.vk-chat-note--petter {
+  align-self: flex-start;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: var(--papir-flate);
+  color: var(--blekk);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* Mini-stamp (aria-hidden; role is announced via SR text). The red stays
+   on the BORDER only (decorative); the text is ink — 16.1:1 on cream —
+   same red-frame/ink-text pattern as the ARBEIDSORDRE wotitle. */
+.vk-chat-petterstamp {
+  position: absolute;
+  top: -9px;
+  left: 10px;
+  padding: 2px 6px;
+  border: 1.5px solid var(--stempel);
+  border-radius: 2px;
+  background: var(--papir-flate);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--blekk);
+  transform: rotate(var(--rot-b));
+}
+
+/* Markdown inside notes */
+
+.vk-chat-note p {
+  margin: 0;
+}
+
+.vk-chat-note p + p {
+  margin-top: 8px;
+}
+
+.vk-chat-note ul,
+.vk-chat-note ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.vk-chat-note li + li {
+  margin-top: 4px;
+}
+
+.vk-chat-note a {
+  color: var(--glod);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--kritt); /* chalk underline */
+  text-underline-offset: 3px;
+}
+
+.vk-chat-note a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.vk-chat-note--user a,
+.vk-chat-note--petter a {
+  color: var(--glod-papir);
+}
+
+.vk-chat-note code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 180, 84, 0.1);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+}
+
+.vk-chat-note--user code,
+.vk-chat-note--petter code {
+  background: rgba(23, 19, 16, 0.08);
+}
+
+.vk-chat-note pre {
+  margin: 8px 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  background: rgba(23, 19, 16, 0.55);
+}
+
+.vk-chat-note--user pre,
+.vk-chat-note--petter pre {
+  background: rgba(23, 19, 16, 0.06);
+  border-color: rgba(23, 19, 16, 0.2);
+}
+
+.vk-chat-note pre code {
+  padding: 0;
+  background: none;
+}
+
+.vk-chat-note blockquote {
+  margin: 8px 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--hairline);
+}
+
+.vk-chat-note--user blockquote,
+.vk-chat-note--petter blockquote {
+  border-left-color: rgba(23, 19, 16, 0.3);
+}
+
+/* Paper surfaces: the global amber focus ring drowns on cream — use ink. */
+.vk-chatroot .vk-paper *:focus-visible {
+  outline-color: var(--blekk);
+}
+
+/* ── Status lines ── */
+
+/* Backing plate: the line can land over the lantern (scene luminance up
+   to ≈0.8) — stov on this plate stays ≥7.7:1 even there, and ≥5:1 at the
+   think-pulse trough (0.75). */
+.vk-chat-thinking {
+  align-self: flex-start;
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(23, 19, 16, 0.9);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--stov);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-thinking {
+    animation: vk-think 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes vk-think {
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+/* Idle flavor line above the desk — decorative, never announced. Same
+   backing plate as the thinking line: it sits directly over the scene. */
+.vk-chat-idleline {
+  position: absolute;
+  bottom: 140px; /* fallback */
+  bottom: clamp(110px, 20dvh, 170px);
+  left: 50%;
+  z-index: 2;
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 4px;
+  pointer-events: none;
+  background: rgba(23, 19, 16, 0.9);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--stov);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-idleline {
+    animation: vk-note-in 480ms var(--ease-work) both;
+  }
+}
+
+/* ════════════════════════════════════════════
+   Fail card — the pipe is broken, stay premium
+   ════════════════════════════════════════════ */
+
+.vk-chat-fail {
+  align-self: stretch;
+  max-width: 100%;
+  padding: 16px 16px 6px;
+  border: 1px solid var(--hairline);
+  border-top: 2px solid rgba(226, 89, 61, 0.65);
+  border-radius: 6px;
+  background: var(--benk);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.vk-chat-failtitle {
+  margin: 0 0 6px;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 19px;
+  font-weight: 560;
+  color: var(--papir);
+}
+
+.vk-chat-failbody {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--stov);
+}
+
+.vk-chat-faillinks {
+  display: flex;
+  flex-direction: column;
+}
+
+.vk-chat-faillink {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-height: 44px;
+  padding: 6px 0;
+  border-top: 1px solid var(--hairline);
+  text-decoration: none;
+}
+
+.vk-chat-faillbl {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--stov);
+}
+
+.vk-chat-failval {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--glod);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--kritt);
+  text-underline-offset: 3px;
+}
+
+.vk-chat-faillink:hover .vk-chat-failval {
+  text-decoration-thickness: 2px;
+}
+
+/* Retry path out of a failed work-order — rendered under the fail card;
+   plated because it sits directly over the scene. */
+.vk-chat-woretry {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(23, 19, 16, 0.9);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--glod);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.vk-chat-woretry:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* ════════════════════════════════════════════
+   ARBEIDSORDRE — cream work-order card over the desk
+   ════════════════════════════════════════════ */
+
+.vk-chat-wo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: 2px;
+  margin-top: 6px;
+  padding: 18px 18px 20px;
+  border-radius: 3px;
+  background: var(--papir-flate);
+  color: var(--blekk);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-wo {
+    animation: vk-wo-in 320ms var(--ease-work) both;
+  }
+}
+
+@keyframes vk-wo-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+}
+
+/* Stamped: the order slides up the wall and away (exit choreography —
+   the element unmounts right after, so a to{} keyframe is correct). */
+.vk-chat-wo--stamped {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-wo--stamped {
+    animation: vk-wo-away 420ms var(--ease-work) 620ms both;
+  }
+}
+
+@keyframes vk-wo-away {
+  to {
+    opacity: 0;
+    transform: translateY(-90px) rotate(var(--rot-c));
+  }
+}
+
+.vk-chat-wotitle {
+  align-self: flex-start;
+  margin: 0 0 10px;
+  padding: 4px 10px;
+  border: 2px solid rgba(226, 89, 61, 0.75);
+  border-radius: 2px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--blekk);
+  transform: rotate(var(--rot-b));
+}
+
+.vk-chat-wolabel {
+  margin-top: 10px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--blekk);
+}
+
+.vk-chat-wofield {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 2px;
+  border: 0;
+  /* Sole boundary of the borderless field — 3.9:1 on papir-flate (1.4.11). */
+  border-bottom: 1px solid rgba(23, 19, 16, 0.55);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-schibsted), system-ui, sans-serif;
+  font-size: 15px;
+  color: var(--blekk);
+}
+
+.vk-chat-wofield--area {
+  min-height: 64px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.vk-chat-wohint {
+  margin: 4px 0 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--glod-papir);
+}
+
+.vk-chat-wosubmit {
+  align-self: flex-start;
+  min-height: 46px;
+  margin-top: 14px;
+  padding: 10px 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--cta);
+  color: #171310;
+  font-family: var(--font-schibsted), system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: box-shadow var(--dur-2) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-chat-wosubmit:hover {
+    box-shadow: 0 0 18px rgba(255, 160, 46, 0.4);
+  }
+}
+
+.vk-chat-wosubmit:disabled {
+  opacity: 0.6;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* LEVERT — decorative ink strike (aria-hidden; success is announced via
+   the workorder.sent note appended to the live log). */
+.vk-chat-wostamp {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  padding: 8px 18px;
+  border: 3px solid var(--stempel);
+  border-radius: 4px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--stempel);
+  transform: translate(-50%, -50%) rotate(var(--rot-a));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-chat-wostamp {
+    animation: vk-wostamp-in 240ms var(--ease-stamp) both;
+  }
+}
+
+@keyframes vk-wostamp-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--rot-a)) scale(1.7);
+  }
+}
+
+/* ════════════════════════════════════════════
+   Footer — mode tab + the bench (input row)
+   ════════════════════════════════════════════ */
+
+.vk-chat-foot {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--hairline);
+  background: var(--bek);
+}
+
+/* «Skriv direkte til Petter» — red-hairline stamp-tab. The red stays
+   decorative (border/wash); the text itself is papir for contrast. */
+.vk-chat-modetab {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid rgba(226, 89, 61, 0.5);
+  border-radius: 3px;
+  background: rgba(226, 89, 61, 0.08);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--papir);
+  cursor: pointer;
+  transform: rotate(var(--rot-b));
+  transition: background var(--dur-1) var(--ease-work);
+}
+
+.vk-chat-modetab:hover {
+  background: rgba(226, 89, 61, 0.16);
+}
+
+.vk-chat-directrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px 12px;
+}
+
+.vk-chat-directinfo {
+  margin: 0;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--stov);
+}
+
+.vk-chat-backtab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  align-self: flex-start;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--glod);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.vk-chat-backtab:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* The bench: paper-line textarea + amber send knob. */
+.vk-chat-inputrow {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.vk-chat-input {
+  flex: 1;
+  min-height: 44px;
+  max-height: 108px;
+  padding: 11px 2px;
+  border: 0;
+  /* Sole boundary of the borderless field — stov at 55% ≈ 3.8:1 on bek
+     (1.4.11); --hairline stays reserved for decorative rules only. */
+  border-bottom: 1px solid rgba(201, 187, 168, 0.55);
+  border-radius: 0;
+  background: transparent;
+  color: var(--papir);
+  font-family: var(--font-schibsted), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  resize: none;
+  overflow-y: auto;
+}
+
+.vk-chat-input::placeholder {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--stov);
+}
+
+.vk-chat-send {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cta);
+  color: #171310;
+  cursor: pointer;
+  transition:
+    box-shadow var(--dur-2) var(--ease-work),
+    transform var(--dur-1) var(--ease-work);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vk-chat-send:not(:disabled):hover {
+    box-shadow: 0 0 18px rgba(255, 160, 46, 0.45);
+  }
+}
+
+.vk-chat-send:not(:disabled):active {
+  transform: scale(0.94);
+}
+
+.vk-chat-send:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
