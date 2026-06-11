@@ -20,12 +20,11 @@ const PHONE_DISPLAY = "+47 930 77 915";
 const PHONE_HREF = "tel:+4793077915";
 
 // Tråden's finale: enters at the top near the 38% spine, sweeps left and
-// drops vertically INTO the button — the path ends exactly on the CTA's
-// left-edge midpoint (viewBox bottom-left), where the traced outline takes
-// over. The viewBox bottom edge is anchored to the button's vertical
-// centerline (see .vk-kon-thread).
+// drops STRAIGHT DOWN into the button's top edge near its centre — the
+// last stretch is vertical at x=23 so the line visibly plugs into the box
+// (the viewBox bottom sits a few px inside the button, see .vk-kon-thread).
 const THREAD_D =
-  "M 86 0 C 83 24 66 36 52 48 C 36 62 12 70 4 86 C -1.5 96 0 112 0 133";
+  "M 86 0 C 82 22 64 34 50 46 C 34 58 14 64 12 80 C 10.5 92 23 96 23 110 L 23 133";
 
 const MAGNET_REACH = 120; // px from the button edge
 const MAGNET_MAX = 6; // px max translate

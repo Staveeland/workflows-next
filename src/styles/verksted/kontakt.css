@@ -69,7 +69,8 @@
    center), in both languages. */
 .vk-kon-thread {
   left: 0;
-  bottom: calc(100% - 32px);
+  /* The path tip ends 14px inside the button's top edge — plugged in. */
+  bottom: calc(100% - 14px);
   width: min(480px, 100%);
   aspect-ratio: 100 / 133;
 }
