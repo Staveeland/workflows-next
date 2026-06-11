@@ -46,3 +46,10 @@ npm run build
 ```
 
 Brukes for å verifisere at endringer kompilerer. Vercel bygger uansett på push, men lokal build fanger opp feil tidligere.
+
+## Bildestil
+
+All bildeproduksjon (nettside, SoMe, OG, mockups) følger den kanoniske
+stilguiden i [docs/bildestil.md](./docs/bildestil.md) — gjenbrukbar
+gpt-image-2-prompt, tekniske regler og karakter-kontinuitet (Nattevakten).
+Les den FØR du genererer bilder.
