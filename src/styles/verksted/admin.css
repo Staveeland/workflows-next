@@ -1,0 +1,295 @@
+/* ════════════════════════════════════════════════════════════════════
+   VERKSTEDKONTORET (/start/admin) — Petters bakrom.
+   Builds on portal.css (topbar, inputs, labels, forslag-classes) and the
+   tokens in base.css — NOTHING hardcoded that exists as a token.
+   Voice: mono labels, quiet, dense, zero ceremony. Poster law applies;
+   no animation here at all — the office doesn't perform.
+   Mobile is first-class at 360px; every target ≥44px.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Office badge in the topbar — quiet, lowercase company of the wordmark. */
+.vk-adm-merke {
+  color: var(--stov);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── Stage: top-aligned working column (lists read from the top) ── */
+
+.vk-adm-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 960px;
+  margin-inline: auto;
+  padding: clamp(24px, 5vh, 56px) clamp(20px, 4vw, 48px);
+}
+
+.vk-adm-h1 {
+  margin: 0;
+  font-size: clamp(28px, 4.6vw, 44px);
+  font-weight: 500;
+}
+
+/* Section headings — the same mono label voice as the forslag labels. */
+.vk-adm-stittel {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+/* Quiet mono fillers: loading line, empty list, missing assessment. */
+.vk-adm-tomt {
+  margin: 0;
+  color: var(--stov);
+}
+
+.vk-adm-antall {
+  margin: 0;
+  color: var(--stov);
+}
+
+/* ════════════════════════════════════════════
+   The list — dense rows, one kartlegging each
+   ════════════════════════════════════════════ */
+
+.vk-adm-listevisning {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vk-adm-listevisning .vk-kicker {
+  margin: 0;
+}
+
+.vk-adm-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--hairline);
+}
+
+/* A row is ONE button — date · company · email · anbefaling · status. */
+.vk-adm-rad {
+  appearance: none;
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1.1fr) minmax(0, 1.3fr) 110px auto;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+  border-radius: 0;
+  color: var(--stov);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-2) var(--ease-work);
+}
+
+.vk-adm-rad:hover {
+  background: var(--benk);
+}
+
+.vk-adm-dato {
+  color: var(--stov);
+}
+
+.vk-adm-bedrift {
+  overflow: hidden;
+  font-weight: 500;
+  color: var(--papir);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vk-adm-epost {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vk-adm-anbefaling {
+  color: var(--stov);
+}
+
+/* Status — the quiet amber chip (vk-stamp's little sibling). */
+.vk-adm-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  padding: 3px 10px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--glod);
+  background: rgba(255, 180, 84, 0.07);
+  border: 1px solid rgba(255, 180, 84, 0.28);
+  border-radius: 999px;
+}
+
+/* ── Mobile: two-line rows — who/when on top, what/where underneath ── */
+@media (max-width: 720px) {
+  .vk-adm-rad {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "bedrift chip"
+      "epost dato"
+      "anbefaling dato";
+    row-gap: 2px;
+  }
+
+  .vk-adm-bedrift {
+    grid-area: bedrift;
+  }
+
+  .vk-adm-chip {
+    grid-area: chip;
+  }
+
+  .vk-adm-epost {
+    grid-area: epost;
+  }
+
+  .vk-adm-anbefaling {
+    grid-area: anbefaling;
+  }
+
+  .vk-adm-dato {
+    grid-area: dato;
+    align-self: end;
+  }
+}
+
+/* ════════════════════════════════════════════
+   The detail — one kartlegging on the bench
+   ════════════════════════════════════════════ */
+
+.vk-adm-detalj {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.vk-adm-dhode {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Meta line under the company name: email · date · status chip. */
+.vk-adm-dmeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--stov);
+}
+
+.vk-adm-seksjon {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+}
+
+/* Assessment title inside the section — display voice, smaller than h1. */
+.vk-adm-atittel {
+  margin: 0;
+  font-size: clamp(22px, 3.4vw, 32px);
+  font-weight: 500;
+}
+
+/* ── Answers / research — dense definition grid, mono terms ── */
+
+.vk-adm-svar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.vk-adm-svarrad {
+  display: grid;
+  grid-template-columns: minmax(150px, 230px) 1fr;
+  gap: 4px 20px;
+}
+
+.vk-adm-svarrad dt {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stov);
+  padding-top: 3px;
+}
+
+.vk-adm-svarrad dd {
+  margin: 0;
+  max-width: 64ch;
+  color: var(--papir);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .vk-adm-svarrad {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+/* ── The quote form ── */
+
+.vk-adm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.vk-adm-formrad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.vk-adm-formrad--send {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  margin-top: 4px;
+}
+
+@media (max-width: 560px) {
+  .vk-adm-formrad {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* «sendt 12.06.2026, 14:32» — quiet amber, same voice as vk-portal-sent. */
+.vk-adm-sendt {
+  margin: 0;
+  color: var(--glod);
+}
+
+.vk-adm-bekreftelse {
+  margin: 0;
+  color: var(--glod);
+}

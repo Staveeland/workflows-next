@@ -909,3 +909,185 @@ button.vk-portal-stop:active {
 .vk-portal-kort-link:hover {
   text-decoration-color: var(--glod);
 }
+
+/* ════════════════════════════════════════════
+   Tilbudet — level 3 (status «tilbud_sendt»)
+   Petters hand-written quote arrives as a cream .vk-paper deed — same
+   skjøte-language as the Eierskap panel: paper ground, hairline rules,
+   stamp-style heading. No animation: the resting sheet IS the composed
+   state (poster law), so reduced-motion needs no extra gating here.
+   ════════════════════════════════════════════ */
+
+.vk-portal-tilbud {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ── The level 2 assessment, folded away — small, quiet, benk plate ── */
+
+.vk-portal-tsammendrag {
+  max-width: 640px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+}
+
+.vk-portal-tsummary {
+  min-height: 44px;
+  padding: 12px 16px;
+  color: var(--stov);
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-portal-tsummary:hover {
+  color: var(--papir);
+}
+
+.vk-portal-tsammendrag[open] .vk-portal-tsummary {
+  color: var(--papir);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.vk-portal-tsammendrag-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+/* ── The deed: cream sheet, ink text (paper tokens from .vk-paper) ── */
+
+.vk-portal-tark {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 680px;
+  margin-top: 6px;
+  padding: clamp(28px, 5vw, 48px);
+  /* same single-hue luminance gradient as the Eierskap panel */
+  background:
+    radial-gradient(120% 90% at 50% 0%, #f7f2e9 0%, var(--papir-flate) 55%, #efe8da 100%);
+  color: var(--blekk);
+  border: 1px solid rgba(23, 19, 16, 0.1);
+  border-radius: 10px; /* a deed — tighter than the Eierskap panel */
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* Paper surfaces: the global amber focus ring drowns on cream — use ink. */
+.vk-portal-tark *:focus-visible {
+  outline-color: var(--blekk);
+}
+
+.vk-portal-tark-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(23, 19, 16, 0.12);
+}
+
+/* Stamp-style heading — amber-as-text on paper, slight press rotation. */
+.vk-portal-tstempel {
+  margin: 0;
+  width: fit-content;
+  padding: 6px 12px;
+  border: 1.5px solid rgba(138, 90, 20, 0.55);
+  color: var(--glod-papir); /* #8a5a14 on cream ≥5:1 — AA at mono size */
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  rotate: var(--rot-b);
+}
+
+.vk-portal-tdato {
+  margin: 0;
+  color: rgba(23, 19, 16, 0.75); /* ≈8:1 on cream — AA */
+}
+
+.vk-portal-tavsnitt {
+  margin: 0;
+  max-width: 58ch;
+  color: rgba(23, 19, 16, 0.85);
+}
+
+/* ── Pris — the prominent Fraunces line ── */
+
+.vk-portal-tprisblokk {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.vk-portal-tlabel {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(23, 19, 16, 0.75);
+}
+
+.vk-portal-tpris {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 144;
+  font-size: clamp(32px, 5.4vw, 52px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--blekk);
+}
+
+.vk-portal-tleveranse {
+  margin: 0;
+  max-width: 70ch;
+  color: rgba(23, 19, 16, 0.75);
+}
+
+.vk-portal-tlabel-inline {
+  margin-right: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--glod-papir);
+}
+
+/* ── Actions on the bottom rule: CTA + quiet mailto ── */
+
+.vk-portal-tactions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  margin-top: 10px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(23, 19, 16, 0.12);
+}
+
+/* Quiet link recolored for the paper scope. */
+.vk-portal-quietlink--paper {
+  color: rgba(23, 19, 16, 0.75);
+  text-decoration-color: rgba(23, 19, 16, 0.3);
+}
+
+.vk-portal-quietlink--paper:hover {
+  color: var(--glod-papir);
+  text-decoration-color: var(--glod-papir);
+}
+
+/* Error on paper: ink body text, the stamp-red rule stays decorative. */
+.vk-portal-feilmelding--paper {
+  color: var(--blekk);
+}
+
+/* ── Godkjent (level 4 — BYGGES): warm confirmation, kontaktkort reused ── */
+
+.vk-portal-godkjent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

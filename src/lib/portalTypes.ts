@@ -16,7 +16,18 @@
  *     body:     PortalResearchBody
  *     response: PortalResearchResponse (funn: null on no reasonable match)
  *
- * Keep this file dependency-free (types + one string constant only).
+ * Admin («verkstedkontoret», /start/admin) — Petter only. Same user-token
+ * pattern; the routes additionally require user.email === ADMIN_EMAIL and
+ * the admin RLS policies carry the cross-user reads:
+ *
+ *   GET  /api/portal/admin/liste          — response: AdminListeResponse
+ *   GET  /api/portal/admin/liste?id=<id>  — response: AdminDetaljResponse
+ *     (one full row + 1h signed mockup URL — no separate detail route)
+ *   POST /api/portal/admin/tilbud — body: AdminTilbudBody
+ *     response: AdminTilbudResponse (row → tilbud, tilbud_sendt_at,
+ *     status='tilbud_sendt')
+ *
+ * Keep this file dependency-free (types + plain constants only).
  */
 
 export type PortalAnbefaling =
@@ -45,8 +56,20 @@ export type PortalStatus =
   | "genererer"
   | "forslag_klart"
   | "likt"
+  | "tilbud_sendt"
   | "videre"
   | "feilet";
+
+/**
+ * The quote Petter writes by hand (kartlegginger.tilbud jsonb).
+ * pris is a free-form string («fra 45 000 kr eks. mva») — never a number.
+ */
+export interface PortalTilbud {
+  /** 1–3 short paragraphs separated by "\n\n". Petters own words. */
+  tekst: string;
+  pris: string;
+  leveranse: string;
+}
 
 /** The row as the client sees it (GET /api/portal/me). */
 export interface PortalKartlegging {
@@ -57,6 +80,10 @@ export interface PortalKartlegging {
   /** Signed URL (1h) — or a local path when the dev mock is active. */
   mockupUrl: string | null;
   createdAt: string;
+  /** Petters hand-written quote — set when status reaches «tilbud_sendt». */
+  tilbud: PortalTilbud | null;
+  tilbudSendtAt: string | null;
+  godkjentAt: string | null;
 }
 
 export interface PortalSubmitBody {
@@ -123,3 +150,67 @@ export interface PortalBedriftAnswer {
  * magic-link round trip (user leaves for their inbox, returns to /start).
  */
 export const PORTAL_DRAFT_KEY = "vk-portal-draft";
+
+/**
+ * POST /api/portal/godkjenn — same auth header as /like. Idempotent: only a
+ * row sitting in «tilbud_sendt» transitions to «videre» (+ godkjent_at).
+ */
+export interface PortalGodkjennBody {
+  id: string;
+}
+
+export interface PortalGodkjennResponse {
+  ok: true;
+}
+
+/* ── Admin («verkstedkontoret», /start/admin) — Petter only ── */
+
+/** The ONE admin identity. Server routes verify against this; RLS agrees. */
+export const ADMIN_EMAIL = "petter@workflows.no";
+
+/** Validation caps for POST /api/portal/admin/tilbud (route + form). */
+export const TILBUD_TEKST_MAX = 4000;
+export const TILBUD_PRIS_MAX = 200;
+export const TILBUD_LEVERANSE_MAX = 200;
+
+/** GET /api/portal/admin/liste — one trimmed row in the list view. */
+export interface AdminListItem {
+  id: string;
+  createdAt: string;
+  email: string;
+  /** answers.bedrift.navn (fallback: answers.research.navn) — or null. */
+  bedriftNavn: string | null;
+  anbefaling: PortalAnbefaling | null;
+  status: PortalStatus;
+}
+
+export interface AdminListeResponse {
+  kartlegginger: AdminListItem[];
+}
+
+/** GET /api/portal/admin/liste?id= — the full row as the admin sees it. */
+export interface AdminKartlegging {
+  id: string;
+  status: PortalStatus;
+  email: string;
+  answers: Record<string, unknown>;
+  assessment: PortalAssessment | null;
+  /** Signed URL (1h) — or a local path when the dev mock is active. */
+  mockupUrl: string | null;
+  tilbud: PortalTilbud | null;
+  tilbudSendtAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminDetaljResponse {
+  kartlegging: AdminKartlegging | null;
+}
+
+export interface AdminTilbudBody {
+  id: string;
+  tilbud: PortalTilbud;
+}
+
+export interface AdminTilbudResponse {
+  ok: true;
+}

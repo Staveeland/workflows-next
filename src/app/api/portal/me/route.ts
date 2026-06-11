@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { portalAuth, unauthorized } from "@/lib/portalAuth";
 import { mockMe, portalMockEnabled } from "@/lib/portalMock";
-import type { PortalAssessment, PortalMeResponse, PortalStatus } from "@/lib/portalTypes";
+import type {
+  PortalAssessment,
+  PortalMeResponse,
+  PortalStatus,
+  PortalTilbud,
+} from "@/lib/portalTypes";
 
 export const runtime = "nodejs";
 
@@ -32,7 +37,9 @@ export async function GET(req: Request) {
   // Latest row for this user — RLS scopes the select to the owner.
   const { data: row, error } = await supabase
     .from("kartlegginger")
-    .select("id, status, answers, assessment, mockup_path, created_at")
+    .select(
+      "id, status, answers, assessment, mockup_path, created_at, tilbud, tilbud_sendt_at, godkjent_at"
+    )
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -80,6 +87,9 @@ export async function GET(req: Request) {
       assessment: (row.assessment ?? null) as PortalAssessment | null,
       mockupUrl,
       createdAt: row.created_at as string,
+      tilbud: (row.tilbud ?? null) as PortalTilbud | null,
+      tilbudSendtAt: (row.tilbud_sendt_at ?? null) as string | null,
+      godkjentAt: (row.godkjent_at ?? null) as string | null,
     },
   });
 }

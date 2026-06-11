@@ -1,4 +1,9 @@
 import type { Lang } from "@/lib/translations";
+import type {
+  PortalAnbefaling,
+  PortalStatus,
+  ResearchFunn,
+} from "@/lib/portalTypes";
 
 /**
  * Kundeportalen («Verkstedet» /start) — ALL user-facing strings, NO + EN.
@@ -106,6 +111,8 @@ export interface PortalContent {
     epostMangler: string;
     /** Magic link came back expired/used (#error_code=otp_expired). */
     lenkeUtlopt: string;
+    /** Supabase email rate limit hit — our ceiling, not their typo. */
+    forMangeLenker: string;
   };
   generating: {
     tittel: string;
@@ -151,6 +158,90 @@ export interface PortalContent {
     duErHer: string;
     /** Accessible name for the fritekst input on chips+fritekst steps. */
     egneOrd: string;
+  };
+  /** Level 3 — Petters hand-written quote (status «tilbud_sendt»). */
+  tilbud: {
+    kicker: string;
+    tittel: string;
+    /** <summary> label for the collapsed assessment from level 2. */
+    seVurdering: string;
+    /** Stamp-style heading on the cream quote sheet. */
+    arkOverskrift: string;
+    /** «sendt {dato}» — quiet mono date line on the sheet. */
+    sendtTemplate: string;
+    prisLabel: string;
+    leveranseLabel: string;
+    godkjennKnapp: string;
+    /** Quiet mailto link beside the CTA. */
+    sporsmalLenke: string;
+    /** Level 4 — after approval (status «videre»). */
+    godkjentTittel: string;
+    godkjentTekst: string;
+  };
+  /** Verkstedkontoret (/start/admin) — Petters bakrom. Quiet, dense. */
+  admin: {
+    /** Mono badge in the topbar + kicker over the list. */
+    kicker: string;
+    login: {
+      tittel: string;
+      forklaring: string;
+    };
+    /** Logged in, but not Petter. */
+    ikkeDinDor: {
+      tittel: string;
+      tekst: string;
+      hjem: string;
+    };
+    felles: {
+      /** Mono line while a fetch runs. */
+      henter: string;
+      feil: string;
+      provIgjen: string;
+    };
+    liste: {
+      tittel: string;
+      /** «{n} kartlegginger» — quiet mono count under the heading. */
+      antallTemplate: string;
+      tom: string;
+      /** Row fallback when answers carry no company name. */
+      ukjentBedrift: string;
+    };
+    /** Chip text per status — short, lowercase, mono. */
+    status: Record<PortalStatus, string>;
+    /** Readable label per anbefaling. */
+    anbefaling: Record<PortalAnbefaling, string>;
+    detalj: {
+      /** Back-link to the list. */
+      tilbake: string;
+      svarTittel: string;
+      /** Suffix on the label of a `${id}_tekst` free-text answer. */
+      egneOrdSuffix: string;
+      researchTittel: string;
+      vurderingTittel: string;
+      /** Quiet mono note when assessment is still null. */
+      ingenVurdering: string;
+      mockupAlt: string;
+      /** Mono labels for the research-funn fields. */
+      researchFelter: Record<keyof ResearchFunn, string>;
+    };
+    tilbudForm: {
+      tittel: string;
+      tekstLabel: string;
+      tekstPlassholder: string;
+      prisLabel: string;
+      prisPlassholder: string;
+      leveranseLabel: string;
+      leveransePlassholder: string;
+      sendKnapp: string;
+      /** Button label when a tilbud already exists on the row. */
+      oppdaterKnapp: string;
+      /** «sendt {dato}» — quiet mono line when tilbudSendtAt is set. */
+      sendtTemplate: string;
+      bekreftelse: string;
+      /** Validation: all three fields required (WCAG 3.3.1). */
+      mangler: string;
+      feil: string;
+    };
   };
 }
 
@@ -300,6 +391,8 @@ export const portalContent: Record<Lang, PortalContent> = {
       epostMangler: "Skriv inn e-postadressen din først.",
       lenkeUtlopt:
         "Lenken er utløpt eller allerede brukt — send en ny, så ligger svarene dine fortsatt trygt her.",
+      forMangeLenker:
+        "Vi har sendt mange lenker på kort tid og må vente litt — det er vår grense, ikke skrivefeil hos deg. Prøv igjen om en times tid, eller ta en prat med oss i mellomtiden.",
     },
     generating: {
       tittel: "Verkstedet tegner.",
@@ -343,6 +436,98 @@ export const portalContent: Record<Lang, PortalContent> = {
       levelTemplate: "Nivå {n}: {navn}",
       duErHer: "du er her",
       egneOrd: "Eller si det med egne ord",
+    },
+    tilbud: {
+      kicker: "Pristilbudet",
+      tittel: "Tilbudet ligger på benken.",
+      seVurdering: "Se vurderingen fra forslaget",
+      arkOverskrift: "Pristilbud",
+      sendtTemplate: "sendt {dato}",
+      prisLabel: "Pris",
+      leveranseLabel: "Leveranse",
+      godkjennKnapp: "Godkjenn tilbudet",
+      sporsmalLenke: "har du spørsmål? ta en prat",
+      godkjentTittel: "Da setter vi i gang.",
+      godkjentTekst:
+        "Tilbudet er godkjent — Petter tar kontakt om oppstart. Verkstedet rigger benken.",
+    },
+    admin: {
+      kicker: "Verkstedkontoret",
+      login: {
+        tittel: "Verkstedkontoret.",
+        forklaring:
+          "Bakrommet. Logg inn med verkstedets e-post — lenke, ikke passord.",
+      },
+      ikkeDinDor: {
+        tittel: "Ikke din dør.",
+        tekst:
+          "Dette er bakrommet — bare Petter har nøkkel hit. Leter du etter din egen kartlegging, ligger den trygt bak /start.",
+        hjem: "Til forsiden",
+      },
+      felles: {
+        henter: "henter …",
+        feil: "Det stoppet opp. Prøv igjen.",
+        provIgjen: "Prøv igjen",
+      },
+      liste: {
+        tittel: "Kartleggingene",
+        antallTemplate: "{n} på benken",
+        tom: "Ingen kartlegginger ennå. Benken er ryddet.",
+        ukjentBedrift: "(uten bedriftsnavn)",
+      },
+      status: {
+        innsendt: "innsendt",
+        genererer: "genererer",
+        forslag_klart: "forslag klart",
+        likt: "likt",
+        tilbud_sendt: "tilbud sendt",
+        videre: "videre",
+        feilet: "feilet",
+      },
+      anbefaling: {
+        chatbot: "chatbot",
+        flyt: "flyt",
+        agent: "agent",
+        software: "software",
+        kombinasjon: "kombinasjon",
+        ikke_ai: "ikke AI",
+      },
+      detalj: {
+        tilbake: "tilbake til lista",
+        svarTittel: "Svarene",
+        egneOrdSuffix: "— egne ord",
+        researchTittel: "Research-funn",
+        vurderingTittel: "Vurderingen kunden fikk",
+        ingenVurdering: "ingen vurdering ennå",
+        mockupAlt: "Konseptskissen kunden fikk se",
+        researchFelter: {
+          navn: "Navn",
+          orgnr: "Orgnr",
+          orgform: "Orgform",
+          bransje: "Bransje",
+          ansatte: "Ansatte",
+          sted: "Sted",
+          nettside: "Nettside",
+          sideTittel: "Sidetittel",
+          sideBeskrivelse: "Beskrivelse",
+        },
+      },
+      tilbudForm: {
+        tittel: "Tilbudet",
+        tekstLabel: "Tilbudstekst",
+        tekstPlassholder:
+          "Hva vi bygger og hva det løser — med dine ord. Avsnitt skilles med blank linje.",
+        prisLabel: "Pris",
+        prisPlassholder: "f.eks. fra 45 000 kr eks. mva",
+        leveranseLabel: "Leveranse",
+        leveransePlassholder: "f.eks. 3–4 uker fra signering",
+        sendKnapp: "Send tilbud",
+        oppdaterKnapp: "Oppdater tilbud",
+        sendtTemplate: "sendt {dato}",
+        bekreftelse: "Tilbudet ligger på benken — kunden ser det på /start.",
+        mangler: "Alle tre feltene må fylles ut: tekst, pris og leveranse.",
+        feil: "Det gikk ikke å lagre tilbudet. Prøv igjen.",
+      },
     },
   },
 
@@ -491,6 +676,8 @@ export const portalContent: Record<Lang, PortalContent> = {
       epostMangler: "Enter your email address first.",
       lenkeUtlopt:
         "That link has expired or was already used — send a new one, your answers are still safe here.",
+      forMangeLenker:
+        "We've sent a lot of links in a short time and need a breather — our ceiling, not your typo. Try again in an hour or so, or just talk to us in the meantime.",
     },
     generating: {
       tittel: "The workshop is drawing.",
@@ -534,6 +721,98 @@ export const portalContent: Record<Lang, PortalContent> = {
       levelTemplate: "Level {n}: {navn}",
       duErHer: "you are here",
       egneOrd: "Or say it in your own words",
+    },
+    tilbud: {
+      kicker: "The quote",
+      tittel: "The quote is on the bench.",
+      seVurdering: "Revisit the assessment from the proposal",
+      arkOverskrift: "Quote",
+      sendtTemplate: "sent {dato}",
+      prisLabel: "Price",
+      leveranseLabel: "Delivery",
+      godkjennKnapp: "Approve the quote",
+      sporsmalLenke: "questions? let's talk",
+      godkjentTittel: "Then we get to work.",
+      godkjentTekst:
+        "The quote is approved — Petter will be in touch about kick-off. The workshop is rigging the bench.",
+    },
+    admin: {
+      kicker: "The back office",
+      login: {
+        tittel: "The back office.",
+        forklaring:
+          "Workshop staff only. Sign in with the workshop email — a link, no password.",
+      },
+      ikkeDinDor: {
+        tittel: "Not your door.",
+        tekst:
+          "This is the back room — only Petter has a key. If you're after your own mapping, it lives safely behind /start.",
+        hjem: "To the front page",
+      },
+      felles: {
+        henter: "fetching …",
+        feil: "It stalled. Try again.",
+        provIgjen: "Try again",
+      },
+      liste: {
+        tittel: "The mappings",
+        antallTemplate: "{n} on the bench",
+        tom: "No mappings yet. The bench is clear.",
+        ukjentBedrift: "(no company name)",
+      },
+      status: {
+        innsendt: "submitted",
+        genererer: "generating",
+        forslag_klart: "proposal ready",
+        likt: "liked",
+        tilbud_sendt: "quote sent",
+        videre: "under way",
+        feilet: "failed",
+      },
+      anbefaling: {
+        chatbot: "chatbot",
+        flyt: "flow",
+        agent: "agent",
+        software: "software",
+        kombinasjon: "combination",
+        ikke_ai: "no AI",
+      },
+      detalj: {
+        tilbake: "back to the list",
+        svarTittel: "The answers",
+        egneOrdSuffix: "— in their own words",
+        researchTittel: "Research findings",
+        vurderingTittel: "The assessment the customer saw",
+        ingenVurdering: "no assessment yet",
+        mockupAlt: "The concept sketch the customer saw",
+        researchFelter: {
+          navn: "Name",
+          orgnr: "Org. no.",
+          orgform: "Form",
+          bransje: "Line of business",
+          ansatte: "Employees",
+          sted: "Location",
+          nettside: "Website",
+          sideTittel: "Page title",
+          sideBeskrivelse: "Description",
+        },
+      },
+      tilbudForm: {
+        tittel: "The quote",
+        tekstLabel: "Quote text",
+        tekstPlassholder:
+          "What we'll build and what it solves — in your own words. Blank line between paragraphs.",
+        prisLabel: "Price",
+        prisPlassholder: "e.g. from 45 000 kr ex. VAT",
+        leveranseLabel: "Delivery",
+        leveransePlassholder: "e.g. 3–4 weeks from signing",
+        sendKnapp: "Send quote",
+        oppdaterKnapp: "Update quote",
+        sendtTemplate: "sent {dato}",
+        bekreftelse: "The quote is on the bench — the customer sees it on /start.",
+        mangler: "All three fields are needed: text, price and delivery.",
+        feil: "Saving the quote failed. Try again.",
+      },
     },
   },
 };

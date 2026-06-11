@@ -38,8 +38,9 @@ const COOLDOWN_ID = "vk-portal-auth-cooldown";
  * failure in the URL fragment (#error=access_denied&error_code=otp_expired&…)
  * or query string. Detect it, then clean the URL so a reload doesn't
  * re-trigger the message. Returns true when an auth error was present.
+ * Exported for the slim admin gate (/start/admin) — same round trip.
  */
-function consumeAuthErrorFromUrl(): boolean {
+export function consumeAuthErrorFromUrl(): boolean {
   if (typeof window === "undefined") return false;
   const sources = [
     window.location.hash.replace(/^#/, ""),
@@ -162,7 +163,12 @@ export default function AuthGate({
       setCooldown(RESEND_COOLDOWN_S);
     } catch (err) {
       console.error("[portal/authgate] signInWithOtp failed", err);
-      setError(t.authgate.feil);
+      // Supabase email rate limit reads as status 429 / "rate limit" — that
+      // is OUR ceiling, not a typo in their address. Say so honestly.
+      const status = (err as { status?: number })?.status;
+      const msg = err instanceof Error ? err.message : "";
+      const rateLimited = status === 429 || /rate limit/i.test(msg);
+      setError(rateLimited ? t.authgate.forMangeLenker : t.authgate.feil);
     } finally {
       setSending(false);
     }

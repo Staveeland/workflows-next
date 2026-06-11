@@ -61,3 +61,15 @@ export function unauthorized(): Response {
     { status: 401, headers: { "Content-Type": "application/json" } }
   );
 }
+
+/**
+ * Standard 403 for the admin routes («ikke din dør»). Every admin route
+ * must check user.email === ADMIN_EMAIL itself — RLS backs it up, but the
+ * route never relies on the client having done anything.
+ */
+export function forbidden(): Response {
+  return new Response(JSON.stringify({ error: "Ikke din dør." }), {
+    status: 403,
+    headers: { "Content-Type": "application/json" },
+  });
+}

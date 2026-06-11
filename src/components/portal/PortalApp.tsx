@@ -11,6 +11,7 @@ import type { Lang } from "@/lib/translations";
 import { portalContent, type PortalContent } from "@/lib/portalContent";
 import {
   PORTAL_DRAFT_KEY,
+  type PortalGodkjennResponse,
   type PortalKartlegging,
   type PortalLikeResponse,
   type PortalMeResponse,
@@ -20,13 +21,16 @@ import { supabaseBrowser } from "@/lib/supabaseBrowser";
 import AuthGate from "@/components/portal/AuthGate";
 import Forslag, { FORSLAG_HEADING_ID } from "@/components/portal/Forslag";
 import LevelRail from "@/components/portal/LevelRail";
+import Tilbud, { Godkjent, TILBUD_VURDERING_ID } from "@/components/portal/Tilbud";
 import Wizard, { type PortalAnswers } from "@/components/portal/Wizard";
 
 /**
  * «Programmet» on /start — the portal state machine:
  *
- *   intro → wizard (8 steps) → authgate → generating → forslag → likt/videre
+ *   intro → wizard (8 steps) → authgate → generating → forslag → likt
  *                                              ↘ error (feilet / submit died)
+ *   … then out-of-session: Petter sends the quote (status «tilbud_sendt»)
+ *   → phase tilbud (level 3) → godkjenn → phase videre (level 4, BYGGES).
  *
  * Draft answers persist to localStorage (vk-portal-draft) on every answer so
  * they survive the magic-link round trip; AuthGate auto-submits when a
@@ -34,7 +38,15 @@ import Wizard, { type PortalAnswers } from "@/components/portal/Wizard";
  * every 5s until forslag_klart. All strings come from portalContent[lang].
  */
 
-type Phase = "intro" | "wizard" | "authgate" | "generating" | "forslag" | "error";
+type Phase =
+  | "intro"
+  | "wizard"
+  | "authgate"
+  | "generating"
+  | "forslag"
+  | "tilbud"
+  | "videre"
+  | "error";
 
 interface Draft {
   answers: PortalAnswers;
@@ -119,11 +131,23 @@ async function apiFetch<T>(path: string, token: string, init?: RequestInit): Pro
 }
 
 function isReady(k: PortalKartlegging): boolean {
-  return k.status === "forslag_klart" || k.status === "likt" || k.status === "videre";
+  return (
+    k.status === "forslag_klart" ||
+    k.status === "likt" ||
+    k.status === "tilbud_sendt" ||
+    k.status === "videre"
+  );
 }
 
 function isWorking(k: PortalKartlegging): boolean {
   return k.status === "genererer" || k.status === "innsendt";
+}
+
+/** Which phase a landable row belongs to — the status owns the screen. */
+function landingPhase(k: PortalKartlegging): Phase {
+  if (k.status === "videre") return "videre";
+  if (k.status === "tilbud_sendt" && k.tilbud) return "tilbud";
+  return "forslag";
 }
 
 /* ── Generating — the lantern moment ── */
@@ -249,6 +273,8 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
   const [kart, setKart] = useState<PortalKartlegging | null>(null);
   const [liking, setLiking] = useState(false);
   const [likeError, setLikeError] = useState(false);
+  const [godkjenner, setGodkjenner] = useState(false);
+  const [godkjennError, setGodkjennError] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
 
   const draftRef = useRef(draft);
@@ -281,11 +307,11 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     }
   }, [devMock]);
 
-  /** Land a finished row: show the forslag, the draft has served its purpose. */
+  /** Land a finished row on its phase — the draft has served its purpose. */
   const land = useCallback((k: PortalKartlegging) => {
     setKart(k);
     clearDraft();
-    setPhase("forslag");
+    setPhase(landingPhase(k));
   }, []);
 
   /* ── Boot: restore draft, or restore server state for a known session ── */
@@ -300,7 +326,9 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
       setPhase(saved.done ? "authgate" : "wizard");
       return;
     }
-    if (devMock) return;
+    // Dev-mock boots like production: /me short-circuits to mockMe(), which
+    // also seeds the canned «tilbud_sendt» row when PORTAL_DEV_MOCK_STATE
+    // says so — that's how level 3 is reachable in dev without a real quote.
     let cancelled = false;
     (async () => {
       const token = await getToken();
@@ -315,7 +343,7 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
           setPhase("generating");
         } else if (isReady(k)) {
           setKart(k);
-          setPhase("forslag");
+          setPhase(landingPhase(k));
         }
       } catch {
         // Stay on the intro — the visitor can simply start.
@@ -324,7 +352,7 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     return () => {
       cancelled = true;
     };
-  }, [devMock, getToken, setLang]);
+  }, [getToken, setLang]);
 
   /* ── Submit: the expensive moment. Guarded against double-fire and
         against re-submitting while the server is already drawing. ── */
@@ -493,19 +521,55 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     }
   };
 
+  const onGodkjenn = async () => {
+    if (!kart || godkjenner) return;
+    interactedRef.current = true;
+    setGodkjenner(true);
+    setGodkjennError(false);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("no session");
+      await apiFetch<PortalGodkjennResponse>("/api/portal/godkjenn", token, {
+        method: "POST",
+        body: JSON.stringify({ id: kart.id }),
+      });
+      setKart({ ...kart, status: "videre", godkjentAt: new Date().toISOString() });
+      setPhase("videre");
+    } catch (err) {
+      console.error("[portal] godkjenn failed", err);
+      setGodkjennError(true);
+    } finally {
+      setGodkjenner(false);
+    }
+  };
+
   /* ── Rail ── */
 
   const level =
-    phase === "forslag" && kart && (kart.status === "likt" || kart.status === "videre")
-      ? 3
-      : phase === "forslag" || phase === "generating" || phase === "error"
-        ? 2
-        : 1;
+    phase === "videre"
+      ? 4
+      : phase === "tilbud" || (phase === "forslag" && kart?.status === "likt")
+        ? 3
+        : phase === "forslag" || phase === "generating" || phase === "error"
+          ? 2
+          : 1;
 
   const onRailBack = (n: number) => {
     if (n === 1) {
       restart(kart?.answers ?? draftRef.current.answers);
     } else if (n === 2) {
+      if (phase === "tilbud") {
+        // The level 2 assessment is on this screen, collapsed — open it
+        // and hand focus to its toggle.
+        const det = document.getElementById(
+          TILBUD_VURDERING_ID
+        ) as HTMLDetailsElement | null;
+        if (det) {
+          det.open = true;
+          det.querySelector("summary")?.focus();
+        }
+        return;
+      }
       // From level 3 the forslag is already on screen — return focus to it.
       document.getElementById(FORSLAG_HEADING_ID)?.focus();
     }
@@ -532,7 +596,13 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
 
       <LevelRail
         current={level}
-        onBack={level > 1 && phase !== "generating" ? onRailBack : undefined}
+        // No backward navigation once the quote is approved (phase videre) —
+        // there is nothing meaningful to go back TO; the bench is rigged.
+        onBack={
+          level > 1 && phase !== "generating" && phase !== "videre"
+            ? onRailBack
+            : undefined
+        }
         disabled={phase === "generating"}
       />
 
@@ -589,6 +659,18 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
             onRestart={() => restart(kart.answers)}
           />
         ) : null}
+
+        {phase === "tilbud" && kart ? (
+          <Tilbud
+            kartlegging={kart}
+            godkjenner={godkjenner}
+            godkjennError={godkjennError}
+            autoFocus={interactedRef.current}
+            onGodkjenn={() => void onGodkjenn()}
+          />
+        ) : null}
+
+        {phase === "videre" ? <Godkjent autoFocus={interactedRef.current} /> : null}
 
         {phase === "error" ? (
           <ErrorScreen t={t} onRetry={retry} rateLimited={rateLimited} />

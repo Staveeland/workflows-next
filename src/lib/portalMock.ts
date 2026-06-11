@@ -16,12 +16,18 @@
  */
 
 import type {
+  AdminDetaljResponse,
+  AdminKartlegging,
+  AdminListeResponse,
+  AdminTilbudResponse,
   PortalAssessment,
+  PortalGodkjennResponse,
   PortalKartlegging,
   PortalLikeResponse,
   PortalMeResponse,
   PortalResearchResponse,
   PortalSubmitResponse,
+  PortalTilbud,
   ResearchFunn,
 } from "@/lib/portalTypes";
 
@@ -106,6 +112,9 @@ export async function mockSubmit(
     assessment: null,
     mockupUrl: null,
     createdAt: new Date().toISOString(),
+    tilbud: null,
+    tilbudSendtAt: null,
+    godkjentAt: null,
   };
   await delay(MOCK_DELAY_MS);
   state.row = {
@@ -119,6 +128,12 @@ export async function mockSubmit(
 
 /** GET /api/portal/me — latest (only) row from mock memory. */
 export async function mockMe(): Promise<PortalMeResponse> {
+  // Canned tilbud_sendt state — boot straight into level 3 with
+  // PORTAL_DEV_MOCK=1 PORTAL_DEV_MOCK_STATE=tilbud_sendt (server-side env,
+  // read here because mockMe only ever runs inside the API route).
+  if (!state.row && process.env.PORTAL_DEV_MOCK_STATE === "tilbud_sendt") {
+    state.row = seedTilbudSendt();
+  }
   return { kartlegging: state.row };
 }
 
@@ -127,5 +142,187 @@ export async function mockLike(id: string): Promise<PortalLikeResponse> {
   if (state.row && state.row.id === id) {
     state.row = { ...state.row, status: "likt" };
   }
+  return { ok: true };
+}
+
+/** Canned but realistic quote — Petters voice, free-form pris string. */
+const MOCK_TILBUD: PortalTilbud = {
+  tekst:
+    "Vi bygger flyten fra forslaget: innboks → kø → system, med automatiske bekreftelser i deres ordlyd.\n\n" +
+    "Prisen dekker oppsett, tilpasning til systemene dere har, og to ukers innkjøring der vi justerer til det sitter. Ingen lisens til oss etterpå — dere eier alt.",
+  pris: "fra 45 000 kr eks. mva",
+  leveranse: "3–4 uker fra oppstart",
+};
+
+/** A finished row sitting in «tilbud_sendt» — assessment + quote present. */
+function seedTilbudSendt(): PortalKartlegging {
+  state.counter += 1;
+  return {
+    id: `mock-${state.counter}`,
+    status: "tilbud_sendt",
+    answers: {},
+    assessment: MOCK_ASSESSMENT,
+    mockupUrl: MOCK_MOCKUP_URL,
+    createdAt: new Date(Date.now() - 24 * 60 * 60_000).toISOString(),
+    tilbud: MOCK_TILBUD,
+    tilbudSendtAt: new Date().toISOString(),
+    godkjentAt: null,
+  };
+}
+
+/** POST /api/portal/godkjenn — idempotent flip, no Telegram in mock mode. */
+export async function mockGodkjenn(id: string): Promise<PortalGodkjennResponse> {
+  if (state.row && state.row.id === id && state.row.status === "tilbud_sendt") {
+    state.row = {
+      ...state.row,
+      status: "videre",
+      godkjentAt: new Date().toISOString(),
+    };
+  }
+  return { ok: true };
+}
+
+/* ════════════════════════════════════════════
+   ADMIN MOCK — verkstedkontoret (/start/admin).
+   Auto-admin: the routes short-circuit before any auth, so the office
+   opens with three canned kartlegginger in different statuses.
+   ════════════════════════════════════════════ */
+
+const MOCK_ADMIN_DELAY_MS = 400;
+
+/** A second canned assessment so the list isn't three copies of one row. */
+const MOCK_ASSESSMENT_CHATBOT: PortalAssessment = {
+  anbefaling: "chatbot",
+  tittel: "En chatbot som kan vaktlista",
+  vurdering:
+    "Det meste som kommer inn hos dere er de samme tjue spørsmålene — åpningstider, befaring, pris på standardjobbene. Det er akkurat det en chatbot er god til, og akkurat det folkene deres er for dyre til.\n\n" +
+    "Vi ville trent den på deres egne svar, koblet den til kalenderen, og latt alt som er uvanlig gå rett til et menneske — uten omveier.",
+  losningsskisse: [
+    "Chatboten svarer på de vanlige spørsmålene — med deres ordlyd.",
+    "Befaringsforespørsler lander rett i kalenderen.",
+    "Alt uvanlig sendes videre til riktig person, med samtalen vedlagt.",
+  ],
+  tidslinje: "2–3 uker fra oppstart til den svarer kundene deres.",
+  neste:
+    "Petter ser på vurderingen og kommer med et konkret pristilbud — innen én arbeidsdag.",
+};
+
+const HOUR_MS = 60 * 60_000;
+
+/** Three canned rows in different statuses — seeded once per process. */
+function seedAdminRows(): AdminKartlegging[] {
+  const now = Date.now();
+  return [
+    {
+      id: "adm-mock-1",
+      status: "likt",
+      email: "kari.nordmann@csub.com",
+      answers: {
+        bedrift: { navn: "CSUB AS", nettside: "csub.com" },
+        research: MOCK_FUNN,
+        storrelse: "50+",
+        tidstyver: ["rapporter", "dobbeltregistrering"],
+        systemer: ["m365", "fagsystem"],
+        kundehenvendelser: "litt",
+        dromen:
+          "At fremdriftsrapporten til prosjektmøtet skrev seg selv fra timelistene og avviksloggen.",
+        tempo: "fort",
+      },
+      assessment: MOCK_ASSESSMENT,
+      mockupUrl: MOCK_MOCKUP_URL,
+      tilbud: null,
+      tilbudSendtAt: null,
+      createdAt: new Date(now - 2 * HOUR_MS).toISOString(),
+    },
+    {
+      id: "adm-mock-2",
+      status: "forslag_klart",
+      email: "post@halandror.no",
+      answers: {
+        bedrift: { navn: "Håland Rør AS" },
+        research: null,
+        bransje: "bygg_industri",
+        storrelse: "6_20",
+        tidstyver: ["epost", "oppfolging", "annet"],
+        tidstyver_tekst: "purring på befaringer som aldri blir booket",
+        systemer: ["excel_sheets", "okonomisystem"],
+        kundehenvendelser: "ja_mye",
+        dromen: "At kundene kunne booke befaring selv uten ti telefoner frem og tilbake.",
+        tempo: "noen_maneder",
+      },
+      assessment: MOCK_ASSESSMENT_CHATBOT,
+      mockupUrl: MOCK_MOCKUP_URL,
+      tilbud: null,
+      tilbudSendtAt: null,
+      createdAt: new Date(now - 26 * HOUR_MS).toISOString(),
+    },
+    {
+      id: "adm-mock-3",
+      status: "tilbud_sendt",
+      email: "drift@fjordfrakt.no",
+      answers: {
+        bedrift: { navn: "Fjordfrakt AS", nettside: "fjordfrakt.no" },
+        research: null,
+        bransje: "tjenester",
+        storrelse: "21_50",
+        tidstyver: ["dobbeltregistrering", "lete_info"],
+        systemer: ["excel_sheets", "google", "fagsystem"],
+        kundehenvendelser: "litt",
+        dromen: "At fraktbrevene gikk rett fra bestilling til fagsystemet uten omtasting.",
+        tempo: "fort",
+      },
+      assessment: MOCK_ASSESSMENT,
+      mockupUrl: MOCK_MOCKUP_URL,
+      tilbud: MOCK_TILBUD,
+      tilbudSendtAt: new Date(now - 70 * HOUR_MS).toISOString(),
+      createdAt: new Date(now - 96 * HOUR_MS).toISOString(),
+    },
+  ];
+}
+
+/** Admin rows live beside the customer row on globalThis (same reason). */
+const ga = globalThis as typeof globalThis & {
+  __vkPortalAdminMockRows?: AdminKartlegging[];
+};
+const adminRows: AdminKartlegging[] = (ga.__vkPortalAdminMockRows ??= seedAdminRows());
+
+/** GET /api/portal/admin/liste — trimmed rows, created_at desc. */
+export async function mockAdminListe(): Promise<AdminListeResponse> {
+  await delay(MOCK_ADMIN_DELAY_MS);
+  return {
+    kartlegginger: adminRows.map((row) => {
+      const bedrift = row.answers.bedrift as { navn?: string } | undefined;
+      return {
+        id: row.id,
+        createdAt: row.createdAt,
+        email: row.email,
+        bedriftNavn: bedrift?.navn ?? null,
+        anbefaling: row.assessment?.anbefaling ?? null,
+        status: row.status,
+      };
+    }),
+  };
+}
+
+/** GET /api/portal/admin/liste?id= — one full row (or null). */
+export async function mockAdminDetalj(id: string): Promise<AdminDetaljResponse> {
+  await delay(MOCK_ADMIN_DELAY_MS);
+  return { kartlegging: adminRows.find((row) => row.id === id) ?? null };
+}
+
+/** POST /api/portal/admin/tilbud — row update, no Telegram (Petter acts). */
+export async function mockAdminTilbud(
+  id: string,
+  tilbud: PortalTilbud
+): Promise<AdminTilbudResponse | null> {
+  await delay(MOCK_ADMIN_DELAY_MS);
+  const idx = adminRows.findIndex((row) => row.id === id);
+  if (idx === -1) return null;
+  adminRows[idx] = {
+    ...adminRows[idx],
+    tilbud,
+    tilbudSendtAt: new Date().toISOString(),
+    status: "tilbud_sendt",
+  };
   return { ok: true };
 }
