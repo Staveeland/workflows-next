@@ -291,15 +291,6 @@ export function NavVerksted({ variant = "home" }: { variant?: "home" | "page" })
               <WorkflowsLogo className="vk-nav-logosvg" />
               <span className="vk-sr">Workflows</span>
             </Link>
-            <span
-              className="vk-nav-status"
-              data-vk-statusdot=""
-              role="img"
-              aria-label={t.nav.statusTooltip}
-              title={t.nav.statusTooltip}
-            >
-              <span className="vk-nav-dot" aria-hidden="true" />
-            </span>
           </span>
 
           <nav

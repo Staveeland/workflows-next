@@ -5,7 +5,7 @@ export function WorkflowsLogo({ className }: { className?: string }) {
   return (
     <svg
       className={className}
-      viewBox="88.5 215.5 772 116"
+      viewBox="88.5 215.5 772 121"
       fill="currentColor"
       role="img"
       aria-hidden="true"
