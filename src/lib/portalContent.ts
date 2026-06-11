@@ -281,7 +281,7 @@ export const portalContent: Record<Lang, PortalContent> = {
       ansatteTemplate: "{n} ansatte",
       stemmer: "Stemmer",
       ikkeOss: "Ikke oss — fortsett uten",
-      fantBransjen: "(fant bransjen deres i Brønnøysund)",
+      fantBransjen: "(Brønnøysund har allerede svart på noe av dette for dere)",
     },
     authgate: {
       tittel: "Nesten der.",
@@ -469,7 +469,7 @@ export const portalContent: Record<Lang, PortalContent> = {
       ansatteTemplate: "{n} employees",
       stemmer: "That's us",
       ikkeOss: "Not us — continue without",
-      fantBransjen: "(found your line of business in the public register)",
+      fantBransjen: "(the public register already answered some of this for you)",
     },
     authgate: {
       tittel: "Almost there.",

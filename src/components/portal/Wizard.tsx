@@ -75,9 +75,27 @@ function researchBransje(answers: PortalAnswers): string {
   return typeof bransje === "string" ? bransje.trim() : "";
 }
 
-/** Auto-skip "bransje" when the research already found their trade. */
+function researchAnsatte(answers: PortalAnswers): number {
+  const r = answers.research;
+  if (typeof r !== "object" || r === null || Array.isArray(r)) return 0;
+  const ansatte = (r as Record<string, unknown>).ansatte;
+  return typeof ansatte === "number" && ansatte > 0 ? ansatte : 0;
+}
+
+/** Map a BRREG employee count onto the same buckets as the størrelse chips. */
+export function ansatteBucket(n: number): string {
+  if (n <= 5) return "1-5";
+  if (n <= 20) return "6-20";
+  if (n <= 50) return "21-50";
+  return "50+";
+}
+
+/** Auto-skip steps the research already answered (bransje + størrelse). */
 function stepsFor(all: PortalStep[], answers: PortalAnswers): PortalStep[] {
-  return researchBransje(answers) ? all.filter((s) => s.id !== "bransje") : all;
+  let steps = all;
+  if (researchBransje(answers)) steps = steps.filter((s) => s.id !== "bransje");
+  if (researchAnsatte(answers) > 0) steps = steps.filter((s) => s.id !== "storrelse");
+  return steps;
 }
 
 function textKeyFor(step: PortalStep): string {
@@ -166,7 +184,7 @@ export default function Wizard({
   const step = steps[safeIdx];
   const last = safeIdx === steps.length - 1;
   const canAdvance = answered(step, answers);
-  const bransjeSkipped = researchBransje(answers).length > 0;
+  const bransjeSkipped = researchBransje(answers).length > 0 || researchAnsatte(answers) > 0;
   const stegLabel = t.a11y.stegTemplate
     .replace("{n}", String(safeIdx + 1))
     .replace("{total}", String(steps.length));
@@ -188,7 +206,12 @@ export default function Wizard({
   function finishLookup(a: PortalAnswers, funn: ResearchFunn | null) {
     setLookup({ phase: "idle" });
     setLookupMsg("");
-    const next = { ...a, research: funn };
+    const next: PortalAnswers = { ...a, research: funn };
+    // BRREG already answered størrelse — store the same bucket the chips
+    // would have produced, so the skipped step leaves no hole in answers.
+    if (funn && typeof funn.ansatte === "number" && funn.ansatte > 0) {
+      next.storrelse = ansatteBucket(funn.ansatte);
+    }
     setAnswers(next);
     goTo(1, "fwd", next);
   }
