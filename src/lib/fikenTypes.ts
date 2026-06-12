@@ -183,11 +183,12 @@ export function mvaSatsTilVatType(sats: MvaSats): FikenVatType {
 }
 
 /**
- * Standard inntektskonto for utkastlinjene. 3100 = «Salgsinntekt
- * egentilvirkede varer/tjenester, avgiftspliktig» (Vare egenprodusert) —
- * riktig for Workflows' egne leveranser. 3000 ville vært videresalg.
+ * Inntektskonto for utkastlinjene. Default 3000 (kjent aktiv i Fiken —
+ * 3100 «egenprodusert» finnes ikke i alle kontoplaner og gir 400). Sett
+ * FIKEN_INNTEKTSKONTO i env til den egenprodusert-kontoen som faktisk er
+ * AKTIV i foretaket (Fiken: Regnskap → Kontoplan), så slipper du ny deploy.
  */
-export const FIKEN_INNTEKTSKONTO = "3100";
+export const FIKEN_INNTEKTSKONTO = process.env.FIKEN_INNTEKTSKONTO?.trim() || "3000";
 
 /* ════════════════════════════════════════════
    Våre API-kontrakter (admin-rutene)
