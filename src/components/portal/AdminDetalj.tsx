@@ -412,8 +412,15 @@ export default function AdminDetalj({
         it just lives behind a tab instead of further down the scroll. ── */
   const [valgtFane, setValgtFane] = useState<AdmFane>("oversikt");
   const fdef = t.admin.detalj.faner;
-  // Meldinger/Fakturering/Bygging exist once the run is a PROJECT.
+  // Meldinger/Fakturering finnes først når løpet er et PROSJEKT (godkjent).
   const harProsjekt = k.status === "videre" || k.status === "levert";
+  // Bygging vises alt fra forslags-/tilbudsstadiet, så Autobygg kan armes
+  // FØR kunden godkjenner (selve byggingen krever fortsatt godkjenning).
+  const harBygg =
+    k.status === "forslag_klart" ||
+    k.status === "likt" ||
+    k.status === "tilbud_sendt" ||
+    harProsjekt;
   const nyttAntall = listeRad?.nyttAntall ?? 0;
   const nyttFraKunde = listeRad?.nyttFraKunde ?? false;
   const faner: FaneDef[] = [
@@ -441,9 +448,9 @@ export default function AdminDetalj({
                   : undefined,
           },
           { id: "fakturering", label: fdef.fakturering },
-          { id: "bygging", label: fdef.bygging },
         ]
       : []),
+    ...(harBygg ? [{ id: "bygging" as const, label: fdef.bygging }] : []),
   ];
   // Statuses only move forward, but never select a ghost tab regardless.
   const fane: AdmFane = faner.some((f) => f.id === valgtFane)
@@ -1124,9 +1131,9 @@ export default function AdminDetalj({
         </FanePanel>
       ) : null}
 
-      {/* ── BYGGING — byggefabrikken plugs in via the prop; the empty
-            plate keeps the tab honest until then. ── */}
-      {harProsjekt ? (
+      {/* ── BYGGING — byggefabrikken plugs in via the prop; synlig alt fra
+            forslags-/tilbudsstadiet så Autobygg kan armes før godkjenning. ── */}
+      {harBygg ? (
         <FanePanel
           idPrefix="vk-adm-detalj"
           id="bygging"

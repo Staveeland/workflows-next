@@ -215,6 +215,15 @@
   font-weight: 600;
 }
 
+.vk-bygg-fase--feil .vk-bygg-fase-merke {
+  border-color: var(--stempel);
+  color: var(--stempel);
+}
+
+.vk-bygg-fase--feil .vk-bygg-fase-navn {
+  color: var(--kritt);
+}
+
 .vk-bygg-fase--venter .vk-bygg-fase-navn {
   color: var(--stov);
 }

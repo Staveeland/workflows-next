@@ -336,7 +336,9 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
-    const logg = await loggFør(supabase, rad, `Endringsønske: ${onske.slice(0, 120)}`);
+    // Fersk logg for revisjonskjøringen — gamle (grønne) steg skal ikke bli
+    // stående; tidslinjen viser KUN denne kjøringen.
+    const logg = [{ tid: now, melding: `Endringer bestilt: ${onske.slice(0, 120)}` }];
     const { data: oppdatert, error } = await supabase
       .from("byggeprosjekter")
       .update({
@@ -383,7 +385,8 @@ export async function POST(req: Request) {
     }
     let byggId: string;
     if (rad) {
-      const logg = await loggFør(supabase, rad, "Manuell start fra verkstedkontoret");
+      // Fersk logg ved (re)start — tidslinjen viser kun denne kjøringen.
+      const logg = [{ tid: now, melding: "Manuell start fra verkstedkontoret" }];
       const { data: oppdatert, error } = await supabase
         .from("byggeprosjekter")
         .update({
