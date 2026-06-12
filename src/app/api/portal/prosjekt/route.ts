@@ -13,6 +13,7 @@ import type {
   ProsjektPostResponse,
   ProsjektResponse,
 } from "@/lib/portalTypes";
+import { effektivUke } from "@/lib/portalTypes";
 import {
   PROSJEKT_FIL_TYPER,
   PROSJEKT_FILNAVN_MAX,
@@ -215,7 +216,7 @@ export async function GET(req: Request) {
   // users' rows) and carries uke.
   const { data: row, error: rowError } = await supabase
     .from("kartlegginger")
-    .select("id, uke")
+    .select("id, uke, godkjent_at")
     .eq("id", id)
     .maybeSingle();
   if (rowError) {
@@ -242,8 +243,13 @@ export async function GET(req: Request) {
     )
   );
 
+  const u = effektivUke(
+    (row.godkjent_at ?? null) as string | null,
+    typeof row.uke === "number" ? row.uke : null
+  );
   return NextResponse.json<ProsjektResponse>({
-    uke: typeof row.uke === "number" ? row.uke : null,
+    uke: u.uke,
+    ukeKilde: u.kilde,
     innlegg,
   });
 }

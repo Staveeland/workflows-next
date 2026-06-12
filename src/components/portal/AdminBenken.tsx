@@ -153,7 +153,7 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
   const [lenke, setLenke] = useState("");
   const [fil, setFil] = useState<File | null>(null);
   /** Pending week pick — null means «leave kartlegginger.uke alone». */
-  const [nyUke, setNyUke] = useState<number | null>(null);
+  const [nyUke, setNyUke] = useState<number | "auto" | null>(null);
   const [sender, setSender] = useState(false);
   const [ukeSender, setUkeSender] = useState(false);
   const [feil, setFeil] = useState<string | null>(null);
@@ -336,7 +336,10 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
       await postInnlegg(token, {
         id: kartleggingId,
         type: "status",
-        tekst: b.komp.ukeAleneTekstTemplate.replace("{n}", String(nyUke)),
+        tekst:
+          nyUke === "auto"
+            ? b.komp.ukeAutoTekst
+            : b.komp.ukeAleneTekstTemplate.replace("{n}", String(nyUke)),
         uke: nyUke,
       });
       setNyUke(null);
@@ -442,7 +445,11 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
         <>
           <p className="vk-mono vk-adm-ukelinje">
             {prosjekt.uke !== null
-              ? b.ukeTemplate.replace("{n}", String(prosjekt.uke))
+              ? `${b.ukeTemplate.replace("{n}", String(prosjekt.uke))} ${
+                  prosjekt.ukeKilde === "manuell"
+                    ? b.komp.ukeKildeManuell
+                    : b.komp.ukeKildeAuto
+                }`
               : b.ukeIkkeSatt}
           </p>
 
@@ -591,6 +598,18 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
                     {n}
                   </button>
                 ))}
+                {/* Back to automatic — visible only while an override is in
+                    play (set, or pending). Auto needs no chip otherwise. */}
+                {prosjekt.ukeKilde === "manuell" || nyUke === "auto" ? (
+                  <button
+                    type="button"
+                    className="vk-portal-chip vk-adm-komp-uke"
+                    aria-pressed={nyUke === "auto"}
+                    onClick={() => setNyUke(nyUke === "auto" ? null : "auto")}
+                  >
+                    {b.komp.ukeAutoChip}
+                  </button>
+                ) : null}
                 {/* disabled only for the no-pick state; mid-flight the
                     guard in settUkeAlene() holds — disabling the focused
                     button would drop keyboard focus to <body>. */}

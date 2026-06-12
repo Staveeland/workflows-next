@@ -373,6 +373,10 @@ export interface PortalContent {
         settUkeAlene: string;
         /** Auto-text for that status post: «Da er vi i uke {n}.» */
         ukeAleneTekstTemplate: string;
+        ukeAutoTekst: string;
+        ukeAutoChip: string;
+        ukeKildeAuto: string;
+        ukeKildeManuell: string;
         sendKnapp: string;
         tekstMangler: string;
         bekreftelse: string;
@@ -762,6 +766,10 @@ export const portalContent: Record<Lang, PortalContent> = {
           ukeHint: "uka følger innlegget — eller send den alene som status",
           settUkeAlene: "Sett uka alene",
           ukeAleneTekstTemplate: "Da er vi i uke {n}.",
+          ukeAutoTekst: "Uka følger kalenderen igjen.",
+          ukeAutoChip: "Auto",
+          ukeKildeAuto: "(automatisk fra godkjenningsdato)",
+          ukeKildeManuell: "(manuelt satt)",
           sendKnapp: "Legg på benken",
           tekstMangler: "Skriv teksten først.",
           bekreftelse: "Lagt på benken — kunden ser det på /start.",
@@ -1150,6 +1158,10 @@ export const portalContent: Record<Lang, PortalContent> = {
           ukeHint: "the week rides along with the post — or goes out alone as a status",
           settUkeAlene: "Set the week alone",
           ukeAleneTekstTemplate: "We're in week {n}.",
+          ukeAutoTekst: "The week follows the calendar again.",
+          ukeAutoChip: "Auto",
+          ukeKildeAuto: "(automatic from approval date)",
+          ukeKildeManuell: "(set manually)",
           sendKnapp: "Put it on the bench",
           tekstMangler: "Write the text first.",
           bekreftelse: "On the bench — the customer sees it on /start.",

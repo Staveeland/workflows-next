@@ -326,7 +326,9 @@ export interface ProsjektInnlegg {
 
 /** GET /api/portal/prosjekt?id= AND /api/portal/admin/prosjekt?id=. */
 export interface ProsjektResponse {
+  /** Effective week — auto from godkjent_at unless manually overridden. */
   uke: number | null;
+  ukeKilde: "auto" | "manuell" | null;
   /** created_at ascending — the room reads top-to-bottom. */
   innlegg: ProsjektInnlegg[];
 }
@@ -374,9 +376,30 @@ export interface AdminProsjektPostBody {
   lenke?: string;
   fil?: ProsjektFilRef;
   /** 1–6 — also stamps kartlegginger.uke. */
-  uke?: number;
+  /** 1-6 sets a manual override; "auto" clears it (week follows godkjent_at). */
+  uke?: number | "auto";
 }
 
 export interface AdminProsjektPostResponse {
   ok: true;
+}
+
+/* ── Week derivation: auto from godkjent_at, manual override wins ──
+   The rail must never lie: weeks slip in real projects, so the stored
+   uke column is an OVERRIDE (null = automatic). Computed server-side so
+   every consumer shows the same number. Capped at 6 — long tails stay
+   «uke 6», they don't invent a week 7. */
+export function effektivUke(
+  godkjentAt: string | null,
+  override: number | null
+): { uke: number | null; kilde: "auto" | "manuell" | null } {
+  if (typeof override === "number" && override >= 1 && override <= 6) {
+    return { uke: override, kilde: "manuell" };
+  }
+  if (!godkjentAt) return { uke: null, kilde: null };
+  const start = Date.parse(godkjentAt);
+  if (!Number.isFinite(start)) return { uke: null, kilde: null };
+  const dager = Math.floor((Date.now() - start) / 86_400_000);
+  if (dager < 0) return { uke: 1, kilde: "auto" };
+  return { uke: Math.min(6, Math.floor(dager / 7) + 1), kilde: "auto" };
 }

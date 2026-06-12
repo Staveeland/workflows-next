@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { epostNyttIProsjektet, sendPortalEpost } from "@/lib/epost";
 import { forbidden, portalAuth, unauthorized } from "@/lib/portalAuth";
+import { effektivUke } from "@/lib/portalTypes";
 import {
   mockAdminProsjektPost,
   mockProsjekt,
@@ -232,7 +233,7 @@ export async function GET(req: Request) {
 
   const { data: row, error: rowError } = await supabase
     .from("kartlegginger")
-    .select("id, uke")
+    .select("id, uke, godkjent_at")
     .eq("id", id)
     .maybeSingle();
   if (rowError) {
@@ -257,8 +258,13 @@ export async function GET(req: Request) {
     ((rows ?? []) as InnleggRow[]).map((r) => tilInnlegg(supabase, r))
   );
 
+  const u = effektivUke(
+    (row.godkjent_at ?? null) as string | null,
+    typeof row.uke === "number" ? row.uke : null
+  );
   return NextResponse.json<ProsjektResponse>({
-    uke: typeof row.uke === "number" ? row.uke : null,
+    uke: u.uke,
+    ukeKilde: u.kilde,
     innlegg,
   });
 }
@@ -301,7 +307,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Ugyldig filreferanse" }, { status: 400 });
   }
   let uke: number | null = null;
-  if (body.uke !== undefined && body.uke !== null) {
+  let ukeTilAuto = false;
+  if (body.uke === "auto") {
+    // Clear the manual override — the week follows godkjent_at again.
+    ukeTilAuto = true;
+  } else if (body.uke !== undefined && body.uke !== null) {
     if (
       typeof body.uke !== "number" ||
       !Number.isInteger(body.uke) ||
@@ -380,10 +390,10 @@ export async function POST(req: Request) {
 
   // Stamp the week on the kartlegging. The innlegg already landed — a
   // hiccup here is logged, not fatal (Petter sees the old week and retries).
-  if (uke !== null) {
+  if (uke !== null || ukeTilAuto) {
     const { error: ukeError } = await supabase
       .from("kartlegginger")
-      .update({ uke, updated_at: new Date().toISOString() })
+      .update({ uke: ukeTilAuto ? null : uke, updated_at: new Date().toISOString() })
       .eq("id", id);
     if (ukeError) {
       console.error("[portal/admin/prosjekt] uke update failed", ukeError);

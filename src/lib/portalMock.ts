@@ -525,7 +525,7 @@ function ensureProsjekt(id: string): MockProsjekt {
 export async function mockProsjekt(id: string): Promise<ProsjektResponse> {
   await delay(MOCK_ADMIN_DELAY_MS);
   const p = ensureProsjekt(id);
-  return { uke: p.uke, innlegg: [...p.innlegg] };
+  return { uke: p.uke, ukeKilde: p.uke !== null ? "manuell" : null, innlegg: [...p.innlegg] };
 }
 
 /** POST /api/portal/prosjekt — customer message (fra=kunde, type=melding). */
