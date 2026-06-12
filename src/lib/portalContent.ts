@@ -684,7 +684,7 @@ export const portalContent: Record<Lang, PortalContent> = {
     intro: {
       tittel: "Hva trenger dere egentlig?",
       undertekst:
-        "Svar på rundt ti spørsmål. Få en ærlig vurdering — også hvis svaret er at dere ikke trenger AI.",
+        "Svar på rundt ti spørsmål. Få en ærlig vurdering av hva som faktisk vil hjelpe dere — AI, programvare, en ny nettside, eller ingenting.",
       startKnapp: "Start kartleggingen",
       taPratHeller: "heller ta en prat med et menneske?",
       loggInnLenke: "Har du vært her før? Logg inn",
@@ -784,11 +784,11 @@ export const portalContent: Record<Lang, PortalContent> = {
       },
       {
         id: "dromen",
-        sporsmal: "Hva skulle du ønske bare gikk av seg selv?",
-        hint: "Hovedspørsmålet. Skriv fritt — jo mer konkret, jo bedre tegning.",
+        sporsmal: "Hva skulle du ønske var enklere — eller bare gikk av seg selv?",
+        hint: "Hovedspørsmålet. Alt teller — en oppgave som spiser tid, en nettside som halter, et verktøy dere mangler. Jo mer konkret, jo bedre tegning.",
         fritekst: true,
         plassholder:
-          "f.eks. at tilbudet skrev seg selv når befaringen var gjort",
+          "f.eks. at tilbudet skrev seg selv etter befaring — eller en nettside som faktisk ser ut som oss",
       },
       {
         id: "rolle",
@@ -909,7 +909,7 @@ export const portalContent: Record<Lang, PortalContent> = {
       likerKnapp: "Dette vil jeg se mer av",
       ikkeKnapp: "Ikke helt riktig",
       taPrat: "Ta en prat i stedet",
-      ikkeAiTittel: "Ærlig talt: dere trenger ikke AI til dette.",
+      ikkeAiTittel: "Ærlig talt: dette trenger dere ikke bygge.",
       videreTekst:
         "Petter ser på vurderingen og kommer med et konkret pristilbud — innen én arbeidsdag.",
       videreEpost:
@@ -1144,8 +1144,9 @@ export const portalContent: Record<Lang, PortalContent> = {
         flyt: "flyt",
         agent: "agent",
         software: "software",
+        nettside: "nettside",
         kombinasjon: "kombinasjon",
-        ikke_ai: "ikke AI",
+        ikke_ai: "ingen bygg",
       },
       detalj: {
         tilbake: "tilbake til lista",
@@ -1328,7 +1329,7 @@ export const portalContent: Record<Lang, PortalContent> = {
     intro: {
       tittel: "What do you actually need?",
       undertekst:
-        "Answer about ten questions. Get an honest assessment — even if the answer is that you don't need AI.",
+        "Answer about ten questions. Get an honest assessment of what will actually help you — AI, software, a new website, or nothing at all.",
       startKnapp: "Start the mapping",
       taPratHeller: "rather talk to a human?",
       loggInnLenke: "Been here before? Sign in",
@@ -1428,11 +1429,11 @@ export const portalContent: Record<Lang, PortalContent> = {
       },
       {
         id: "dromen",
-        sporsmal: "What do you wish just took care of itself?",
-        hint: "The main question. Write freely — the more concrete, the better the drawing.",
+        sporsmal: "What do you wish were easier — or just took care of itself?",
+        hint: "The main question. Anything counts — a task that eats time, a website that falls short, a tool you're missing. The more concrete, the better the drawing.",
         fritekst: true,
         plassholder:
-          "e.g. that the quote wrote itself once the site visit was done",
+          "e.g. that the quote wrote itself after the site visit — or a website that actually looks like us",
       },
       {
         id: "rolle",
@@ -1553,7 +1554,7 @@ export const portalContent: Record<Lang, PortalContent> = {
       likerKnapp: "I want to see more of this",
       ikkeKnapp: "Not quite right",
       taPrat: "Talk to us instead",
-      ikkeAiTittel: "Honestly: you don't need AI for this.",
+      ikkeAiTittel: "Honestly: you don't need to build this.",
       videreTekst:
         "Petter reviews the assessment and comes back with a concrete quote — within one working day.",
       videreEpost:
@@ -1787,8 +1788,9 @@ export const portalContent: Record<Lang, PortalContent> = {
         flyt: "flow",
         agent: "agent",
         software: "software",
+        nettside: "website",
         kombinasjon: "combination",
-        ikke_ai: "no AI",
+        ikke_ai: "no build",
       },
       detalj: {
         tilbake: "back to the list",

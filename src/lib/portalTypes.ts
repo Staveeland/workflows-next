@@ -39,6 +39,7 @@ export type PortalAnbefaling =
   | "flyt"
   | "agent"
   | "software"
+  | "nettside"
   | "kombinasjon"
   | "ikke_ai";
 
