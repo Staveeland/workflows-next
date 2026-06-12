@@ -262,30 +262,17 @@ export async function GET(req: Request) {
 function byggForslag(tilbud: unknown): AdminFakturaForslagResponse["forslag"] {
   const t =
     tilbud && typeof tilbud === "object"
-      ? (tilbud as {
-          tekst?: unknown;
-          leveranse?: unknown;
-          prisBelopOre?: unknown;
-          mvaSats?: unknown;
-        })
+      ? (tilbud as { prisBelopOre?: unknown; mvaSats?: unknown })
       : null;
-  const leveranse = typeof t?.leveranse === "string" ? t.leveranse : "";
-  const beskrivelse =
-    (typeof t?.tekst === "string" && t.tekst.trim()) || leveranse || "Leveranse";
   const harPris =
     typeof t?.prisBelopOre === "number" && Number.isFinite(t.prisBelopOre) && t.prisBelopOre > 0;
   const mvaSats = erMvaSats(t?.mvaSats) ? t.mvaSats : 25;
+  // Kun forfall og pris autoutfylles — beskrivelse/fakturatekst skriver
+  // Petter selv (per ønske).
   return {
-    linjer: [
-      {
-        beskrivelse: beskrivelse.slice(0, FAKTURA_LINJE_BESKRIVELSE_MAX),
-        antall: 1,
-        enhetsprisOre: harPris ? (t!.prisBelopOre as number) : 0,
-        mvaSats,
-      },
-    ],
+    linjer: [{ beskrivelse: "", antall: 1, enhetsprisOre: harPris ? (t!.prisBelopOre as number) : 0, mvaSats }],
     dagerTilForfall: FAKTURA_DAGER_FORFALL_DEFAULT,
-    fakturatekst: leveranse ? `Iht. godkjent tilbud: ${leveranse}`.slice(0, FAKTURA_BESKRIVELSE_MAX) : "",
+    fakturatekst: "",
     varReferanse: "",
     deresReferanse: "",
   };
