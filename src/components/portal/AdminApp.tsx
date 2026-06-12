@@ -198,6 +198,9 @@ function relativTid(iso: string, t: (typeof portalContent)["no"]): string {
 
 const RESEND_COOLDOWN_S = 30;
 const GATE_FEIL_ID = "vk-adm-auth-feil";
+// Engangskode godtar hele Supabase-spennet (prosjektet står på 8 siffer).
+const OTP_MIN = 6;
+const OTP_MAX = 10;
 
 function AdminAuthGate({
   devMock,
@@ -215,11 +218,17 @@ function AdminAuthGate({
   const [sent, setSent] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [kode, setKode] = useState("");
+  const [verifying, setVerifying] = useState(false);
   const sentRef = useRef<HTMLParagraphElement>(null);
+  const kodeRef = useRef<HTMLInputElement>(null);
   const fired = useRef(false);
 
+  // Når e-posten er sendt, flytt fokus til kodefeltet — koden er
+  // hovedveien inn (lenken er alternativet); status-linja annonseres via
+  // role=status uansett.
   useEffect(() => {
-    if (sent) sentRef.current?.focus();
+    if (sent) kodeRef.current?.focus();
   }, [sent]);
 
   // Session detection — fires onAuthed exactly once (AuthGate's pattern).
@@ -305,6 +314,45 @@ function AdminAuthGate({
     }
   }
 
+  // Kryss-nettleser-døra: tast koden fra e-posten INN HER (samme fane),
+  // verifyOtp lager sesjonen lokalt → onAuthStateChange fyrer onAuthed.
+  async function verifyKode(e: FormEvent) {
+    e.preventDefault();
+    if (verifying || devMock) return;
+    if (kode.length < OTP_MIN || kode.length > OTP_MAX) {
+      setError(t.authgate.kodeMangler);
+      kodeRef.current?.focus();
+      return;
+    }
+    setError(null);
+    setVerifying(true);
+    try {
+      const supabase = supabaseBrowser();
+      const { data, error: otpError } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: kode,
+        type: "email",
+      });
+      if (otpError) throw otpError;
+      const token = data.session?.access_token;
+      if (token && !fired.current) {
+        fired.current = true;
+        onAuthed(token, data.session?.user.email ?? null);
+      }
+    } catch (err) {
+      console.error("[portal/admin] verifyOtp failed", err);
+      const status = (err as { status?: number })?.status;
+      const msg = err instanceof Error ? err.message : "";
+      const ugyldig =
+        status === 400 || status === 401 || status === 403 || /invalid|expired/i.test(msg);
+      setError(ugyldig ? t.authgate.kodeUgyldig : t.authgate.feil);
+      kodeRef.current?.focus();
+      kodeRef.current?.select();
+    } finally {
+      setVerifying(false);
+    }
+  }
+
   return (
     <section className="vk-portal-auth">
       <h1 className="vk-display vk-portal-h1">{t.admin.login.tittel}</h1>
@@ -350,6 +398,39 @@ function AdminAuthGate({
           </p>
         ) : null}
       </form>
+
+      {/* Kodefelt — samme kryss-nettleser-dør som kundeflyten. Egen <form>
+          så Enter taster koden, ikke ny e-post. */}
+      {sent ? (
+        <form className="vk-portal-kodeform" onSubmit={verifyKode} noValidate>
+          <label className="vk-portal-label" htmlFor="vk-adm-kode">
+            {t.authgate.kodeLabel}
+          </label>
+          <div className="vk-portal-kode-row">
+            <input
+              id="vk-adm-kode"
+              ref={kodeRef}
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              className="vk-portal-input vk-portal-input--kode"
+              placeholder={t.authgate.kodePlassholder}
+              value={kode}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? GATE_FEIL_ID : undefined}
+              onChange={(e) => setKode(e.target.value.replace(/\D/g, "").slice(0, OTP_MAX))}
+            />
+            <button
+              type="submit"
+              className="vk-btn vk-btn--cta vk-portal-kodeknapp"
+              disabled={verifying}
+            >
+              {t.authgate.loggInnMedKode}
+            </button>
+          </div>
+          <p className="vk-mono vk-portal-ellerlenke">{t.authgate.ellerLenke}</p>
+        </form>
+      ) : null}
     </section>
   );
 }
