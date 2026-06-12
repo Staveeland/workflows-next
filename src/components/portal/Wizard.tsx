@@ -370,9 +370,11 @@ export default function Wizard({
       commit({ ...answersRef.current, _innsikt: { observasjoner: [], harNettside: true } });
       return;
     }
-    let avbrutt = false;
     setInnsiktLaster(true);
     setStatusMsg(t.veivalg.laster);
+    // No cleanup-abort: innsiktFor dedupes (incl. StrictMode's double-invoke)
+    // and alive.current guards a real unmount. An effect-cleanup that aborted
+    // here would throw away the result on StrictMode's simulated remount.
     void (async () => {
       let res: PortalInnsiktResponse = { observasjoner: [], harNettside: true };
       try {
@@ -389,13 +391,10 @@ export default function Wizard({
       } catch {
         // Reflection is a nicety — a hiccup just means no observations.
       }
-      if (avbrutt || !alive.current) return;
+      if (!alive.current) return;
       setInnsiktLaster(false);
       commit({ ...answersRef.current, _innsikt: res });
     })();
-    return () => {
-      avbrutt = true;
-    };
     // commit is stable; answers excluded on purpose (the ref + guards drive it).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fase, commit, lang, t.veivalg.laster]);
@@ -435,11 +434,14 @@ export default function Wizard({
   useEffect(() => {
     if (fase !== "samtale") return;
     const s = samtaleOf(answers);
-    if (!s || s.ferdig || s.aktivt || samtaleLaster) return;
+    if (!s || s.ferdig || s.aktivt) return;
     const sig = `${s.intent}:${s.utvekslinger.length}`;
+    // samtaleSig dedupes this exact (intent:length) — including StrictMode's
+    // double-invoke. samtaleLaster is deliberately NOT a guard/dep: setting it
+    // inside the effect would re-run the effect, and the cleanup-abort below
+    // used to kill the very fetch in flight → «verkstedet tenker» forever.
     if (samtaleSig.current === sig) return;
     samtaleSig.current = sig;
-    let avbrutt = false;
     setSamtaleLaster(true);
     setStatusMsg(t.samtale.laster);
     void (async () => {
@@ -463,7 +465,7 @@ export default function Wizard({
       } catch {
         steg = null;
       }
-      if (avbrutt || !alive.current) return;
+      if (!alive.current) return;
       setSamtaleLaster(false);
       const cur = samtaleOf(answersRef.current);
       if (!cur) return;
@@ -487,11 +489,8 @@ export default function Wizard({
           : lokaltSteg(); // total failure on the very first step
       commit({ ...answersRef.current, samtale: { ...cur, aktivt, ferdig: false } });
     })();
-    return () => {
-      avbrutt = true;
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fase, answers, samtaleLaster, commit, lang, lokaltSteg, t.samtale.laster]);
+  }, [fase, answers, commit, lang, lokaltSteg, t.samtale.laster]);
 
   function setSamtaleSvar(value: string) {
     const s = samtaleOf(answersRef.current);

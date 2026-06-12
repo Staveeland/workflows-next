@@ -49,7 +49,11 @@ type FableEffort = NonNullable<Anthropic.OutputConfig["effort"]>;
 // static fallback in the route if they exceed the timeout. Both are
 // one-line tunable here if latency ever needs trading against depth.
 const EFFORT_ASSESSMENT: FableEffort = "medium";
-const EFFORT_SAMTALE: FableEffort = "medium";
+// The interactive conversation runs at LOW effort — Fable 5 is still smart
+// enough to pick the next discovery question in a few seconds, and per-turn
+// snappiness matters more here than depth. The final assessment (above) keeps
+// medium, where the reasoning pays off and the wait is hidden in after().
+const EFFORT_SAMTALE: FableEffort = "low";
 
 const ASSESSMENT_TIMEOUT_MS = 70_000;
 const ASSESSMENT_MAX_TOKENS = 10_000;
@@ -587,7 +591,7 @@ const INNSIKT_SCHEMA = {
   type: "object",
   additionalProperties: false,
   properties: {
-    observasjoner: { type: "array", items: { type: "string" }, maxItems: 3 },
+    observasjoner: { type: "array", items: { type: "string" } },
     harNettside: { type: "boolean" },
   },
   required: ["observasjoner", "harNettside"],
@@ -630,7 +634,8 @@ export async function generateInnsikt(
       : [];
     if (obs.length === 0) return null;
     return { observasjoner: obs, harNettside: parsed.harNettside !== false };
-  } catch {
+  } catch (err) {
+    if (!erAvbrutt(err)) console.warn("[portalAi] innsikt feilet", err);
     return null;
   }
 }
@@ -642,8 +647,8 @@ const SAMTALE_SCHEMA = {
     ferdig: { type: "boolean" },
     sporsmal: { type: "string" },
     hint: { type: "string" },
-    forslag: { type: "array", items: { type: "string" }, maxItems: 5 },
-    forstaelse: { type: "array", items: { type: "string" }, maxItems: 4 },
+    forslag: { type: "array", items: { type: "string" } },
+    forstaelse: { type: "array", items: { type: "string" } },
   },
   required: ["ferdig", "sporsmal", "hint", "forslag", "forstaelse"],
 } as const;
@@ -742,7 +747,8 @@ export async function generateSamtaleSteg(opts: {
       forslag: liste(p.forslag, 60, 5),
       forstaelse: liste(p.forstaelse, 90, 4),
     };
-  } catch {
+  } catch (err) {
+    if (!erAvbrutt(err)) console.warn("[portalAi] samtale-steg feilet", err);
     return null;
   }
 }
