@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   createInvoiceFromDraft,
   fakturaCounterFinnes,
+  fikenFeilKort,
   FikenApiError,
   FikenConfigError,
   finnFakturaMedUuid,
@@ -224,7 +225,7 @@ export async function POST(req: Request) {
     }
     if (err instanceof FikenApiError) {
       return NextResponse.json(
-        { error: `Fiken svarte ${err.status}. Detaljer i serverloggen.` },
+        { error: `Fiken avviste fakturaen: ${fikenFeilKort(err)}` },
         { status: 502 }
       );
     }

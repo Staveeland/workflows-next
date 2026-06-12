@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { FikenApiError, FikenConfigError, sendInvoice } from "@/lib/fiken";
+import { fikenFeilKort, FikenApiError, FikenConfigError, sendInvoice } from "@/lib/fiken";
 import {
   FAKTURA_SELECT,
   tilFakturaRad,
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
     }
     if (err instanceof FikenApiError) {
       return NextResponse.json(
-        { error: `Fiken svarte ${err.status}. Detaljer i serverloggen.` },
+        { error: `Fiken avviste sendingen: ${fikenFeilKort(err)}` },
         { status: 502 }
       );
     }

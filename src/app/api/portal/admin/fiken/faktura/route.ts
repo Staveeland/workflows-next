@@ -3,6 +3,7 @@ import {
   createDraftInvoice,
   deleteDraftInvoice,
   ensureContact,
+  fikenFeilKort,
   FikenApiError,
   FikenConfigError,
   finnFakturaMedUuid,
@@ -177,9 +178,9 @@ function fikenFeilTilSvar(err: unknown): NextResponse {
     return NextResponse.json({ error: err.message }, { status: 409 });
   }
   if (err instanceof FikenApiError) {
-    // Rå body ligger allerede i loggen (fikenFetch) — svar kortfattet.
+    // Rå body ligger i loggen; vis et lesbart utdrag til admin også.
     return NextResponse.json(
-      { error: `Fiken svarte ${err.status}. Detaljer i serverloggen.` },
+      { error: `Fiken avviste forespørselen: ${fikenFeilKort(err)}` },
       { status: 502 }
     );
   }

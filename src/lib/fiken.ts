@@ -530,6 +530,38 @@ async function fikenFetch(
   });
 }
 
+/**
+ * Kort, lesbar utdrag av en Fiken-feilkropp — til admin-UI-et (admin-only,
+ * så detaljene er trygge å vise og sparer en tur i serverloggen). Plukker
+ * «message»/«validationErrors» ut av JSON-kroppen når den er JSON.
+ */
+export function fikenFeilKort(err: FikenApiError): string {
+  const body = err.body?.trim() ?? "";
+  if (body) {
+    try {
+      const j = JSON.parse(body) as {
+        message?: unknown;
+        validationErrors?: Array<{ message?: unknown } | string>;
+        error?: unknown;
+      };
+      const fra =
+        (typeof j.message === "string" && j.message) ||
+        (Array.isArray(j.validationErrors) &&
+          j.validationErrors
+            .map((v) => (typeof v === "string" ? v : (v?.message ?? "")))
+            .filter(Boolean)
+            .join("; ")) ||
+        (typeof j.error === "string" && j.error) ||
+        "";
+      if (fra) return String(fra).slice(0, 240);
+    } catch {
+      // ikke JSON — bruk rå tekst
+    }
+    return body.slice(0, 240);
+  }
+  return `Fiken svarte ${err.status} uten detaljer.`;
+}
+
 /** Bakerste tallsegment i en Location-URL («…/drafts/123» → 123). */
 function idFraLocation(location: string | null): number | null {
   if (!location) return null;
