@@ -52,6 +52,12 @@
   text-decoration-color: var(--hairline);
   text-underline-offset: 4px;
   transition: color var(--dur-2) var(--ease-work);
+  /* The class dresses both <a> and <button> (logg ut) — strip the UA's
+     white button chrome so they are indistinguishable. */
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
 }
 
 .vk-portal-avbryt:hover {
