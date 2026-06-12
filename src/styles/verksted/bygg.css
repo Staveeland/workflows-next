@@ -278,3 +278,55 @@
 .vk-scope .vk-bygg-rålogg .vk-bygg-logg {
   margin-top: 10px;
 }
+
+/* Byggenotat + endringsønske */
+.vk-scope .vk-bygg-notat,
+.vk-scope .vk-bygg-endre {
+  display: grid;
+  gap: 8px;
+}
+
+.vk-scope .vk-bygg-endre {
+  padding: 14px 16px;
+  border: 1px solid var(--feltkant, #3a3027);
+  border-radius: 8px;
+  background: var(--benk, #211b15);
+}
+
+.vk-scope .vk-bygg-notat-label {
+  font-size: 0.82rem;
+  color: var(--krem, #f3e9d8);
+}
+
+.vk-scope .vk-bygg-notat-lagret {
+  color: var(--drift-green, #7da27a);
+  font-size: 0.78rem;
+}
+
+.vk-scope .vk-bygg-notat-felt {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 3.4rem;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--krem, #f3e9d8);
+  background: var(--bek, #171310);
+  border: 1px solid var(--feltkant, #3a3027);
+  border-radius: 6px;
+}
+
+.vk-scope .vk-bygg-notat-felt:focus-visible {
+  outline: 2px solid var(--amber, #f0a32f);
+  outline-offset: 1px;
+}
+
+.vk-scope .vk-bygg-notat-felt::placeholder {
+  color: var(--stov, #b8a896);
+  opacity: 0.7;
+}
+
+.vk-scope .vk-bygg-endre .vk-btn {
+  justify-self: start;
+}

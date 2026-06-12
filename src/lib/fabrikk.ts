@@ -37,6 +37,8 @@ export async function dispatchFabrikk(args: {
   byggId: string;
   kartleggingId: string;
   graceSeconds: number;
+  /** "full" (scaffold + kod alt) eller "revisjon" (endre eksisterende repo). */
+  modus?: "full" | "revisjon";
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   let token: string;
   try {
@@ -58,6 +60,7 @@ export async function dispatchFabrikk(args: {
         byggId: args.byggId,
         kartleggingId: args.kartleggingId,
         graceSeconds: args.graceSeconds,
+        modus: args.modus ?? "full",
       },
     }),
     signal: AbortSignal.timeout(10_000),

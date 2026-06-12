@@ -105,6 +105,12 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
   const [armet, setArmet] = useState<AdminByggHandling | null>(null);
   const armTimer = useRef<number | null>(null);
   const seq = useRef(0);
+  /** Byggenotat-feltet (lagres når du forlater feltet). */
+  const [notat, setNotat] = useState("");
+  const [notatLagret, setNotatLagret] = useState(false);
+  const notatInit = useRef(false);
+  /** Endringsønske-feltet. */
+  const [endring, setEndring] = useState("");
 
   const hent = useCallback(async () => {
     const minSeq = ++seq.current;
@@ -118,6 +124,11 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
       const json = (await res.json()) as AdminByggResponse;
       if (minSeq !== seq.current) return;
       setBygg(json.bygg);
+      // Fyll notatfeltet fra serveren én gang (ikke overskriv mens du skriver).
+      if (!notatInit.current) {
+        setNotat(json.bygg?.byggenotat ?? "");
+        notatInit.current = true;
+      }
       setFeil(null);
     } catch (err) {
       console.error("[AdminBygg] henting feilet", err);
@@ -152,7 +163,10 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
   }
 
   const utfor = useCallback(
-    async (handling: AdminByggHandling, ekstra?: { autobygg?: boolean }) => {
+    async (
+      handling: AdminByggHandling,
+      ekstra?: { autobygg?: boolean; byggenotat?: string; endringsonske?: string }
+    ) => {
       if (travel) return;
       setTravel(true);
       setFeil(null);
@@ -171,12 +185,14 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
         };
         if (!res.ok) {
           setFeil(json.error ?? "Noe gikk galt.");
-        } else if (json.bygg !== undefined) {
-          setBygg(json.bygg);
+          return false;
         }
+        if (json.bygg !== undefined) setBygg(json.bygg);
+        return true;
       } catch (err) {
         console.error("[AdminBygg] handling feilet", err);
         setFeil("Noe gikk galt — prøv igjen.");
+        return false;
       } finally {
         setTravel(false);
         setArmet(null);
@@ -184,6 +200,23 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
     },
     [kartleggingId, travel]
   );
+
+  /** Lagre byggenotatet (når du forlater feltet, hvis det er endret). */
+  async function lagreNotat() {
+    if (notat === (bygg?.byggenotat ?? "")) return;
+    const ok = await utfor("notat", { byggenotat: notat });
+    if (ok) {
+      setNotatLagret(true);
+      window.setTimeout(() => setNotatLagret(false), 2500);
+    }
+  }
+
+  /** Be om endringer → revisjonsbygg på eksisterende repo. */
+  async function beOmEndring() {
+    if (travel || !endring.trim()) return;
+    const ok = await utfor("endre", { endringsonske: endring.trim() });
+    if (ok) setEndring("");
+  }
 
   /** Armert → bekreft; ellers armer. */
   function toStegs(handling: AdminByggHandling) {
@@ -202,6 +235,7 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
     (status === "ikke_startet" || status === "stoppet" || status === "feilet");
   const kanStoppe = AKTIV.has(status);
   const kanDele = status === "klar" || (status === "delt" && bygg?.previewUrl);
+  const kanEndre = (status === "klar" || status === "delt") && Boolean(bygg?.githubRepo);
   const logg = bygg?.logg ?? [];
 
   return (
@@ -221,6 +255,28 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
         <p className="vk-mono vk-bygg-feil" role="alert">
           {feil}
         </p>
+      ) : null}
+
+      {/* Byggenotat — Petters føringer som går inn i byggeprompten med
+          høyest prioritet. Lagres når du forlater feltet. */}
+      {status !== "delt" ? (
+        <div className="vk-bygg-notat">
+          <label className="vk-bygg-notat-label" htmlFor="vk-bygg-notat">
+            Byggenotat — føringer til fabrikken
+            {notatLagret ? <span className="vk-bygg-notat-lagret"> ✓ lagret</span> : null}
+          </label>
+          <textarea
+            id="vk-bygg-notat"
+            className="vk-bygg-notat-felt"
+            rows={3}
+            maxLength={4000}
+            placeholder="F.eks. «mørk profil, kunden vil ha bestillingskalender, fokuser på kurssalg, kontaktskjema til post@kunde.no» — dette veier tyngst når modellen bygger."
+            value={notat}
+            disabled={AKTIV.has(status)}
+            onChange={(e) => setNotat(e.target.value)}
+            onBlur={() => void lagreNotat()}
+          />
+        </div>
       ) : null}
 
       {/* Autobygg-bryteren — settes typisk FØR kunden godkjenner. */}
@@ -274,6 +330,34 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
           </button>
         ) : null}
       </div>
+
+      {/* Endringsønske — revisjonsbygg som går inn i eksisterende repo og
+          endrer KUN det du ber om (bygger ikke alt på nytt). */}
+      {kanEndre ? (
+        <div className="vk-bygg-endre">
+          <label className="vk-bygg-notat-label" htmlFor="vk-bygg-endre">
+            Be om endringer
+          </label>
+          <textarea
+            id="vk-bygg-endre"
+            className="vk-bygg-notat-felt"
+            rows={3}
+            maxLength={4000}
+            placeholder="F.eks. «gjør hero-en mer dramatisk, fjern prisseksjonen, legg til en FAQ» — modellen går inn i koden og endrer kun dette."
+            value={endring}
+            disabled={travel}
+            onChange={(e) => setEndring(e.target.value)}
+          />
+          <button
+            type="button"
+            className="vk-btn"
+            disabled={travel || !endring.trim()}
+            onClick={() => void beOmEndring()}
+          >
+            Be modellen gjøre endringene
+          </button>
+        </div>
+      ) : null}
 
       {bygg?.githubUrl || bygg?.previewUrl ? (
         <dl className="vk-bygg-lenker">

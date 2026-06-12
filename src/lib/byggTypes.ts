@@ -41,6 +41,8 @@ export type AdminBygg = {
   deltMedKundeAt: string | null;
   startetAt: string | null;
   ferdigAt: string | null;
+  /** Petters stående føringer til fabrikken (brukes ved førstebygg). */
+  byggenotat: string | null;
   logg: ByggLoggLinje[];
 };
 
@@ -48,14 +50,30 @@ export type AdminByggResponse = {
   bygg: AdminBygg | null;
 };
 
-export type AdminByggHandling = "start" | "stopp" | "del" | "autobygg";
+export type AdminByggHandling =
+  | "start"
+  | "stopp"
+  | "del"
+  | "autobygg"
+  | "notat"
+  | "endre";
 
 export type AdminByggBody = {
   kartleggingId: string;
   handling: AdminByggHandling;
   /** Kun for handling: 'autobygg'. */
   autobygg?: boolean;
+  /** Kun for handling: 'notat' — stående føringer (lagres). */
+  byggenotat?: string;
+  /** Kun for handling: 'endre' — endringsønske som starter et revisjonsbygg. */
+  endringsonske?: string;
 };
+
+/** Maks lengde på byggenotat/endringsønske. */
+export const BYGG_NOTAT_MAX = 4000;
+
+/** Byggemodus fabrikken kjører i. */
+export type ByggModus = "full" | "revisjon";
 
 /** Kundens forhåndsvisnings-fane — bevisst minimal. */
 export type KundeByggResponse = {

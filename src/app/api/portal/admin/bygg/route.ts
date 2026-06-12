@@ -9,6 +9,7 @@ import { forbidden, portalAuth, unauthorized } from "@/lib/portalAuth";
 import { ADMIN_EMAIL } from "@/lib/portalTypes";
 import {
   BYGG_LOGG_MAX,
+  BYGG_NOTAT_MAX,
   type AdminBygg,
   type AdminByggBody,
   type AdminByggResponse,
@@ -58,10 +59,11 @@ type Rad = {
   delt_med_kunde_at: string | null;
   startet_at: string | null;
   ferdig_at: string | null;
+  byggenotat: string | null;
 };
 
 const RAD_SELECT =
-  "id, kartlegging_id, status, autobygg, github_repo, vercel_project_id, preview_url, nettsted_bruker, nettsted_passord, siste_commit_sha, siste_deploy_at, logg, delt_med_kunde_at, startet_at, ferdig_at";
+  "id, kartlegging_id, status, autobygg, github_repo, vercel_project_id, preview_url, nettsted_bruker, nettsted_passord, siste_commit_sha, siste_deploy_at, logg, delt_med_kunde_at, startet_at, ferdig_at, byggenotat";
 
 function tilLogg(raw: unknown): ByggLoggLinje[] {
   if (!Array.isArray(raw)) return [];
@@ -90,6 +92,7 @@ function tilAdminBygg(rad: Rad): AdminBygg {
     deltMedKundeAt: rad.delt_med_kunde_at,
     startetAt: rad.startet_at,
     ferdigAt: rad.ferdig_at,
+    byggenotat: rad.byggenotat,
     logg: tilLogg(rad.logg),
   };
 }
@@ -192,10 +195,8 @@ export async function POST(req: Request) {
       ? body.kartleggingId
       : null;
   const handling = body.handling;
-  if (
-    !kartleggingId ||
-    (handling !== "start" && handling !== "stopp" && handling !== "del" && handling !== "autobygg")
-  ) {
+  const lovligeHandlinger = ["start", "stopp", "del", "autobygg", "notat", "endre"];
+  if (!kartleggingId || !handling || !lovligeHandlinger.includes(handling)) {
     return NextResponse.json({ error: "Ugyldig forespørsel" }, { status: 400 });
   }
 
@@ -250,11 +251,93 @@ export async function POST(req: Request) {
     return hentOgSvar(supabase, kartleggingId);
   }
 
+  if (handling === "notat") {
+    // Stående føringer — kan lagres når som helst (også før godkjenning).
+    const notat =
+      typeof body.byggenotat === "string" ? body.byggenotat.slice(0, BYGG_NOTAT_MAX) : "";
+    if (eksisterende) {
+      const { error } = await supabase
+        .from("byggeprosjekter")
+        .update({ byggenotat: notat || null, updated_at: now })
+        .eq("id", (eksisterende as Rad).id);
+      if (error) {
+        console.error("[admin/bygg] notat update failed", error);
+        return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+      }
+    } else {
+      const { error } = await supabase
+        .from("byggeprosjekter")
+        .insert({ kartlegging_id: kartleggingId, byggenotat: notat || null });
+      if (error) {
+        console.error("[admin/bygg] notat insert failed", error);
+        return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+      }
+    }
+    return hentOgSvar(supabase, kartleggingId);
+  }
+
   if (kart.status !== "videre" && kart.status !== "levert") {
     return NextResponse.json(
       { error: "Byggelinjen åpner når kunden har godkjent tilbudet." },
       { status: 409 }
     );
+  }
+
+  if (handling === "endre") {
+    // Revisjonsbygg: modellen går inn i eksisterende repo og endrer KUN det
+    // som bes om — bygger ikke alt på nytt.
+    const onske = typeof body.endringsonske === "string" ? body.endringsonske.trim() : "";
+    if (!onske) {
+      return NextResponse.json(
+        { error: "Skriv hva som skal endres." },
+        { status: 400 }
+      );
+    }
+    const rad = eksisterende as Rad | null;
+    if (!rad || !rad.github_repo) {
+      return NextResponse.json(
+        { error: "Det finnes ingen ferdig versjon å endre ennå." },
+        { status: 409 }
+      );
+    }
+    if (rad.status !== "klar" && rad.status !== "delt") {
+      return NextResponse.json(
+        { error: "Vent til forrige bygg er ferdig før du ber om endringer." },
+        { status: 409 }
+      );
+    }
+    const logg = await loggFør(supabase, rad, `Endringsønske: ${onske.slice(0, 120)}`);
+    const { data: oppdatert, error } = await supabase
+      .from("byggeprosjekter")
+      .update({
+        status: "venter",
+        endringsonske: onske.slice(0, BYGG_NOTAT_MAX),
+        startet_at: now,
+        ferdig_at: null,
+        logg,
+        updated_at: now,
+      })
+      .eq("id", rad.id)
+      .in("status", ["klar", "delt"])
+      .select("id");
+    if (error || !oppdatert || oppdatert.length === 0) {
+      console.error("[admin/bygg] endre update failed", error);
+      return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+    }
+    const dispatch = await dispatchFabrikk({
+      byggId: rad.id,
+      kartleggingId,
+      graceSeconds: 0,
+      modus: "revisjon",
+    });
+    if (!dispatch.ok) {
+      await supabase
+        .from("byggeprosjekter")
+        .update({ status: "feilet", updated_at: new Date().toISOString() })
+        .eq("id", rad.id);
+      return NextResponse.json({ error: dispatch.error }, { status: 502 });
+    }
+    return hentOgSvar(supabase, kartleggingId);
   }
 
   if (handling === "start") {

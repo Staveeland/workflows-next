@@ -40,7 +40,9 @@ export async function GET(req: Request) {
   const supabase = supabaseAdmin();
   const { data: bygg, error: byggError } = await supabase
     .from("byggeprosjekter")
-    .select("id, kartlegging_id, status, kansellert_at")
+    .select(
+      "id, kartlegging_id, status, kansellert_at, byggenotat, endringsonske, github_repo"
+    )
     .eq("id", byggId)
     .maybeSingle();
   if (byggError) {
@@ -89,5 +91,9 @@ export async function GET(req: Request) {
     vurdering: kart.assessment,
     tilbud: kart.tilbud,
     godkjentAt: kart.godkjent_at,
+    // Petters egne føringer + ev. endringsønske + repo for revisjonsbygg.
+    byggenotat: (bygg.byggenotat as string | null) ?? "",
+    endringsonske: (bygg.endringsonske as string | null) ?? "",
+    githubRepo: (bygg.github_repo as string | null) ?? "",
   });
 }
