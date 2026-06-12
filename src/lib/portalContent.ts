@@ -800,7 +800,7 @@ export const portalContent: Record<Lang, PortalContent> = {
       epostPlassholder: "du@bedriften.no",
       sendLenke: "Send meg lenken",
       lenkeSendt:
-        "E-posten er sendt — i den ligger en sekssifret engangskode og en lenke. Tast koden under, så fortsetter du her i denne nettleseren. Begge virker i én time.",
+        "E-posten er sendt — i den ligger en engangskode og en lenke. Tast koden under, så fortsetter du her i denne nettleseren. Begge virker i én time.",
       sendPaNytt: "Send på nytt",
       sendPaNyttOm: "kan sendes på nytt om {s} sekunder",
       feil: "Det gikk ikke. Sjekk adressen og prøv igjen — eller ta en prat med oss i stedet.",
@@ -813,7 +813,7 @@ export const portalContent: Record<Lang, PortalContent> = {
       kodePlassholder: "123456",
       loggInnMedKode: "Logg inn med kode",
       ellerLenke: "… eller klikk lenken i e-posten — den virker like godt.",
-      kodeMangler: "Skriv inn alle de seks sifrene fra e-posten.",
+      kodeMangler: "Skriv inn hele engangskoden fra e-posten.",
       kodeUgyldig:
         "Koden stemmer ikke eller er utløpt — sjekk sifrene, eller send en ny e-post og bruk den ferskeste koden.",
       loginTittel: "Velkommen tilbake.",
@@ -1391,7 +1391,7 @@ export const portalContent: Record<Lang, PortalContent> = {
       epostPlassholder: "you@yourcompany.com",
       sendLenke: "Send me the link",
       lenkeSendt:
-        "Email sent — inside you'll find a six-digit one-time code and a link. Type the code below to continue right here in this browser. Both work for one hour.",
+        "Email sent — inside you'll find a one-time code and a link. Type the code below to continue right here in this browser. Both work for one hour.",
       sendPaNytt: "Send again",
       sendPaNyttOm: "you can resend in {s} seconds",
       feil: "That didn't work. Check the address and try again — or just talk to us instead.",
@@ -1404,7 +1404,7 @@ export const portalContent: Record<Lang, PortalContent> = {
       kodePlassholder: "123456",
       loggInnMedKode: "Sign in with code",
       ellerLenke: "… or click the link in the email — it works just as well.",
-      kodeMangler: "Enter all six digits from the email.",
+      kodeMangler: "Enter the whole one-time code from the email.",
       kodeUgyldig:
         "That code is wrong or has expired — check the digits, or send a new email and use the freshest code.",
       loginTittel: "Welcome back.",

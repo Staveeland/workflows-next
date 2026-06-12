@@ -7,15 +7,14 @@ som logger inn via `signInWithOtp` første gang). Samme design, litt ulik
 hilsen.
 
 > ⚠️ **HARD DEPLOY-FORUTSETNING:** AuthGate på /start viser nå et kodefelt
-> og copy som forutsetter at e-posten inneholder en sekssifret kode. Koden
+> og copy som forutsetter at e-posten inneholder en engangskode. Koden
 > rendres KUN hvis malen inneholder `{{ .Token }}`. **Begge** malene under
 > må limes inn i dashboardet FØR koden deployes — ellers lover portalen en
 > kode som aldri kommer.
 
-> Variablene `{{ .Token }}` (den sekssifrede engangskoden) og
-> `{{ .ConfirmationURL }}` (selve lenken) må stå urørt — Supabase bytter dem
-> ut. Begge peker på samme engangsbillett: tastes koden, dør lenken, og
-> omvendt.
+> Variablene `{{ .Token }}` (engangskoden) og `{{ .ConfirmationURL }}`
+> (selve lenken) må stå urørt — Supabase bytter dem ut. Begge peker på samme
+> engangsbillett: tastes koden, dør lenken, og omvendt.
 
 Hvorfor begge: lenken åpnes ofte i Gmail/Outlook sin innebygde nettleser på
 mobil — da havner innloggingen i feil nettleser, og utkastet (som ligger i
@@ -24,8 +23,9 @@ allerede sitter. Derfor leder copyen med koden, og lenken er alternativet.
 
 Sjekk samtidig (Authentication → Settings):
 
-- **Email OTP Length** = 6 (standard) — kodefeltet i AuthGate forventer
-  seks siffer.
+- **Email OTP Length**: portalen godtar 6–10 siffer (Supabase tillater hele
+  spennet; Petters prosjekt står på 8) — ingen handling nødvendig, men
+  utenfor 6–10 finnes ikke.
 - **Email OTP Expiration** = 3600 s — copyen i portalen sier «virker i én
   time».
 

@@ -17,7 +17,8 @@ import "@/styles/verksted/authgate.css";
  * back on /start, supabaseBrowser() picks the session out of the URL, and
  * onAuthed fires exactly once (the parent auto-submits the stored draft).
  *
- * TWO DOORS, SAME EMAIL: the mail carries a 6-digit one-time code AND the
+ * TWO DOORS, SAME EMAIL: the mail carries a one-time code (6–10 digits,
+ * per the project's «Email OTP Length» setting) AND the
  * magic link (the Supabase template must render {{ .Token }} — see
  * docs/supabase-epostmaler.md). The code is the cross-browser fix: Gmail/
  * Outlook open magic links in THEIR in-app browser, stranding the draft in
@@ -48,7 +49,11 @@ interface AuthGateProps {
 }
 
 const RESEND_COOLDOWN_S = 30;
-const OTP_LENGDE = 6;
+// Supabase's «Email OTP Length» is project-config (6–10 digits) — Petters
+// project says 8. Accept the whole legal range so a dashboard setting can
+// never lock customers out of the code door again.
+const OTP_MIN = 6;
+const OTP_MAX = 10;
 
 const ERROR_ID = "vk-portal-auth-feil";
 const COOLDOWN_ID = "vk-portal-auth-cooldown";
@@ -217,14 +222,14 @@ export default function AuthGate({
     }
   }
 
-  // The cross-browser door: the visitor types the 6-digit code from the
+  // The cross-browser door: the visitor types the one-time code from the
   // email INTO THIS TAB — verifyOtp sets the session right here, where the
   // draft lives. onAuthStateChange above fires onAuthed; the direct call is
   // belt and braces (fired guards the double).
   async function verifyKode(e: FormEvent) {
     e.preventDefault();
     if (verifying || devMock) return;
-    if (kode.length !== OTP_LENGDE) {
+    if (kode.length < OTP_MIN || kode.length > OTP_MAX) {
       setError({ tekst: t.authgate.kodeMangler, felt: "kode" });
       kodeRef.current?.focus();
       return;
@@ -343,7 +348,7 @@ export default function AuthGate({
                     error?.felt === "kode" ? `${SENT_ID} ${ERROR_ID}` : SENT_ID
                   }
                   onChange={(e) =>
-                    setKode(e.target.value.replace(/\D/g, "").slice(0, OTP_LENGDE))
+                    setKode(e.target.value.replace(/\D/g, "").slice(0, OTP_MAX))
                   }
                 />
                 <button
