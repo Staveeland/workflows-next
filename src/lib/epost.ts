@@ -26,7 +26,10 @@ type SendArgs = {
   tekst: string;
 };
 
-const PORTAL_URL = "https://workflows.no/start";
+// The login-intent param: arriving without a session opens the login gate
+// directly instead of pretending the visitor is new (email links say
+// «something is waiting» — the page must act like it).
+const PORTAL_URL = "https://workflows.no/start?innlogging=1";
 const FROM = "Workflows <verkstedet@workflows.no>";
 const REPLY_TO = "petter@workflows.no";
 const SEND_TIMEOUT_MS = 5000;
@@ -267,4 +270,60 @@ export function epostGodkjent(
     html: byggHtml(lang, c.tittel, c.avsnitt, prisLinje),
     tekst: byggTekst(c.tittel, c.avsnitt, prisLinje, lang),
   };
+}
+
+/* ── Admin notifications — Petter wants customer events in the inbox too,
+      not only Telegram. Short, factual, one link to the back room. ── */
+
+const ADMIN_URL = "https://workflows.no/start/admin";
+
+export type AdminHendelse = "ny" | "likt" | "godkjent";
+
+export function epostAdminVarsel(
+  hendelse: AdminHendelse,
+  data: { email: string; bedrift?: string | null; pris?: string | null }
+): EpostMal {
+  const hvem = data.bedrift ? `${data.bedrift} (${data.email})` : data.email;
+  const innhold: Record<AdminHendelse, { emne: string; tittel: string; linje: string }> = {
+    ny: {
+      emne: `Ny kartlegging: ${hvem}`,
+      tittel: "Noen banket på.",
+      linje: `${hvem} har fullført kartleggingen og fått forslaget sitt.`,
+    },
+    likt: {
+      emne: `Forslag likt: ${hvem}`,
+      tittel: "De vil se mer.",
+      linje: `${hvem} likte forslaget. Pristilbud innen én arbeidsdag — klokka tikker.`,
+    },
+    godkjent: {
+      emne: `Tilbud godkjent: ${hvem}`,
+      tittel: "På tide å rigge benken.",
+      linje: data.pris
+        ? `${hvem} godkjente tilbudet (${data.pris}).`
+        : `${hvem} godkjente tilbudet.`,
+    },
+  };
+  const c = innhold[hendelse];
+  // Reuse the cream-sheet shell; the button goes to the back room instead.
+  const html = byggHtml("no", c.tittel, [c.linje], null).replace(
+    /https:\/\/workflows\.no\/start\?innlogging=1/g,
+    ADMIN_URL
+  );
+  return {
+    emne: c.emne,
+    html,
+    tekst: byggTekst(c.tittel, [c.linje], null, "no").replace(
+      /https:\/\/workflows\.no\/start\?innlogging=1/g,
+      ADMIN_URL
+    ),
+  };
+}
+
+/** Pull the company name out of a kartlegging's answers (best effort). */
+export function bedriftFraAnswers(answers: unknown): string | null {
+  if (typeof answers !== "object" || answers === null) return null;
+  const b = (answers as Record<string, unknown>).bedrift;
+  if (typeof b !== "object" || b === null) return null;
+  const navn = (b as Record<string, unknown>).navn;
+  return typeof navn === "string" && navn.trim() ? navn.trim().slice(0, 80) : null;
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { epostForslagKlart, sendPortalEpost } from "@/lib/epost";
+import { bedriftFraAnswers, epostAdminVarsel, epostForslagKlart, sendPortalEpost } from "@/lib/epost";
 import { generateAssessment, generateMockup } from "@/lib/portalAi";
 import { portalAuth, unauthorized } from "@/lib/portalAuth";
 import { mockSubmit, portalMockEnabled } from "@/lib/portalMock";
@@ -186,6 +186,19 @@ export async function POST(req: Request) {
       if (!ep.ok) {
         console.log(`[portal/submit] e-post (forslag klart) ikke sendt: ${ep.error}`);
       }
+    }
+
+    // …and tell Petter a new kartlegging landed (inbox + nothing else needed;
+    // Telegram pings only on likes/approvals to keep the noise down there).
+    const adminEp = await sendPortalEpost({
+      to: "petter@workflows.no",
+      ...epostAdminVarsel("ny", {
+        email: user.email ?? "ukjent e-post",
+        bedrift: bedriftFraAnswers(body.answers),
+      }),
+    });
+    if (!adminEp.ok) {
+      console.log(`[portal/submit] admin-e-post ikke sendt: ${adminEp.error}`);
     }
 
     return NextResponse.json<PortalSubmitResponse>({ id: rowId });

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { epostGodkjent, sendPortalEpost } from "@/lib/epost";
+import { bedriftFraAnswers, epostAdminVarsel, epostGodkjent, sendPortalEpost } from "@/lib/epost";
 import { portalAuth, unauthorized } from "@/lib/portalAuth";
 // Plain data — the locked vilkår text the customer ticked. The SERVER picks
 // the canonical string by the row's language; a client string is never trusted.
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
   // quote the price — and the e-post can speak the row's language.
   const { data: row, error: selectError } = await supabase
     .from("kartlegginger")
-    .select("id, tilbud, email, lang")
+    .select("id, tilbud, email, lang, answers")
     .eq("id", id)
     .maybeSingle();
   if (selectError) {
@@ -130,6 +130,19 @@ export async function POST(req: Request) {
     if (!ep.ok) {
       console.log(`[portal/godkjenn] e-post (godkjent) ikke sendt: ${ep.error}`);
     }
+  }
+
+  // Same event to Petter's inbox (Telegram already pinged above).
+  const adminEp = await sendPortalEpost({
+    to: "petter@workflows.no",
+    ...epostAdminVarsel("godkjent", {
+      email: kundeEpost ?? "ukjent e-post",
+      bedrift: bedriftFraAnswers(row.answers),
+      pris: tilbud?.pris ?? null,
+    }),
+  });
+  if (!adminEp.ok) {
+    console.log(`[portal/godkjenn] admin-e-post ikke sendt: ${adminEp.error}`);
   }
 
   return NextResponse.json<PortalGodkjennResponse>({ ok: true });

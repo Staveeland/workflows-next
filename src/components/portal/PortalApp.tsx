@@ -536,6 +536,21 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     setPhase("intro");
   }, []);
 
+  // Email links land here with ?innlogging=1 — «something is waiting».
+  // No session → open the login gate directly (never the wizard, which
+  // reads as «start from scratch»). With a session the normal boot already
+  // lands on whatever waits. A finished-but-unsubmitted draft outranks the
+  // param: that visitor is mid-flow and auto-submits on arrival.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("innlogging") === null) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    const draft = readDraft();
+    if (draft?.done) return;
+    void startLogin();
+  }, [startLogin]);
+
   /* ── Generating: poll /me every 5s until forslag_klart (or feilet) ── */
   useEffect(() => {
     if (phase !== "generating") return;
