@@ -10,10 +10,11 @@ import { sendTelegramToPetter } from "@/lib/telegram";
 export const runtime = "nodejs";
 // The route itself answers fast (validate + INSERT). The generation (text +
 // image) runs via after() in the SAME invocation, so maxDuration must cover
-// it: probe 6s + chat 20s (+ one HTTP retry 20s) + image 40s + storage/
-// e-post overhead ≈ 90s worst case — 120 gives honest headroom. The client
-// polls GET /me, whose 3-minute staleness backstop still outlives this.
-export const maxDuration = 120;
+// it: the Fable 5 assessment (medium effort, 70s timeout, +1 transient retry)
+// + the gpt-image-2 mockup (40s) + storage/e-post overhead ≈ 175s worst case
+// — 180 gives honest headroom. The client polls GET /me, whose 3-minute
+// staleness backstop still outlives this.
+export const maxDuration = 180;
 
 // Pre-auth junk filter ONLY — generous, so an unauthenticated griefer on a
 // shared IP (CGNAT) can't burn the real budget for legitimate neighbours.

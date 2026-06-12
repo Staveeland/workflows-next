@@ -233,6 +233,58 @@ export const DROMEN_MAX = 2000;
 export const OPPFOLGING_SPORSMAL_MAX = 240;
 export const OPPFOLGING_SVAR_MAX = 1000;
 
+/* ── Diagnose-samtalen (adaptiv kartlegging) ── */
+
+/** Veivalg-forken — hva kunden er her for (full spekter). */
+export type PortalIntent = "nettside" | "tid" | "verktoy" | "usikker";
+
+/**
+ * POST /api/portal/innsikt — UNAUTHENTICATED. Tar researchen og lager 2–3
+ * åpnings-observasjoner («Vi la merke til …»). Feiler aldri flyten: tom
+ * liste = hopp over refleksjonen.
+ */
+export interface PortalInnsiktBody {
+  research: unknown;
+  lang: "no" | "en";
+}
+export interface PortalInnsiktResponse {
+  observasjoner: string[];
+  harNettside: boolean;
+}
+
+/**
+ * POST /api/portal/samtale — UNAUTHENTICATED. Ett adaptivt steg om gangen:
+ * neste spørsmål (eller ferdig) + en oppdatert «forståelse». Feil → en
+ * trygg fallback fra ruta så flyten aldri stopper.
+ */
+export interface PortalSamtaleExchange {
+  sporsmal: string;
+  svar: string;
+}
+export interface PortalSamtaleBody {
+  intent: PortalIntent;
+  research: unknown;
+  historie: PortalSamtaleExchange[];
+  lang: "no" | "en";
+}
+export interface PortalSamtaleResponse {
+  ferdig: boolean;
+  sporsmal: string;
+  hint: string;
+  forslag: string[];
+  forstaelse: string[];
+}
+
+/** answers.samtale as the wizard stores it (intent + the adaptive Q&A). */
+export interface PortalSamtaleAnswer {
+  intent: PortalIntent;
+  bekreftetInnsikt?: boolean;
+  utvekslinger: PortalSamtaleExchange[];
+}
+
+export const SAMTALE_MAKS_SPORSMAL = 6;
+export const SAMTALE_SVAR_MAX = 1000;
+
 /** answers.bedrift as the wizard stores it (first step, id "bedrift"). */
 export interface PortalBedriftAnswer {
   navn: string;

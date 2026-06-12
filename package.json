@@ -10,6 +10,7 @@
     "indexnow": "node scripts/indexnow.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
     "@supabase/supabase-js": "^2.104.1",
     "framer-motion": "^12.35.2",
     "next": "16.1.6",

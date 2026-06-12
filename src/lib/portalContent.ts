@@ -112,6 +112,44 @@ export interface PortalContent {
     hint: string;
     plassholder: string;
   };
+  /** The diagnose-samtale fork — reflection + the four intent cards. */
+  veivalg: {
+    /** Header above the reflection observations (when research found some). */
+    reflektTittel: string;
+    /** Mono status while /innsikt loads the observations. */
+    laster: string;
+    /** The fork question under the reflection. */
+    sporsmal: string;
+    hint: string;
+    /** The four intent cards, keyed by PortalIntent. */
+    kort: {
+      nettside: { tittel: string; tekst: string };
+      tid: { tittel: string; tekst: string };
+      verktoy: { tittel: string; tekst: string };
+      usikker: { tittel: string; tekst: string };
+    };
+  };
+  /** The adaptive diagnose-samtale — one question per card + a live panel. */
+  samtale: {
+    /** Mono status while /samtale fetches the next step. */
+    laster: string;
+    /** Heading on the live «dette hører vi»-panel. */
+    panelTittel: string;
+    /** a11y label for the free-text answer field. */
+    egneOrd: string;
+    plassholder: string;
+    neste: string;
+    /** Quiet skip link under each question. */
+    hopp: string;
+    /** Oppsummering: label over the conversation block. */
+    samtaleLabel: string;
+    /** Oppsummering: quiet link to redo the whole conversation. */
+    taPaaNytt: string;
+    /** Oppsummering: label over the veivalg/intent row. */
+    veivalgLabel: string;
+    /** Mono progress line during the conversation — «Spørsmål {n}». */
+    framdriftTemplate: string;
+  };
   /** The bedrift step + lookup moment (BRREG + company website). */
   research: {
     /** Visible label for the required company-name input. */
@@ -845,6 +883,42 @@ export const portalContent: Record<Lang, PortalContent> = {
       hint: "Ett oppfølgingsspørsmål, basert på det du har svart. Hopp over hvis det ikke treffer.",
       plassholder: "svar kort — eller bare gå videre",
     },
+    veivalg: {
+      reflektTittel: "Før vi spør — her er det vi la merke til",
+      laster: "verkstedet ser på bedriften deres …",
+      sporsmal: "Hva skal vi hjelpe dere med?",
+      hint: "Velg det som ligner mest. Vi finjusterer i samtalen etterpå — og du kan endre underveis.",
+      kort: {
+        nettside: {
+          tittel: "En ny eller bedre nettside",
+          tekst: "Dere mangler en, eller den dere har holder ikke helt mål.",
+        },
+        tid: {
+          tittel: "Spare tid på det repeterende",
+          tekst: "Det samme arbeidet gjøres om og om igjen, for hånd.",
+        },
+        verktoy: {
+          tittel: "Et verktøy dere mangler",
+          tekst: "Dere trenger et system bygget for måten dere faktisk jobber på.",
+        },
+        usikker: {
+          tittel: "Vi er ikke helt sikre",
+          tekst: "Hjelp oss å finne ut hva som faktisk vil hjelpe.",
+        },
+      },
+    },
+    samtale: {
+      laster: "verkstedet tenker …",
+      panelTittel: "Dette hører vi så langt",
+      egneOrd: "Skriv svaret ditt",
+      plassholder: "svar kort med egne ord …",
+      neste: "Neste",
+      hopp: "Vet ikke / hopp over",
+      samtaleLabel: "Samtalen",
+      taPaaNytt: "Ta samtalen på nytt",
+      veivalgLabel: "Dere er her for",
+      framdriftTemplate: "Spørsmål {n}",
+    },
     research: {
       navnLabel: "Bedriftsnavnet",
       navnPlassholder: "f.eks. Håland Rør AS",
@@ -1490,6 +1564,42 @@ export const portalContent: Record<Lang, PortalContent> = {
       tenker: "the workshop is reading your answers …",
       hint: "One follow-up question, based on what you've told us. Skip it if it misses.",
       plassholder: "answer briefly — or just continue",
+    },
+    veivalg: {
+      reflektTittel: "Before we ask — here's what we noticed",
+      laster: "the workshop is looking at your company …",
+      sporsmal: "What can we help you with?",
+      hint: "Pick the closest match. We'll fine-tune it in the conversation — and you can change it along the way.",
+      kort: {
+        nettside: {
+          tittel: "A new or better website",
+          tekst: "You don't have one, or the one you have doesn't quite cut it.",
+        },
+        tid: {
+          tittel: "Save time on the repetitive",
+          tekst: "The same work gets done by hand, over and over.",
+        },
+        verktoy: {
+          tittel: "A tool you're missing",
+          tekst: "You need a system built for the way you actually work.",
+        },
+        usikker: {
+          tittel: "We're not quite sure",
+          tekst: "Help us figure out what would actually help.",
+        },
+      },
+    },
+    samtale: {
+      laster: "the workshop is thinking …",
+      panelTittel: "What we're hearing so far",
+      egneOrd: "Write your answer",
+      plassholder: "answer briefly, in your own words …",
+      neste: "Next",
+      hopp: "Not sure / skip",
+      samtaleLabel: "The conversation",
+      taPaaNytt: "Retake the conversation",
+      veivalgLabel: "You're here for",
+      framdriftTemplate: "Question {n}",
     },
     research: {
       navnLabel: "Company name",

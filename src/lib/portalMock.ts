@@ -29,7 +29,9 @@ import type {
   PortalKartlegging,
   PortalLikeResponse,
   PortalMeResponse,
-  PortalOppfolgingResponse,
+  PortalInnsiktResponse,
+  PortalIntent,
+  PortalSamtaleResponse,
   PortalResearchResponse,
   PortalSubmitResponse,
   PortalTilbud,
@@ -69,7 +71,7 @@ export const MOCK_SESSION_LABEL = "dev-mock@workflows.no (falsk sesjon)";
 
 const MOCK_DELAY_MS = 4000;
 const MOCK_RESEARCH_DELAY_MS = 800;
-const MOCK_OPPFOLGING_DELAY_MS = 900;
+const MOCK_SAMTALE_DELAY_MS = 900;
 const MOCK_MOCKUP_URL = "/verksted/tj-flyter.webp";
 
 /** Canned research funn — CSUB-like, realistic field shapes for the card,
@@ -143,17 +145,96 @@ export async function mockResearch(): Promise<PortalResearchResponse> {
   return { funn: MOCK_FUNN };
 }
 
-/** POST /api/portal/oppfolging — canned sharp question after a beat. */
-export async function mockOppfolging(
+/** POST /api/portal/innsikt — canned opening observations after a beat. */
+export async function mockInnsikt(
+  research: unknown,
   lang: "no" | "en"
-): Promise<PortalOppfolgingResponse> {
-  await delay(MOCK_OPPFOLGING_DELAY_MS);
+): Promise<PortalInnsiktResponse> {
+  await delay(MOCK_SAMTALE_DELAY_MS);
+  const harNettside =
+    typeof research === "object" &&
+    research !== null &&
+    typeof (research as Record<string, unknown>).nettside === "string";
   return {
-    sporsmal:
+    harNettside,
+    observasjoner:
       lang === "en"
-        ? "You mentioned reports steal time — which report takes the longest today, and where does the data it needs live?"
-        : "Dere nevnte at rapporter stjeler tid — hvilken rapport tar lengst tid i dag, og hvor ligger tallene den henter fra?",
+        ? [
+            "We noticed you build composite structures for harsh environments.",
+            harNettside
+              ? "Your site reads clearly, but the expression is a touch dated."
+              : "We couldn't find a working website for you today.",
+            "Around 85 people in Færvik — a real operation, not a one-man show.",
+          ]
+        : [
+            "Vi la merke til at dere lager komposittkonstruksjoner for tøffe miljøer.",
+            harNettside
+              ? "Nettsiden er ryddig, men uttrykket er litt utdatert."
+              : "Vi fant ingen fungerende nettside for dere i dag.",
+            "Rundt 85 ansatte i Færvik — en skikkelig drift, ikke et enmannsforetak.",
+          ],
   };
+}
+
+/** Canned adaptive samtale-steg — ferdig after 3 questions; varies by turn. */
+const MOCK_SAMTALE_STEG: Record<
+  "no" | "en",
+  { sporsmal: string; hint: string; forslag: string[] }[]
+> = {
+  no: [
+    {
+      sporsmal: "Hva er den ene oppgaven dere helst skulle sluppet å gjøre manuelt?",
+      hint: "Tenk på det som gjentar seg hver uke.",
+      forslag: ["Rapporter", "Tilbud og fakturering", "Dobbeltregistrering", "Kundehenvendelser"],
+    },
+    {
+      sporsmal: "Omtrent hvor mange slike havner på bordet i løpet av en uke?",
+      hint: "Et grovt anslag holder.",
+      forslag: ["Under 10", "10–50", "50–200", "Mer enn 200"],
+    },
+    {
+      sporsmal: "Hvor ligger informasjonen i dag — ett system, eller spredt utover?",
+      hint: "Det avgjør hvor mye «rør» som trengs.",
+      forslag: ["Ett system", "To–tre systemer", "Mest e-post og Excel", "Vet ikke helt"],
+    },
+  ],
+  en: [
+    {
+      sporsmal: "What's the one task you'd most like to stop doing by hand?",
+      hint: "Think about what repeats every week.",
+      forslag: ["Reports", "Quotes and invoicing", "Double entry", "Customer inquiries"],
+    },
+    {
+      sporsmal: "Roughly how many of those land on the desk in a week?",
+      hint: "A rough estimate is fine.",
+      forslag: ["Under 10", "10–50", "50–200", "More than 200"],
+    },
+    {
+      sporsmal: "Where does the information live today — one system, or scattered?",
+      hint: "It decides how much plumbing is needed.",
+      forslag: ["One system", "Two–three systems", "Mostly email and Excel", "Not sure"],
+    },
+  ],
+};
+
+/** POST /api/portal/samtale — one canned adaptive step (ferdig after 3). */
+export async function mockSamtale(body: {
+  intent: PortalIntent;
+  historie: { sporsmal: string; svar: string }[];
+  lang: "no" | "en";
+}): Promise<PortalSamtaleResponse> {
+  await delay(MOCK_SAMTALE_DELAY_MS);
+  const { historie, lang } = body;
+  const n = historie.length;
+  const forstaelse =
+    lang === "en"
+      ? ["Custom GRP manufacturer", "~85 employees in Færvik", n >= 1 ? "Reports eat real time" : "Exploring what would help"]
+      : ["Komposittprodusent på mål", "~85 ansatte i Færvik", n >= 1 ? "Rapporter spiser reell tid" : "Utforsker hva som vil hjelpe"];
+  if (n >= 3) {
+    return { ferdig: true, sporsmal: "", hint: "", forslag: [], forstaelse };
+  }
+  const steg = MOCK_SAMTALE_STEG[lang][Math.min(n, MOCK_SAMTALE_STEG[lang].length - 1)];
+  return { ferdig: false, ...steg, forstaelse };
 }
 
 /** POST /api/portal/submit — canned assessment after ~4s. */

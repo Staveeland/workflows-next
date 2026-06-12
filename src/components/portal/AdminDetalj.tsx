@@ -217,6 +217,35 @@ function svarLinjer(
     }
   }
 
+  // The diagnose-samtale (new flow): the intent + the adaptive Q&A. Each
+  // question IS its label, so Petter reads it like any other wizard line.
+  // (Transient wizard state never reaches the back office as raw JSON.)
+  used.add("samtale");
+  used.add("_fase");
+  used.add("_innsikt");
+  const samtale = answers.samtale;
+  if (typeof samtale === "object" && samtale !== null && !Array.isArray(samtale)) {
+    const s = samtale as Record<string, unknown>;
+    const intent = s.intent;
+    if (typeof intent === "string" && intent in t.veivalg.kort) {
+      linjer.push({
+        key: "samtale-intent",
+        label: t.samtale.veivalgLabel,
+        verdi: t.veivalg.kort[intent as keyof PortalContent["veivalg"]["kort"]].tittel,
+      });
+    }
+    if (Array.isArray(s.utvekslinger)) {
+      s.utvekslinger.forEach((u, i) => {
+        if (typeof u !== "object" || u === null || Array.isArray(u)) return;
+        const o = u as Record<string, unknown>;
+        const sp = typeof o.sporsmal === "string" ? o.sporsmal.trim() : "";
+        const sv = typeof o.svar === "string" ? o.svar.trim() : "";
+        if (!sp || !sv) return;
+        linjer.push({ key: `samtale-${i}`, label: sp, verdi: sv });
+      });
+    }
+  }
+
   // Anything the wizard didn't define (future keys) — raw, never dropped.
   for (const [key, value] of Object.entries(answers)) {
     if (used.has(key) || value === null || value === undefined) continue;

@@ -1908,3 +1908,231 @@ html:has(.vk-benk) {
     display: none !important;
   }
 }
+
+/* ════════════════════════════════════════════
+   Diagnose-samtalen — reflection, the intent fork,
+   the adaptive conversation + the live understanding panel.
+   ════════════════════════════════════════════ */
+
+/* ── Refleksjon («Vi la merke til …», from /api/portal/innsikt) ── */
+.vk-portal-reflekt {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 60ch;
+  padding: 16px 20px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-left: 2px solid var(--kritt);
+}
+
+.vk-portal-reflekt-tittel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-portal-reflekt-liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.vk-portal-reflekt-punkt {
+  margin: 0;
+  font-size: clamp(17px, 2.2vw, 21px);
+  line-height: 1.4;
+}
+
+/* Inline, non-blocking reflection loader (the fork stays usable beside it). */
+.vk-portal-reflekt-laster {
+  margin: 0;
+  color: var(--glod);
+  min-height: 1.5em;
+}
+
+/* ── Veivalg-forken — the four big intent cards ── */
+.vk-portal-fork {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 640px;
+}
+
+@media (max-width: 540px) {
+  .vk-portal-fork {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vk-portal-forkkort {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 96px;
+  padding: 18px 20px;
+  text-align: left;
+  background: var(--benk);
+  border: 1.5px solid var(--hairline);
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-2) var(--ease-work),
+    box-shadow var(--dur-2) var(--ease-work),
+    translate var(--dur-2) var(--ease-work);
+}
+
+.vk-portal-forkkort:hover {
+  border-color: var(--glod);
+  translate: 0 -2px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.vk-portal-forkkort:active {
+  translate: 0 0;
+}
+
+.vk-portal-forkkort[aria-pressed="true"] {
+  border-color: var(--glod);
+  background: rgba(255, 180, 84, 0.07);
+  box-shadow: 0 0 12px rgba(255, 180, 84, 0.18);
+}
+
+.vk-portal-forkkort-tittel {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(18px, 2.4vw, 22px);
+  line-height: 1.1;
+  color: var(--papir);
+}
+
+.vk-portal-forkkort-tekst {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--stov);
+}
+
+/* ── Samtalen — question column + live understanding panel ── */
+.vk-portal-samtale {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 30%, 300px);
+  gap: 28px;
+  align-items: start;
+}
+
+.vk-portal-samtale-q {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .vk-portal-samtale {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+/* The quiet skip link sits between Tilbake and Neste. */
+.vk-portal-hopp {
+  margin-right: auto;
+}
+
+/* ── The live «dette hører vi»-panel ── */
+.vk-portal-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-top: 2px solid var(--glod);
+  position: sticky;
+  top: 16px;
+}
+
+@media (max-width: 720px) {
+  .vk-portal-panel {
+    position: static;
+  }
+}
+
+.vk-portal-panel-tittel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--glod);
+}
+
+.vk-portal-panel-liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vk-portal-panel-punkt {
+  margin: 0;
+  padding-left: 16px;
+  position: relative;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--papir);
+}
+
+.vk-portal-panel-punkt::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--stov);
+}
+
+/* Panel updates between questions feel alive, not jumpy. */
+@media (prefers-reduced-motion: no-preference) {
+  .vk-portal-panel-punkt {
+    animation: vk-portal-panel-in var(--dur-3) var(--ease-work) both;
+  }
+}
+
+@keyframes vk-portal-panel-in {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* ── Oppsummering: the conversation block (editable answers) ── */
+.vk-portal-oppsum-samtale {
+  gap: 14px;
+}
+
+.vk-portal-oppsum-utveksling {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vk-portal-oppsum-sporsmal {
+  margin: 0;
+  font-size: 14px;
+  color: var(--stov);
+}
+
+.vk-portal-oppsum-svar {
+  max-width: 100%;
+}
