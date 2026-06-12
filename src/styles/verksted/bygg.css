@@ -1,332 +1,369 @@
 /* Byggefabrikken i verkstedkontoret (AdminBygg) — bor i Bygging-fanen.
-   Følger admin.css-språket: krem på mørk benk, amber som bærende aksent,
-   rød kun dekorativ. Tokens fra .vk-scope. */
+   Rene klassenavn (ingen .vk-scope-wrapper), tokens fra base.css:
+   --kritt lys tekst, --stov dempet, --glod amber, --drift-green ok,
+   --stempel kun dekorativ, --benk/--bek flater, --hairline kant. */
 
-.vk-scope .vk-bygg {
+.vk-bygg {
+  display: grid;
+  gap: 22px;
+  max-width: 60ch;
+}
+
+/* ── Topplinje: statusbadge + meta ── */
+.vk-bygg-topp {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.vk-bygg-badge {
+  font-family: var(--font-spline, ui-monospace, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--stov);
+  white-space: nowrap;
+}
+
+.vk-bygg-badge--bygger,
+.vk-bygg-badge--venter {
+  border-color: var(--glod);
+  color: var(--glod);
+}
+
+.vk-bygg-badge--klar,
+.vk-bygg-badge--delt {
+  border-color: var(--drift-green);
+  color: var(--drift-green);
+}
+
+.vk-bygg-badge--feilet {
+  border-color: var(--stempel);
+  color: var(--kritt);
+}
+
+.vk-bygg-meta {
+  font-size: 0.78rem;
+  color: var(--stov);
+}
+
+.vk-bygg-feil {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--stempel);
+  background: color-mix(in srgb, var(--stempel) 8%, transparent);
+  border-radius: 4px;
+  color: var(--kritt);
+  font-size: 0.88rem;
+}
+
+/* ── Forhåndsvisnings-kort (det viktigste — gjøres prominent) ── */
+.vk-bygg-preview {
   display: grid;
   gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--benk);
 }
 
-.vk-scope .vk-bygg-topp {
+.vk-bygg-preview-topp {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
-.vk-scope .vk-bygg-badge {
-  font-family: var(--mono, ui-monospace, monospace);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border: 1px solid var(--feltkant, #3a3027);
-  border-radius: 999px;
-  color: var(--stov, #b8a896);
+.vk-bygg-apne {
+  font-size: 0.95rem;
+  padding: 11px 20px;
 }
 
-.vk-scope .vk-bygg-badge--bygger,
-.vk-scope .vk-bygg-badge--venter {
-  border-color: var(--amber, #f0a32f);
-  color: var(--amber, #f0a32f);
+.vk-bygg-repo {
+  font-size: 0.82rem;
+  color: var(--stov);
 }
 
-.vk-scope .vk-bygg-badge--klar,
-.vk-scope .vk-bygg-badge--delt {
-  border-color: var(--drift-green, #7da27a);
-  color: var(--drift-green, #7da27a);
-}
-
-.vk-scope .vk-bygg-badge--feilet {
-  border-color: var(--amber, #f0a32f);
-  color: var(--krem, #f3e9d8);
-}
-
-.vk-scope .vk-bygg-meta {
-  font-size: 0.75rem;
-  color: var(--stov, #b8a896);
-}
-
-.vk-scope .vk-bygg-feil {
-  color: var(--krem, #f3e9d8);
-  border-left: 3px solid var(--amber, #f0a32f);
-  padding-left: 10px;
-  font-size: 0.85rem;
-}
-
-.vk-scope .vk-bygg-auto {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  font-size: 0.9rem;
-  color: var(--krem, #f3e9d8);
-  cursor: pointer;
-}
-
-.vk-scope .vk-bygg-auto input {
-  margin-top: 3px;
-  accent-color: var(--amber, #f0a32f);
-}
-
-.vk-scope .vk-bygg-auto-hint {
-  color: var(--stov, #b8a896);
-  font-size: 0.8rem;
-}
-
-.vk-scope .vk-bygg-knapper {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.vk-scope .vk-bygg-stopp {
-  border-color: var(--feltkant, #3a3027);
-}
-
-.vk-scope .vk-bygg-lenker {
-  margin: 0;
-  display: grid;
-  gap: 8px;
-  font-size: 0.9rem;
-}
-
-.vk-scope .vk-bygg-lenker dt {
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--stov, #b8a896);
-}
-
-.vk-scope .vk-bygg-lenker dd {
-  margin: 2px 0 0;
-}
-
-.vk-scope .vk-bygg-lenker a {
-  color: var(--amber, #f0a32f);
+.vk-bygg-repo a {
+  color: var(--stov);
   text-decoration: underline;
   text-underline-offset: 3px;
-  word-break: break-all;
 }
 
-.vk-scope .vk-bygg-sha {
-  color: var(--stov, #b8a896);
-  font-size: 0.78rem;
+.vk-bygg-repo a:hover {
+  color: var(--kritt);
 }
 
-.vk-scope .vk-bygg-logg {
-  list-style: none;
-  margin: 0;
-  padding: 12px 14px;
+.vk-bygg-sha {
+  opacity: 0.7;
+}
+
+/* Passord-port inne i preview-kortet */
+.vk-bygg-laas {
   display: grid;
-  gap: 6px;
-  background: var(--benk, #211b15);
-  border: 1px solid var(--feltkant, #3a3027);
-  border-radius: 6px;
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-.vk-scope .vk-bygg-logg li {
-  display: flex;
   gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
+}
+
+.vk-bygg-laas-tittel {
+  margin: 0;
   font-size: 0.82rem;
-  color: var(--krem, #f3e9d8);
+  color: var(--kritt);
 }
 
-.vk-scope .vk-bygg-logg-tid {
-  color: var(--stov, #b8a896);
-  font-size: 0.72rem;
-  white-space: nowrap;
-  padding-top: 1px;
-}
-
-.vk-scope .vk-bygg-status,
-.vk-scope .vk-bygg-intro {
-  color: var(--stov, #b8a896);
-  font-size: 0.9rem;
-  max-width: 56ch;
-}
-
-/* Passord-port */
-.vk-scope .vk-bygg-laas {
-  padding: 14px 16px;
-  border: 1px solid var(--feltkant, #3a3027);
-  border-radius: 8px;
-  background: var(--benk, #211b15);
-}
-
-.vk-scope .vk-bygg-laas-tittel {
-  margin: 0 0 10px;
-  font-size: 0.9rem;
-  color: var(--krem, #f3e9d8);
-}
-
-.vk-scope .vk-bygg-laas-felt {
+.vk-bygg-laas-felt {
   margin: 0;
   display: flex;
-  gap: 28px;
+  gap: 32px;
   flex-wrap: wrap;
 }
 
-.vk-scope .vk-bygg-laas-felt dt {
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
+.vk-bygg-laas-felt dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--stov, #b8a896);
+  color: var(--stov);
 }
 
-.vk-scope .vk-bygg-laas-felt dd {
-  margin: 2px 0 0;
-  font-size: 1rem;
-  color: var(--amber, #f0a32f);
+.vk-bygg-laas-felt dd {
+  margin: 3px 0 0;
+  font-size: 1.05rem;
+  font-family: var(--font-spline, ui-monospace, monospace);
+  color: var(--glod);
   user-select: all;
 }
 
-.vk-scope .vk-bygg-laas-hint {
-  margin: 10px 0 0;
-  font-size: 0.78rem;
-  color: var(--stov, #b8a896);
+.vk-bygg-delt-info {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--stov);
 }
 
-/* Fase-tidslinje */
-.vk-scope .vk-bygg-faser {
+/* ── Fase-tidslinje ── */
+.vk-bygg-faser {
   list-style: none;
   margin: 0;
-  padding: 14px 16px;
+  padding: 18px 20px;
   display: grid;
   gap: 0;
-  background: var(--benk, #211b15);
-  border: 1px solid var(--feltkant, #3a3027);
-  border-radius: 8px;
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
 }
 
-.vk-scope .vk-bygg-fase {
+.vk-bygg-fase {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 7px 0;
+  gap: 14px;
+  padding: 9px 0;
   position: relative;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 }
 
-/* Loddrett strek mellom merkene */
-.vk-scope .vk-bygg-fase:not(:last-child) .vk-bygg-fase-merke::after {
+/* Loddrett kobling mellom merkene */
+.vk-bygg-fase:not(:last-child) .vk-bygg-fase-merke::after {
   content: "";
   position: absolute;
-  left: 0.6rem;
-  top: 1.6rem;
-  bottom: -0.5rem;
-  width: 1px;
-  background: var(--feltkant, #3a3027);
+  left: 0.7rem;
+  top: 1.7rem;
+  bottom: -0.6rem;
+  width: 2px;
+  background: var(--hairline);
 }
 
-.vk-scope .vk-bygg-fase-merke {
+.vk-bygg-fase--ferdig:not(:last-child) .vk-bygg-fase-merke::after {
+  background: color-mix(in srgb, var(--drift-green) 55%, transparent);
+}
+
+.vk-bygg-fase-merke {
   flex: none;
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.45rem;
+  height: 1.45rem;
   display: grid;
   place-items: center;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   border-radius: 999px;
-  color: var(--stov, #b8a896);
+  border: 1.5px solid var(--hairline);
+  background: var(--benk);
+  color: var(--stov);
+  z-index: 1;
 }
 
-.vk-scope .vk-bygg-fase--ferdig .vk-bygg-fase-merke {
-  color: var(--drift-green, #7da27a);
+.vk-bygg-fase--ferdig .vk-bygg-fase-merke {
+  border-color: var(--drift-green);
+  color: var(--drift-green);
 }
 
-.vk-scope .vk-bygg-fase--ferdig .vk-bygg-fase-navn {
-  color: var(--krem, #f3e9d8);
+.vk-bygg-fase--ferdig .vk-bygg-fase-navn {
+  color: var(--kritt);
 }
 
-.vk-scope .vk-bygg-fase--aktiv .vk-bygg-fase-merke {
-  color: var(--amber, #f0a32f);
+.vk-bygg-fase--aktiv .vk-bygg-fase-merke {
+  border-color: var(--glod);
+  color: var(--glod);
   animation: vk-bygg-puls 1.4s ease-in-out infinite;
 }
 
-.vk-scope .vk-bygg-fase--aktiv .vk-bygg-fase-navn {
-  color: var(--amber, #f0a32f);
+.vk-bygg-fase--aktiv .vk-bygg-fase-navn {
+  color: var(--glod);
+  font-weight: 600;
 }
 
-.vk-scope .vk-bygg-fase--venter .vk-bygg-fase-navn {
-  color: var(--stov, #b8a896);
+.vk-bygg-fase--venter .vk-bygg-fase-navn {
+  color: var(--stov);
 }
 
-.vk-scope .vk-bygg-fase-na {
+.vk-bygg-fase-na {
   margin-left: auto;
   font-size: 0.72rem;
-  color: var(--amber, #f0a32f);
+  color: var(--glod);
 }
 
 @keyframes vk-bygg-puls {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
+  50% { opacity: 0.4; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .vk-scope .vk-bygg-fase--aktiv .vk-bygg-fase-merke {
+  .vk-bygg-fase--aktiv .vk-bygg-fase-merke {
     animation: none;
   }
 }
 
-.vk-scope .vk-bygg-rålogg summary {
-  font-size: 0.78rem;
-  color: var(--stov, #b8a896);
+/* ── Autobygg-bryter ── */
+.vk-bygg-auto {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  color: var(--kritt);
   cursor: pointer;
+  line-height: 1.45;
 }
 
-.vk-scope .vk-bygg-rålogg .vk-bygg-logg {
-  margin-top: 10px;
+.vk-bygg-auto input {
+  margin-top: 3px;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: none;
+  accent-color: var(--glod);
 }
 
-/* Byggenotat + endringsønske */
-.vk-scope .vk-bygg-notat,
-.vk-scope .vk-bygg-endre {
+.vk-bygg-auto-hint {
+  color: var(--stov);
+}
+
+/* ── Knapper ── */
+.vk-bygg-knapper {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.vk-bygg-stopp {
+  border-color: var(--hairline);
+}
+
+/* ── Byggenotat + endringsønske ── */
+.vk-bygg-notat,
+.vk-bygg-endre {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
-.vk-scope .vk-bygg-endre {
-  padding: 14px 16px;
-  border: 1px solid var(--feltkant, #3a3027);
-  border-radius: 8px;
-  background: var(--benk, #211b15);
+.vk-bygg-endre {
+  padding: 18px 20px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--benk);
 }
 
-.vk-scope .vk-bygg-notat-label {
-  font-size: 0.82rem;
-  color: var(--krem, #f3e9d8);
+.vk-bygg-notat-label {
+  font-size: 0.85rem;
+  color: var(--kritt);
+  font-weight: 600;
 }
 
-.vk-scope .vk-bygg-notat-lagret {
-  color: var(--drift-green, #7da27a);
+.vk-bygg-notat-lagret {
+  color: var(--drift-green);
   font-size: 0.78rem;
+  font-weight: 400;
 }
 
-.vk-scope .vk-bygg-notat-felt {
+.vk-bygg-notat-felt {
   width: 100%;
   box-sizing: border-box;
   resize: vertical;
-  min-height: 3.4rem;
-  padding: 10px 12px;
+  min-height: 4.5rem;
+  padding: 12px 14px;
   font: inherit;
   font-size: 0.9rem;
-  color: var(--krem, #f3e9d8);
-  background: var(--bek, #171310);
-  border: 1px solid var(--feltkant, #3a3027);
-  border-radius: 6px;
+  line-height: 1.5;
+  color: var(--kritt);
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
 }
 
-.vk-scope .vk-bygg-notat-felt:focus-visible {
-  outline: 2px solid var(--amber, #f0a32f);
+.vk-bygg-notat-felt:focus-visible {
+  outline: 2px solid var(--glod);
   outline-offset: 1px;
+  border-color: transparent;
 }
 
-.vk-scope .vk-bygg-notat-felt::placeholder {
-  color: var(--stov, #b8a896);
-  opacity: 0.7;
+.vk-bygg-notat-felt::placeholder {
+  color: var(--stov);
+  opacity: 0.75;
 }
 
-.vk-scope .vk-bygg-endre .vk-btn {
+.vk-bygg-endre .vk-btn {
   justify-self: start;
+}
+
+/* ── Tomtilstand + rå logg ── */
+.vk-bygg-status,
+.vk-bygg-intro {
+  color: var(--stov);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  max-width: 56ch;
+}
+
+.vk-bygg-rålogg summary {
+  font-size: 0.78rem;
+  color: var(--stov);
+  cursor: pointer;
+}
+
+.vk-bygg-logg {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  display: grid;
+  gap: 7px;
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.vk-bygg-logg li {
+  display: flex;
+  gap: 12px;
+  font-size: 0.82rem;
+  color: var(--kritt);
+}
+
+.vk-bygg-logg-tid {
+  color: var(--stov);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  padding-top: 1px;
 }

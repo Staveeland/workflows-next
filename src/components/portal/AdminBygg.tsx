@@ -359,62 +359,53 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
         </div>
       ) : null}
 
-      {bygg?.githubUrl || bygg?.previewUrl ? (
-        <dl className="vk-bygg-lenker">
-          {bygg.previewUrl ? (
-            <div>
-              <dt className="vk-mono">Forhåndsvisning</dt>
-              <dd>
-                <a href={bygg.previewUrl} target="_blank" rel="noopener noreferrer">
-                  {bygg.previewUrl.replace(/^https:\/\//, "")}
-                </a>
-              </dd>
-            </div>
-          ) : null}
-          {bygg.githubUrl ? (
-            <div>
-              <dt className="vk-mono">Repo</dt>
-              <dd>
+      {/* Forhåndsvisnings-kort — det viktigste, gjøres prominent. */}
+      {bygg?.previewUrl ? (
+        <div className="vk-bygg-preview">
+          <div className="vk-bygg-preview-topp">
+            <a
+              className="vk-btn vk-btn--cta vk-bygg-apne"
+              href={bygg.previewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Åpne forhåndsvisning <span aria-hidden="true">↗</span>
+            </a>
+            {bygg.githubUrl ? (
+              <span className="vk-bygg-repo">
                 <a href={bygg.githubUrl} target="_blank" rel="noopener noreferrer">
                   {bygg.githubRepo}
                 </a>
                 {bygg.sisteCommitSha ? (
-                  <span className="vk-mono vk-bygg-sha">
-                    {" "}
-                    @ {bygg.sisteCommitSha.slice(0, 7)}
-                  </span>
+                  <span className="vk-bygg-sha"> @ {bygg.sisteCommitSha.slice(0, 7)}</span>
                 ) : null}
-              </dd>
+              </span>
+            ) : null}
+          </div>
+
+          {bygg.nettstedBruker && bygg.nettstedPassord ? (
+            <div className="vk-bygg-laas">
+              <p className="vk-bygg-laas-tittel">🔒 Passordbeskyttet forhåndsvisning</p>
+              <dl className="vk-bygg-laas-felt">
+                <div>
+                  <dt>Bruker</dt>
+                  <dd>{bygg.nettstedBruker}</dd>
+                </div>
+                <div>
+                  <dt>Passord</dt>
+                  <dd>{bygg.nettstedPassord}</dd>
+                </div>
+              </dl>
             </div>
           ) : null}
-        </dl>
-      ) : null}
 
-      {/* Passord-porten — vis legitimasjonen når den finnes. */}
-      {bygg?.nettstedBruker && bygg?.nettstedPassord ? (
-        <div className="vk-bygg-laas">
-          <p className="vk-bygg-laas-tittel">🔒 Forhåndsvisningen er passordbeskyttet</p>
-          <dl className="vk-bygg-laas-felt">
-            <div>
-              <dt className="vk-mono">Bruker</dt>
-              <dd className="vk-mono">{bygg.nettstedBruker}</dd>
-            </div>
-            <div>
-              <dt className="vk-mono">Passord</dt>
-              <dd className="vk-mono">{bygg.nettstedPassord}</dd>
-            </div>
-          </dl>
-          <p className="vk-bygg-laas-hint">
-            Kunden får dette automatisk i Forhåndsvisning-fanen når du deler.
-          </p>
+          {status === "delt" && bygg.deltMedKundeAt ? (
+            <p className="vk-bygg-delt-info">
+              Delt med kunden {formatTid(bygg.deltMedKundeAt)} — push til repoet
+              oppdaterer forhåndsvisningen deres automatisk.
+            </p>
+          ) : null}
         </div>
-      ) : null}
-
-      {status === "delt" && bygg?.deltMedKundeAt ? (
-        <p className="vk-mono vk-bygg-meta">
-          Delt med kunden {formatTid(bygg.deltMedKundeAt)} — push til repoet
-          oppdaterer forhåndsvisningen deres automatisk.
-        </p>
       ) : null}
 
       {/* Strukturert fase-tidslinje i stedet for rå logg. */}

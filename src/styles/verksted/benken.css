@@ -601,16 +601,16 @@
 .vk-benk-forhand-laas {
   margin-top: 20px;
   padding: 16px 18px;
-  border: 1px solid var(--feltkant, #3a3027);
-  border-radius: 8px;
-  background: var(--benk, #211b15);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: var(--benk);
   max-width: 36ch;
 }
 
 .vk-benk-forhand-laas-tittel {
   margin: 0 0 12px;
   font-size: 0.9rem;
-  color: var(--krem, #f3e9d8);
+  color: var(--kritt);
 }
 
 .vk-benk-forhand-laas-felt {
@@ -630,13 +630,13 @@
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--stov, #b8a896);
+  color: var(--stov);
 }
 
 .vk-benk-forhand-laas-felt dd {
   margin: 0;
   font-size: 1rem;
-  color: var(--amber, #f0a32f);
+  color: var(--glod);
   user-select: all;
 }
 
