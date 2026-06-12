@@ -86,6 +86,8 @@ export interface PortalKartlegging {
   tilbud: PortalTilbud | null;
   tilbudSendtAt: string | null;
   godkjentAt: string | null;
+  /** Project week 1–6 (kartlegginger.uke) — set by Petter once «videre». */
+  uke: number | null;
 }
 
 export interface PortalSubmitBody {
@@ -232,5 +234,149 @@ export interface AdminTilbudResponse {
 
 /** DELETE /api/portal/admin/liste?id= — mockup object + row removed. */
 export interface AdminSlettResponse {
+  ok: true;
+}
+
+/* ════════════════════════════════════════════
+   «Benken» — the post-approval project room.
+
+   Customer (owner via RLS):
+     GET  /api/portal/prosjekt?id=<kartleggingId> → ProsjektResponse
+     POST /api/portal/prosjekt      — body ProsjektPostBody (fra=kunde,
+       type=melding only; row must sit in «videre» — RLS agrees)
+     POST /api/portal/prosjekt/fil  — body ProsjektFilBody → safe storage
+       path; the client uploads DIRECTLY to the private «prosjektfiler»
+       bucket with its own token (the storage policy scopes writes to the
+       project folder — a fabricated path outside it fails RLS).
+
+   Admin (ADMIN_EMAIL + admin RLS):
+     GET  /api/portal/admin/prosjekt?id=<id> → ProsjektResponse (same shape)
+     POST /api/portal/admin/prosjekt — body AdminProsjektPostBody (fra=
+       workflows, all types; optional uke 1–6 stamps kartlegginger.uke)
+
+   Files are ALWAYS delivered as downloads (signed URL, 1h, attachment
+   disposition) — never inline, so an uploaded SVG/HTML can't script.
+   ════════════════════════════════════════════ */
+
+/** Mirrors public.prosjekt_innlegg.fra. */
+export type ProsjektFra = "kunde" | "workflows";
+
+/** Mirrors public.prosjekt_innlegg.type. */
+export type ProsjektInnleggType =
+  | "melding"
+  | "leveranse"
+  | "foresporsel"
+  | "status";
+
+/** Mirrors public.prosjekt_innlegg.foresporsel_status. */
+export type ForesporselStatus = "apen" | "levert";
+
+/** Validation caps — routes + composers code against the same numbers. */
+export const PROSJEKT_TEKST_MAX = 4000;
+export const PROSJEKT_LENKE_MAX = 500;
+export const PROSJEKT_FILNAVN_MAX = 200;
+export const PROSJEKT_FIL_MAX_BYTES = 25 * 1024 * 1024;
+export const PROSJEKT_UKE_MIN = 1;
+export const PROSJEKT_UKE_MAX = 6;
+
+/**
+ * Upload allowlist — extension AND the declared MIME type must both match.
+ * (The declared type is the browser's word, not proof — the real safety is
+ * download-only delivery — but it stops casual smuggling for free.)
+ */
+export const PROSJEKT_FIL_TYPER: Record<string, readonly string[]> = {
+  pdf: ["application/pdf"],
+  png: ["image/png"],
+  jpg: ["image/jpeg"],
+  jpeg: ["image/jpeg"],
+  webp: ["image/webp"],
+  gif: ["image/gif"],
+  txt: ["text/plain"],
+  md: ["text/markdown", "text/x-markdown", "text/plain"],
+  csv: ["text/csv", "application/csv", "application/vnd.ms-excel"],
+  json: ["application/json"],
+  docx: [
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ],
+  xlsx: ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+  pptx: [
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  ],
+  zip: ["application/zip", "application/x-zip-compressed"],
+  svg: ["image/svg+xml"],
+};
+
+/** One innlegg as BOTH clients see it (file paths already signed). */
+export interface ProsjektInnlegg {
+  id: string;
+  fra: ProsjektFra;
+  type: ProsjektInnleggType;
+  tekst: string;
+  /** Validated https-URL — or null. Render as <a rel="noopener noreferrer">. */
+  lenke: string | null;
+  /** Signed download URL (1h, attachment disposition) — or null. */
+  filUrl: string | null;
+  filNavn: string | null;
+  /** Set only on type «foresporsel». */
+  foresporselStatus: ForesporselStatus | null;
+  /** id of the innlegg this one answers — or null. */
+  svarPa: string | null;
+  createdAt: string;
+}
+
+/** GET /api/portal/prosjekt?id= AND /api/portal/admin/prosjekt?id=. */
+export interface ProsjektResponse {
+  uke: number | null;
+  /** created_at ascending — the room reads top-to-bottom. */
+  innlegg: ProsjektInnlegg[];
+}
+
+/** Storage object reference produced by POST /api/portal/prosjekt/fil. */
+export interface ProsjektFilRef {
+  /** "<kartleggingId>/<uuid>-<safeName>" — the ONLY accepted shape. */
+  path: string;
+  navn: string;
+}
+
+/** POST /api/portal/prosjekt — tekst (1–4000) OR fil required. */
+export interface ProsjektPostBody {
+  id: string;
+  tekst?: string;
+  fil?: ProsjektFilRef;
+  /** Answering a workflows-foresporsel flips it to «levert». */
+  svarPa?: string;
+}
+
+export interface ProsjektPostResponse {
+  ok: true;
+}
+
+/** POST /api/portal/prosjekt/fil — validate BEFORE the direct upload. */
+export interface ProsjektFilBody {
+  id: string;
+  navn: string;
+  size: number;
+  mime: string;
+}
+
+export interface ProsjektFilResponse {
+  /** "<kartleggingId>/<uuid>-<safeName>" — upload to exactly this path. */
+  path: string;
+  /** The sanitized filename — store this as fil.navn on the innlegg. */
+  navn: string;
+}
+
+/** POST /api/portal/admin/prosjekt — Petter posts into the room. */
+export interface AdminProsjektPostBody {
+  id: string;
+  type: ProsjektInnleggType;
+  tekst: string;
+  lenke?: string;
+  fil?: ProsjektFilRef;
+  /** 1–6 — also stamps kartlegginger.uke. */
+  uke?: number;
+}
+
+export interface AdminProsjektPostResponse {
   ok: true;
 }

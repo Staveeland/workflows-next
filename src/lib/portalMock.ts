@@ -19,6 +19,7 @@ import type {
   AdminDetaljResponse,
   AdminKartlegging,
   AdminListeResponse,
+  AdminProsjektPostResponse,
   AdminSlettResponse,
   AdminTilbudResponse,
   PortalAssessment,
@@ -29,6 +30,12 @@ import type {
   PortalResearchResponse,
   PortalSubmitResponse,
   PortalTilbud,
+  ProsjektFilRef,
+  ProsjektFilResponse,
+  ProsjektInnlegg,
+  ProsjektInnleggType,
+  ProsjektPostResponse,
+  ProsjektResponse,
   ResearchFunn,
 } from "@/lib/portalTypes";
 
@@ -116,6 +123,7 @@ export async function mockSubmit(
     tilbud: null,
     tilbudSendtAt: null,
     godkjentAt: null,
+    uke: null,
   };
   await delay(MOCK_DELAY_MS);
   state.row = {
@@ -136,6 +144,12 @@ export async function mockMe(): Promise<PortalMeResponse> {
   // read here because mockMe only ever runs inside the API route).
   if (!state.row && process.env.PORTAL_DEV_MOCK_STATE === "tilbud_sendt") {
     state.row = seedTilbudSendt();
+  }
+  // Canned videre state — boot straight onto Benken (the project room)
+  // with PORTAL_DEV_MOCK_STATE=videre; the room itself seeds lazily on
+  // the first GET /api/portal/prosjekt (see ensureProsjekt below).
+  if (!state.row && process.env.PORTAL_DEV_MOCK_STATE === "videre") {
+    state.row = seedVidere();
   }
   return { kartlegging: state.row };
 }
@@ -170,6 +184,20 @@ function seedTilbudSendt(): PortalKartlegging {
     tilbud: MOCK_TILBUD,
     tilbudSendtAt: new Date().toISOString(),
     godkjentAt: null,
+    uke: null,
+  };
+}
+
+/** An approved row two weeks into the build — Benken is open. */
+function seedVidere(): PortalKartlegging {
+  const now = Date.now();
+  return {
+    ...seedTilbudSendt(),
+    status: "videre",
+    createdAt: new Date(now - 14 * 24 * 60 * 60_000).toISOString(),
+    tilbudSendtAt: new Date(now - 10 * 24 * 60 * 60_000).toISOString(),
+    godkjentAt: new Date(now - 9 * 24 * 60 * 60_000).toISOString(),
+    uke: 2,
   };
 }
 
@@ -377,5 +405,207 @@ export async function mockAdminTilbud(
     status: "tilbud_sendt",
   };
   console.log("[portalMock] e-post (tilbud sendt) ville gått til kunden — logget i stedet for sendt");
+  return { ok: true };
+}
+
+/* ════════════════════════════════════════════
+   BENKEN MOCK — the project room (status «videre»).
+   Lazily seeded per kartlegging id with 6 canned innlegg covering all
+   types — incl. an OPEN foresporsel and a leveranse with a link — so
+   both the customer room and the admin detail have something to show.
+   ════════════════════════════════════════════ */
+
+type MockProsjekt = { uke: number | null; innlegg: ProsjektInnlegg[] };
+
+const DAG_MS = 24 * HOUR_MS;
+
+/** Six canned innlegg — a believable week-two thread in the room. */
+function seedProsjektInnlegg(): MockProsjekt {
+  const now = Date.now();
+  return {
+    uke: 2,
+    innlegg: [
+      {
+        id: "pi-mock-status",
+        fra: "workflows",
+        type: "status",
+        tekst:
+          "Da er benken rigget. Vi starter i den enden vi ble enige om: røret fra innboksen til køen. Du hører fra oss her når det skjer noe — og du kan skrive når som helst.",
+        lenke: null,
+        filUrl: null,
+        filNavn: null,
+        foresporselStatus: null,
+        svarPa: null,
+        createdAt: new Date(now - 8 * DAG_MS).toISOString(),
+      },
+      {
+        id: "pi-mock-hei",
+        fra: "kunde",
+        type: "melding",
+        tekst: "Flott! Si fra om dere trenger noe fra oss underveis.",
+        lenke: null,
+        filUrl: null,
+        filNavn: null,
+        foresporselStatus: null,
+        svarPa: null,
+        createdAt: new Date(now - 8 * DAG_MS + 2 * HOUR_MS).toISOString(),
+      },
+      {
+        id: "pi-mock-foresporsel-1",
+        fra: "workflows",
+        type: "foresporsel",
+        tekst:
+          "Vi trenger to-tre eksempler på typiske henvendelser dere får — gjerne e-poster, anonymisert. Da treffer flyten ordlyden deres fra dag én.",
+        lenke: null,
+        filUrl: null,
+        filNavn: null,
+        foresporselStatus: "levert",
+        svarPa: null,
+        createdAt: new Date(now - 6 * DAG_MS).toISOString(),
+      },
+      {
+        id: "pi-mock-svar",
+        fra: "kunde",
+        type: "melding",
+        tekst: "Her er tre stykker — anonymisert som avtalt.",
+        lenke: null,
+        filUrl: MOCK_MOCKUP_URL,
+        filNavn: "eksempel-henvendelser.pdf",
+        foresporselStatus: null,
+        svarPa: "pi-mock-foresporsel-1",
+        createdAt: new Date(now - 5 * DAG_MS).toISOString(),
+      },
+      {
+        id: "pi-mock-leveranse",
+        fra: "workflows",
+        type: "leveranse",
+        tekst:
+          "Første versjon av flyten kjører i testmiljøet. Lenka under viser køen med de tre eksemplene deres lagt inn — se om feltene havner der dere venter dem.",
+        lenke: "https://demo.workflows.no/flyt-test",
+        filUrl: null,
+        filNavn: null,
+        foresporselStatus: null,
+        svarPa: null,
+        createdAt: new Date(now - 2 * DAG_MS).toISOString(),
+      },
+      {
+        id: "pi-mock-foresporsel-2",
+        fra: "workflows",
+        type: "foresporsel",
+        tekst:
+          "Neste steg er standardsvarene: vi trenger lista over svarene dere bruker i dag — Word, PDF eller bare en tekstfil, det dere har.",
+        lenke: null,
+        filUrl: null,
+        filNavn: null,
+        foresporselStatus: "apen",
+        svarPa: null,
+        createdAt: new Date(now - 1 * DAG_MS).toISOString(),
+      },
+    ],
+  };
+}
+
+/** Project rooms live beside the rows on globalThis (same isolate reason). */
+const gp = globalThis as typeof globalThis & {
+  __vkPortalProsjektMock?: Map<string, MockProsjekt>;
+};
+const prosjekter: Map<string, MockProsjekt> = (gp.__vkPortalProsjektMock ??=
+  new Map());
+
+function ensureProsjekt(id: string): MockProsjekt {
+  let p = prosjekter.get(id);
+  if (!p) {
+    p = seedProsjektInnlegg();
+    prosjekter.set(id, p);
+  }
+  return p;
+}
+
+/** GET /api/portal/prosjekt?id= AND admin variant — uke + the thread. */
+export async function mockProsjekt(id: string): Promise<ProsjektResponse> {
+  await delay(MOCK_ADMIN_DELAY_MS);
+  const p = ensureProsjekt(id);
+  return { uke: p.uke, innlegg: [...p.innlegg] };
+}
+
+/** POST /api/portal/prosjekt — customer message (fra=kunde, type=melding). */
+export async function mockProsjektPost(
+  id: string,
+  innspill: { tekst: string; fil?: ProsjektFilRef; svarPa?: string }
+): Promise<ProsjektPostResponse> {
+  await delay(MOCK_ADMIN_DELAY_MS);
+  const p = ensureProsjekt(id);
+  state.counter += 1;
+  p.innlegg.push({
+    id: `pi-mock-${state.counter}`,
+    fra: "kunde",
+    type: "melding",
+    tekst: innspill.tekst,
+    lenke: null,
+    filUrl: innspill.fil ? MOCK_MOCKUP_URL : null,
+    filNavn: innspill.fil?.navn ?? null,
+    foresporselStatus: null,
+    svarPa: innspill.svarPa ?? null,
+    createdAt: new Date().toISOString(),
+  });
+  // Answering an open workflows-foresporsel flips it — like production.
+  if (innspill.svarPa) {
+    const target = p.innlegg.find((i) => i.id === innspill.svarPa);
+    if (
+      target &&
+      target.fra === "workflows" &&
+      target.type === "foresporsel" &&
+      target.foresporselStatus === "apen"
+    ) {
+      target.foresporselStatus = "levert";
+    }
+  }
+  console.log("[portalMock] varsel (nytt i prosjektet) ville gått til Petter — logget i stedet for sendt");
+  return { ok: true };
+}
+
+/** POST /api/portal/prosjekt/fil — fabricates a safe-looking path. */
+export async function mockProsjektFil(
+  id: string,
+  navn: string
+): Promise<ProsjektFilResponse> {
+  await delay(MOCK_ADMIN_DELAY_MS);
+  state.counter += 1;
+  return { path: `${id}/mock-${state.counter}-${navn}`, navn };
+}
+
+/** POST /api/portal/admin/prosjekt — Petter posts; optional uke stamp. */
+export async function mockAdminProsjektPost(
+  id: string,
+  innspill: {
+    type: ProsjektInnleggType;
+    tekst: string;
+    lenke?: string;
+    fil?: ProsjektFilRef;
+    uke?: number;
+  }
+): Promise<AdminProsjektPostResponse> {
+  await delay(MOCK_ADMIN_DELAY_MS);
+  const p = ensureProsjekt(id);
+  state.counter += 1;
+  p.innlegg.push({
+    id: `pi-mock-${state.counter}`,
+    fra: "workflows",
+    type: innspill.type,
+    tekst: innspill.tekst,
+    lenke: innspill.lenke ?? null,
+    filUrl: innspill.fil ? MOCK_MOCKUP_URL : null,
+    filNavn: innspill.fil?.navn ?? null,
+    foresporselStatus: innspill.type === "foresporsel" ? "apen" : null,
+    svarPa: null,
+    createdAt: new Date().toISOString(),
+  });
+  if (typeof innspill.uke === "number") {
+    p.uke = innspill.uke;
+    if (state.row && state.row.id === id) {
+      state.row = { ...state.row, uke: innspill.uke };
+    }
+  }
+  console.log("[portalMock] e-post (nytt i prosjektet) ville gått til kunden — logget i stedet for sendt");
   return { ok: true };
 }

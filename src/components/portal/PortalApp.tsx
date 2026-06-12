@@ -20,9 +20,10 @@ import {
 } from "@/lib/portalTypes";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 import AuthGate from "@/components/portal/AuthGate";
+import Benken from "@/components/portal/Benken";
 import Forslag, { FORSLAG_HEADING_ID } from "@/components/portal/Forslag";
 import LevelRail from "@/components/portal/LevelRail";
-import Tilbud, { Godkjent, TILBUD_VURDERING_ID } from "@/components/portal/Tilbud";
+import Tilbud, { TILBUD_VURDERING_ID } from "@/components/portal/Tilbud";
 import Wizard, { type PortalAnswers } from "@/components/portal/Wizard";
 
 /**
@@ -31,7 +32,8 @@ import Wizard, { type PortalAnswers } from "@/components/portal/Wizard";
  *   intro → wizard (8 steps) → authgate → generating → forslag → likt
  *                                              ↘ error (feilet / submit died)
  *   … then out-of-session: Petter sends the quote (status «tilbud_sendt»)
- *   → phase tilbud (level 3) → godkjenn → phase videre (level 4, BYGGES).
+ *   → phase tilbud (level 3) → godkjenn → phase videre (level 4, BYGGES),
+ *   which opens Benken — the project room (feed + composer).
  *
  * Draft answers persist to localStorage (vk-portal-draft) on every answer so
  * they survive the magic-link round trip; AuthGate auto-submits when a
@@ -776,7 +778,7 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
 
       <main
         id="main"
-        className={`vk-portal-stage${phase === "forslag" ? " vk-portal-stage--wide" : ""}`}
+        className={`vk-portal-stage${phase === "forslag" ? " vk-portal-stage--wide" : ""}${phase === "videre" ? " vk-portal-stage--rom" : ""}`}
       >
         {phase === "intro" ? (
           <section className="vk-portal-intro">
@@ -854,7 +856,16 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
           />
         ) : null}
 
-        {phase === "videre" ? <Godkjent autoFocus={interactedRef.current} /> : null}
+        {/* The project room replaces the old static confirmation — the
+            kartlegging row is always set by the time «videre» renders. */}
+        {phase === "videre" && kart ? (
+          <Benken
+            kartlegging={kart}
+            devMock={devMock}
+            autoFocus={interactedRef.current}
+            getToken={getToken}
+          />
+        ) : null}
 
         {phase === "error" ? (
           <ErrorScreen t={t} onRetry={retry} rateLimited={rateLimited} />

@@ -272,12 +272,83 @@ export function epostGodkjent(
   };
 }
 
+/* ── «Benken» — something new in the project room. The body NEVER echoes
+      message content (it may mention systems, logins, whatever the customer
+      typed) — only the event type and a button into the portal. ── */
+
+export function epostNyttIProsjektet(
+  lang: EpostLang,
+  data: { type: "melding" | "leveranse" | "foresporsel" | "status" }
+): EpostMal {
+  const innhold: Record<
+    EpostLang,
+    Record<"standard" | "leveranse" | "foresporsel", { emne: string; tittel: string; avsnitt: string[] }>
+  > = {
+    no: {
+      standard: {
+        emne: "Nytt fra verkstedet i prosjektet ditt",
+        tittel: "Nytt fra verkstedet.",
+        avsnitt: [
+          "Det har skjedd noe på benken i prosjektet ditt. Logg inn i portalen, så ser du hva.",
+        ],
+      },
+      leveranse: {
+        emne: "Noe å se på i portalen",
+        tittel: "Noe ligger klart på benken.",
+        avsnitt: [
+          "Verkstedet har lagt en leveranse på benken til deg. Logg inn i portalen og ta en titt — si gjerne fra hva du synes.",
+        ],
+      },
+      foresporsel: {
+        emne: "Vi trenger noe fra deg",
+        tittel: "Vi trenger noe fra deg.",
+        avsnitt: [
+          "Verkstedet mangler noe for å komme videre i prosjektet ditt. Logg inn i portalen, så står det hva.",
+        ],
+      },
+    },
+    en: {
+      standard: {
+        emne: "News from the workshop on your project",
+        tittel: "News from the workshop.",
+        avsnitt: [
+          "Something happened on the bench in your project. Log in to the portal and you'll see what.",
+        ],
+      },
+      leveranse: {
+        emne: "Something to look at in the portal",
+        tittel: "Something is ready on the bench.",
+        avsnitt: [
+          "The workshop has put a delivery on the bench for you. Log in to the portal and have a look — and do tell us what you think.",
+        ],
+      },
+      foresporsel: {
+        emne: "We need something from you",
+        tittel: "We need something from you.",
+        avsnitt: [
+          "The workshop is missing something to move your project forward. Log in to the portal — it says what.",
+        ],
+      },
+    },
+  };
+  const variant =
+    data.type === "leveranse" || data.type === "foresporsel"
+      ? data.type
+      : "standard";
+  const c = innhold[lang][variant];
+  return {
+    emne: c.emne,
+    html: byggHtml(lang, c.tittel, c.avsnitt, null),
+    tekst: byggTekst(c.tittel, c.avsnitt, null, lang),
+  };
+}
+
 /* ── Admin notifications — Petter wants customer events in the inbox too,
       not only Telegram. Short, factual, one link to the back room. ── */
 
 const ADMIN_URL = "https://workflows.no/start/admin";
 
-export type AdminHendelse = "ny" | "likt" | "godkjent";
+export type AdminHendelse = "ny" | "likt" | "godkjent" | "prosjekt";
 
 export function epostAdminVarsel(
   hendelse: AdminHendelse,
@@ -301,6 +372,12 @@ export function epostAdminVarsel(
       linje: data.pris
         ? `${hvem} godkjente tilbudet (${data.pris}).`
         : `${hvem} godkjente tilbudet.`,
+    },
+    // Deliberately content-free — the message itself stays in the portal.
+    prosjekt: {
+      emne: `Nytt i prosjektet: ${hvem}`,
+      tittel: "Noe nytt på benken.",
+      linje: `${hvem} la igjen noe i prosjektrommet. Det ligger i portalen.`,
     },
   };
   const c = innhold[hendelse];

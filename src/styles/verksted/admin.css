@@ -383,3 +383,179 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* ════════════════════════════════════════════
+   BENKEN — the project room seen from the office.
+   Same thread the customer reads, but denser: mono meta lines, hairline
+   rows, the composer right under the feed. Amber stays the working
+   accent; --drift-green appears ONLY on «levert» (delivered) via the
+   existing vk-adm-chip--godkjent. No animation — the office works.
+   ════════════════════════════════════════════ */
+
+/* «uke 2 av 6» — the project clock over the feed. */
+.vk-adm-ukelinje {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--glod);
+}
+
+.vk-adm-benk-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--hairline);
+}
+
+/* One innlegg — the left edge says who: hairline = kunde, amber = oss. */
+.vk-adm-innlegg {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0 14px 14px;
+  border-bottom: 1px solid var(--hairline);
+  border-left: 2px solid var(--hairline);
+}
+
+.vk-adm-innlegg[data-fra="workflows"] {
+  border-left-color: rgba(255, 180, 84, 0.4);
+}
+
+/* Meta line: fra · type · dato (+ foresporsel-chip, + svar-markør). */
+.vk-adm-innlegg-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-adm-innlegg[data-fra="workflows"] .vk-adm-innlegg-fra {
+  color: var(--glod);
+}
+
+.vk-adm-innlegg-svarpa {
+  color: var(--kritt);
+}
+
+/* Customer text can hold long unbroken strings — never shear the column. */
+.vk-adm-innlegg-tekst {
+  margin: 0;
+  max-width: 64ch;
+  color: var(--papir);
+  overflow-wrap: anywhere;
+}
+
+/* The https-link on a leveranse — amber working link, ≥44px target. */
+.vk-adm-innlegg-lenke {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  max-width: 100%;
+  color: var(--glod);
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+.vk-adm-innlegg-lenke:hover {
+  text-decoration-color: var(--glod);
+}
+
+/* The file — ALWAYS a forced download (signed attachment URL). */
+.vk-adm-innlegg-fil {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  max-width: 100%;
+  color: var(--papir);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-adm-innlegg-fil:hover {
+  color: var(--glod);
+}
+
+/* Signing hiccuped — the bare name still says what was attached. */
+.vk-adm-innlegg-filnavn {
+  margin: 0;
+  font-size: 14px;
+  color: var(--stov);
+  overflow-wrap: anywhere;
+}
+
+/* ── The composer — dashed rule away from the feed, office voice ── */
+
+.vk-adm-komp {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--hairline);
+}
+
+/* Denser than the dream-textarea on /start — this is a work field. */
+.vk-adm-komp-tekst {
+  min-height: 120px;
+  font-size: 17px;
+}
+
+.vk-adm-komp-hint {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--stov);
+}
+
+.vk-adm-komp-filrad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The native input stays hidden — the mono button is the control. */
+.vk-adm-komp-filinput {
+  display: none;
+}
+
+.vk-adm-komp-filnavn {
+  font-size: 14px;
+  color: var(--papir);
+  overflow-wrap: anywhere;
+}
+
+/* Uke chips — square stamp plates, the number IS the label. */
+.vk-adm-komp-uke {
+  min-width: 44px;
+  justify-content: center;
+}
+
+/* The mono pill (velg fil / sett uka alene) can be disabled here. */
+.vk-adm-oppdater[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.vk-adm-oppdater[disabled]:hover {
+  color: var(--stov);
+  background: transparent;
+}

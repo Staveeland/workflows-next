@@ -38,7 +38,7 @@ export async function GET(req: Request) {
   const { data: row, error } = await supabase
     .from("kartlegginger")
     .select(
-      "id, status, answers, assessment, mockup_path, created_at, tilbud, tilbud_sendt_at, godkjent_at"
+      "id, status, answers, assessment, mockup_path, created_at, tilbud, tilbud_sendt_at, godkjent_at, uke"
     )
     .order("created_at", { ascending: false })
     .limit(1)
@@ -90,6 +90,7 @@ export async function GET(req: Request) {
       tilbud: (row.tilbud ?? null) as PortalTilbud | null,
       tilbudSendtAt: (row.tilbud_sendt_at ?? null) as string | null,
       godkjentAt: (row.godkjent_at ?? null) as string | null,
+      uke: typeof row.uke === "number" ? row.uke : null,
     },
   });
 }

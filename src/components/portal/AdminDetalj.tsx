@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLang } from "@/components/LanguageProvider";
+import AdminBenken from "@/components/portal/AdminBenken";
 import { portalContent, type PortalContent } from "@/lib/portalContent";
 import type { Lang } from "@/lib/translations";
 import {
@@ -453,6 +454,10 @@ export default function AdminDetalj({
           ) : null}
         </form>
       </section>
+
+      {/* ── Benken — the project room, only once the customer went videre.
+          Self-contained: fetches and posts with its own admin token. ── */}
+      {k.status === "videre" ? <AdminBenken kartleggingId={k.id} /> : null}
 
       {/* ── Slett — destructive, two-stage, at the very bottom ── */}
       <section className="vk-adm-seksjon">

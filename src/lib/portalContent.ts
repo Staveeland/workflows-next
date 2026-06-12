@@ -1,7 +1,10 @@
 import type { Lang } from "@/lib/translations";
 import type {
+  ForesporselStatus,
   PortalAnbefaling,
   PortalStatus,
+  ProsjektFra,
+  ProsjektInnleggType,
   ResearchFunn,
 } from "@/lib/portalTypes";
 
@@ -196,6 +199,57 @@ export interface PortalContent {
     godkjentTittel: string;
     godkjentTekst: string;
   };
+  /** «Benken» — the customer's project room behind status «videre». */
+  benken: {
+    tittel: string;
+    undertekst: string;
+    /** «uke {n} av 6» — quiet mono line under the rail (kartlegginger.uke). */
+    ukeTemplate: string;
+    /** Mono line while the first fetch runs. */
+    henter: string;
+    feil: string;
+    provIgjen: string;
+    /** The room is open but nothing is posted yet. */
+    tomt: string;
+    /** Accessible name for the feed list. */
+    feedLabel: string;
+    /** sr-prefixes on notes — who wrote it (sighted users read the layout). */
+    fraOss: string;
+    fraDere: string;
+    /** Mono card label on type «leveranse» (CSS uppercases it). */
+    leveranseLabel: string;
+    /** Button on a leveranse carrying an https-link (arrow added in JSX). */
+    apneKnapp: string;
+    /** Mono card label on type «foresporsel». */
+    foresporselLabel: string;
+    /** The --drift-green chip once a foresporsel is answered. */
+    levertChip: string;
+    /** «Last ned {navn}» — aria-label on file download links. */
+    lastNedTemplate: string;
+    /** Inline answer composer on an open foresporsel. */
+    svarLabel: string;
+    svarSend: string;
+    /** The main composer at the bottom of the room. */
+    skrivLabel: string;
+    skrivPlassholder: string;
+    sendKnapp: string;
+    velgFil: string;
+    /** «Fjern {navn}» — aria-label on the remove-file button. */
+    fjernFilTemplate: string;
+    /** Quiet allowlist hint beside the file button. */
+    filHint: string;
+    /** The secrets warning — quiet mono line under the composer. */
+    sikkerhet: string;
+    /** Validation + errors (WCAG 3.3.1 — always say what's wrong). */
+    tomMelding: string;
+    filForStor: string;
+    filType: string;
+    sendFeil: string;
+    forMange: string;
+    /** Polite live region: own post landed / something new arrived. */
+    sendtBekreftelse: string;
+    nyttInnlegg: string;
+  };
   /** Verkstedkontoret (/start/admin) — Petters bakrom. Quiet, dense. */
   admin: {
     /** Mono badge in the topbar + kicker over the list. */
@@ -275,6 +329,55 @@ export interface PortalContent {
       /** Armed state — second press within 5s deletes for good. */
       bekreft: string;
       feil: string;
+    };
+    /** «Benken» seen from the office — feed + composer on a videre row. */
+    benken: {
+      tittel: string;
+      /** «uke {n} av 6» — the project clock over the feed. */
+      ukeTemplate: string;
+      ukeIkkeSatt: string;
+      tom: string;
+      /** Voice tags in the feed meta line (CSS uppercases them). */
+      fra: Record<ProsjektFra, string>;
+      /** Doubles as composer chip labels and feed meta — capitalized. */
+      typer: Record<ProsjektInnleggType, string>;
+      foresporselStatus: Record<ForesporselStatus, string>;
+      /** «↳ svar på forespørselen» — marker on a customer answer. */
+      svarMarkor: string;
+      /** aria-label for the forced-download file link. */
+      lastNedTemplate: string;
+      /** The composer — Petter posts into the room. */
+      komp: {
+        tittel: string;
+        typeLabel: string;
+        tekstLabel: string;
+        tekstPlassholder: string;
+        /** Link field — shown for type «leveranse» only. */
+        lenkeLabel: string;
+        lenkePlassholder: string;
+        /** Quiet guidance: staging links, never production data. */
+        lenkeVeiledning: string;
+        lenkeUgyldig: string;
+        filLabel: string;
+        velgFil: string;
+        fjernFil: string;
+        filUgyldig: string;
+        filForStor: string;
+        filFeil: string;
+        /** Week setter — 1–6 chips, current highlighted. */
+        ukeLabel: string;
+        /** aria-label per chip: «uke {n}». */
+        ukeChipTemplate: string;
+        ukeHint: string;
+        /** Posts the week alone as a status innlegg. */
+        settUkeAlene: string;
+        /** Auto-text for that status post: «Da er vi i uke {n}.» */
+        ukeAleneTekstTemplate: string;
+        sendKnapp: string;
+        tekstMangler: string;
+        bekreftelse: string;
+        feil: string;
+      };
     };
   };
 }
@@ -495,6 +598,41 @@ export const portalContent: Record<Lang, PortalContent> = {
       godkjentTekst:
         "Tilbudet er godkjent — Petter tar kontakt om oppstart. Verkstedet rigger benken.",
     },
+    benken: {
+      tittel: "Benken er rigget.",
+      undertekst:
+        "Her ligger prosjektet mens det bygges — fremdrift, leveranser og det vi trenger fra dere. Skriv når som helst.",
+      ukeTemplate: "uke {n} av 6",
+      henter: "henter prosjektet …",
+      feil: "Det stoppet opp. Prøv igjen.",
+      provIgjen: "Prøv igjen",
+      tomt: "Stille på benken ennå — vi skriver her så snart noe skjer.",
+      feedLabel: "Prosjektloggen",
+      fraOss: "Fra verkstedet",
+      fraDere: "Fra dere",
+      leveranseLabel: "Noe å se på",
+      apneKnapp: "Åpne",
+      foresporselLabel: "Vi trenger noe fra deg",
+      levertChip: "levert",
+      lastNedTemplate: "Last ned {navn}",
+      svarLabel: "Svaret ditt",
+      svarSend: "Send svaret",
+      skrivLabel: "Skriv til verkstedet",
+      skrivPlassholder: "spørsmål, beskjed — eller bare et hei",
+      sendKnapp: "Send",
+      velgFil: "Legg ved fil",
+      fjernFilTemplate: "Fjern {navn}",
+      filHint: "pdf, bilder eller dokumenter — maks 25 MB",
+      sikkerhet:
+        "aldri passord eller API-nøkler her — slikt avtaler vi i egen sikker kanal",
+      tomMelding: "Skriv en melding eller legg ved en fil først.",
+      filForStor: "Fila er for stor — maks 25 MB.",
+      filType: "Filtypen støttes ikke — pdf, bilder eller vanlige dokumenter funker.",
+      sendFeil: "Det gikk ikke å sende. Teksten ligger her ennå — prøv igjen.",
+      forMange: "Mange meldinger på kort tid — vent et lite minutt og prøv igjen.",
+      sendtBekreftelse: "Sendt — ligger på benken.",
+      nyttInnlegg: "Noe nytt har landet i prosjektrommet.",
+    },
     admin: {
       kicker: "Verkstedkontoret",
       login: {
@@ -581,6 +719,54 @@ export const portalContent: Record<Lang, PortalContent> = {
         knapp: "Slett kartleggingen",
         bekreft: "Sikker? Slett for godt",
         feil: "Det gikk ikke å slette. Prøv igjen.",
+      },
+      benken: {
+        tittel: "Benken — prosjektrommet",
+        ukeTemplate: "uke {n} av 6",
+        ukeIkkeSatt: "uke ikke satt ennå",
+        tom: "Ingen innlegg ennå. Benken er rigget — skriv det første.",
+        fra: {
+          kunde: "kunde",
+          workflows: "workflows",
+        },
+        typer: {
+          melding: "Melding",
+          leveranse: "Leveranse",
+          foresporsel: "Forespørsel",
+          status: "Status",
+        },
+        foresporselStatus: {
+          apen: "åpen",
+          levert: "levert",
+        },
+        svarMarkor: "svar på forespørselen",
+        lastNedTemplate: "last ned {navn}",
+        komp: {
+          tittel: "Nytt innlegg",
+          typeLabel: "Type",
+          tekstLabel: "Tekst",
+          tekstPlassholder: "Det kunden skal se — kort og konkret.",
+          lenkeLabel: "Lenke",
+          lenkePlassholder: "https://demo.workflows.no/…",
+          lenkeVeiledning:
+            "leveranse-lenker bør peke på test-/staging-miljøer uten produksjonsdata",
+          lenkeUgyldig: "Lenka må være en gyldig https-adresse.",
+          filLabel: "Vedlegg",
+          velgFil: "Velg fil",
+          fjernFil: "Fjern fila",
+          filUgyldig: "Filtypen støttes ikke.",
+          filForStor: "Fila er for stor — maks 25 MB.",
+          filFeil: "Opplastingen feilet. Prøv igjen.",
+          ukeLabel: "Uke (1–6)",
+          ukeChipTemplate: "uke {n}",
+          ukeHint: "uka følger innlegget — eller send den alene som status",
+          settUkeAlene: "Sett uka alene",
+          ukeAleneTekstTemplate: "Da er vi i uke {n}.",
+          sendKnapp: "Legg på benken",
+          tekstMangler: "Skriv teksten først.",
+          bekreftelse: "Lagt på benken — kunden ser det på /start.",
+          feil: "Det gikk ikke å legge ut. Prøv igjen.",
+        },
       },
     },
   },
@@ -800,6 +986,41 @@ export const portalContent: Record<Lang, PortalContent> = {
       godkjentTekst:
         "The quote is approved — Petter will be in touch about kick-off. The workshop is rigging the bench.",
     },
+    benken: {
+      tittel: "The bench is rigged.",
+      undertekst:
+        "This is where the project lives while it's being built — progress, deliveries and whatever we need from you. Write any time.",
+      ukeTemplate: "week {n} of 6",
+      henter: "fetching the project …",
+      feil: "It stalled. Try again.",
+      provIgjen: "Try again",
+      tomt: "Quiet on the bench so far — we'll post here the moment something happens.",
+      feedLabel: "The project log",
+      fraOss: "From the workshop",
+      fraDere: "From you",
+      leveranseLabel: "Something to look at",
+      apneKnapp: "Open",
+      foresporselLabel: "We need something from you",
+      levertChip: "delivered",
+      lastNedTemplate: "Download {navn}",
+      svarLabel: "Your answer",
+      svarSend: "Send the answer",
+      skrivLabel: "Write to the workshop",
+      skrivPlassholder: "a question, a note — or just a hello",
+      sendKnapp: "Send",
+      velgFil: "Attach a file",
+      fjernFilTemplate: "Remove {navn}",
+      filHint: "pdf, images or documents — max 25 MB",
+      sikkerhet:
+        "never passwords or API keys here — that sort of thing we agree on in a separate, secure channel",
+      tomMelding: "Write a message or attach a file first.",
+      filForStor: "That file is too big — max 25 MB.",
+      filType: "That file type isn't supported — pdf, images or ordinary documents work.",
+      sendFeil: "Sending failed. Your text is still here — try again.",
+      forMange: "A lot of messages in a short time — give it a minute and try again.",
+      sendtBekreftelse: "Sent — it's on the bench.",
+      nyttInnlegg: "Something new has landed in the project room.",
+    },
     admin: {
       kicker: "The back office",
       login: {
@@ -886,6 +1107,54 @@ export const portalContent: Record<Lang, PortalContent> = {
         knapp: "Delete the mapping",
         bekreft: "Sure? Delete for good",
         feil: "Deleting failed. Try again.",
+      },
+      benken: {
+        tittel: "The bench — the project room",
+        ukeTemplate: "week {n} of 6",
+        ukeIkkeSatt: "week not set yet",
+        tom: "No posts yet. The bench is rigged — write the first one.",
+        fra: {
+          kunde: "customer",
+          workflows: "workflows",
+        },
+        typer: {
+          melding: "Message",
+          leveranse: "Delivery",
+          foresporsel: "Request",
+          status: "Status",
+        },
+        foresporselStatus: {
+          apen: "open",
+          levert: "delivered",
+        },
+        svarMarkor: "answers the request",
+        lastNedTemplate: "download {navn}",
+        komp: {
+          tittel: "New post",
+          typeLabel: "Type",
+          tekstLabel: "Text",
+          tekstPlassholder: "What the customer will see — short and concrete.",
+          lenkeLabel: "Link",
+          lenkePlassholder: "https://demo.workflows.no/…",
+          lenkeVeiledning:
+            "delivery links should point at test or staging environments without production data",
+          lenkeUgyldig: "The link must be a valid https address.",
+          filLabel: "Attachment",
+          velgFil: "Choose file",
+          fjernFil: "Remove the file",
+          filUgyldig: "That file type isn't supported.",
+          filForStor: "The file is too big — 25 MB max.",
+          filFeil: "The upload failed. Try again.",
+          ukeLabel: "Week (1–6)",
+          ukeChipTemplate: "week {n}",
+          ukeHint: "the week rides along with the post — or goes out alone as a status",
+          settUkeAlene: "Set the week alone",
+          ukeAleneTekstTemplate: "We're in week {n}.",
+          sendKnapp: "Put it on the bench",
+          tekstMangler: "Write the text first.",
+          bekreftelse: "On the bench — the customer sees it on /start.",
+          feil: "Posting failed. Try again.",
+        },
       },
     },
   },

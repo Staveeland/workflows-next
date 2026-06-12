@@ -1146,3 +1146,399 @@ button.vk-portal-stop:active {
   align-items: center;
   gap: 18px;
 }
+
+/* ════════════════════════════════════════════
+   «Benken» — the project room (status «videre», level 4 BYGGES).
+   Feed of innlegg with mono date dividers + a sticky-ish composer at
+   the bottom. No entrance animation: the resting feed IS the composed
+   state (poster law) — reduced motion needs no extra gating here.
+   ════════════════════════════════════════════ */
+
+/* Top-aligned stage for the room — a feed grows downwards, and the
+   composer needs the bottom edge for its sticky run. */
+.vk-portal-stage--rom {
+  justify-content: flex-start;
+  padding-bottom: 0;
+}
+
+/* 2.4.11 Focus Not Obscured: the sticky composer is an opaque bar over a
+   window-scrolled feed — give scrolling enough bottom clearance that a
+   focused feed element never parks behind it. 240px ≈ the composer's max
+   running height (label + textarea + file row + sikkerhet line). */
+html:has(.vk-benk) {
+  scroll-padding-bottom: 240px;
+}
+
+/* Belt and braces for the same clearance on focus-triggered scrolls. */
+.vk-benk-feed a,
+.vk-benk-feed button,
+.vk-benk-feed textarea,
+.vk-benk-feed input,
+.vk-benk-feed label {
+  scroll-margin-bottom: 240px;
+}
+
+.vk-benk {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.vk-benk-hode {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vk-benk-hode .vk-kicker {
+  margin: 0;
+}
+
+/* «uke {n} av 6» — the quiet project clock under the rail. */
+.vk-benk-uke {
+  margin: 0;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-benk-henter {
+  margin: 12px 0;
+  color: var(--stov);
+}
+
+.vk-benk-feilboks {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  margin-block: 12px;
+}
+
+.vk-benk-tomt {
+  margin: 12px 0;
+  max-width: 52ch;
+  color: var(--stov);
+}
+
+/* ── The feed — chronological, one li per innlegg ── */
+
+.vk-benk-feed {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Date divider — mono date between hairlines. */
+.vk-benk-dag {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  color: var(--stov);
+}
+
+.vk-benk-dag::before,
+.vk-benk-dag::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--hairline);
+}
+
+.vk-benk-dag .vk-mono {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Status — centered mono line, the amber tick carries the voice. */
+.vk-benk-statuslinje {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.vk-benk-statuslinje p {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--stov);
+}
+
+.vk-benk-hake {
+  color: var(--glod);
+}
+
+/* Innlegg text — escaped text only; the customer's line breaks survive. */
+.vk-benk-tekst {
+  margin: 0;
+  max-width: 58ch;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--papir);
+}
+
+/* ── Meldinger — kunde right with the amber accent, verkstedet on the
+      benk plate. The sr-only prefix names the voice for AT users. ── */
+
+.vk-benk-note {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: min(48ch, 88%);
+  padding: 12px 16px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+}
+
+.vk-benk-note--kunde {
+  align-self: flex-end;
+  background: rgba(255, 180, 84, 0.06);
+  border-color: rgba(255, 180, 84, 0.28);
+}
+
+/* Raw https-lenke on a note — long URLs must wrap inside the narrow note,
+   never shear the room (mirrors .vk-adm-innlegg-lenke on the admin side). */
+.vk-benk-note .vk-portal-quietlink {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* ── Cards — leveranse + foresporsel ── */
+
+.vk-benk-kort {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 56ch;
+  padding: 16px 18px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+}
+
+.vk-benk-kortlabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--glod);
+}
+
+.vk-benk-kortlabelrad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Open ask — the amber edge says «her trengs du». */
+.vk-benk-kort--foresporsel {
+  border-color: rgba(255, 180, 84, 0.35);
+}
+
+/* Answered — the card settles back; the chip carries the state. */
+.vk-benk-kort--levert {
+  border-color: var(--hairline);
+}
+
+.vk-benk-kort--levert .vk-benk-kortlabel {
+  color: var(--stov);
+}
+
+.vk-benk-kort--levert .vk-benk-tekst {
+  color: var(--stov);
+}
+
+/* LEVERT — delivered/agreed earns the ONE green in the shop. */
+.vk-benk-levertchip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--drift-green);
+  background: rgba(126, 210, 154, 0.08);
+  border: 1px solid rgba(126, 210, 154, 0.4);
+  border-radius: 999px;
+}
+
+.vk-benk-kortacts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+/* File download — filename as the link, forced-download URL behind it. */
+.vk-benk-fil {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  width: fit-content;
+  color: var(--glod);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+  overflow-wrap: anywhere;
+  transition: text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+.vk-benk-fil:hover {
+  text-decoration-color: var(--glod);
+}
+
+/* Signing hiccuped — name the file without a dead link. */
+.vk-benk-fil--dau {
+  color: var(--stov);
+  text-decoration: none;
+}
+
+/* The customer's svar under an answered foresporsel. */
+.vk-benk-svarliste {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vk-benk-svar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Composer — sticky-ish at the bottom of the room ── */
+
+.vk-benk-komposer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: 6px;
+  /* The stage strips its own bottom padding for the sticky run — clear the
+     iOS home indicator ourselves (same pattern as chat.css / nav.css). */
+  padding: 16px 0 calc(18px + env(safe-area-inset-bottom, 0px));
+  background: var(--bek);
+  border-top: 1px solid var(--hairline);
+}
+
+.vk-benk-skjema {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Paper-line textarea — same language as the wizard inputs. */
+.vk-benk-textarea {
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 2px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1.5px solid var(--feltkant);
+  border-radius: 0;
+  color: var(--papir);
+  font-family: var(--font-schibsted), system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  resize: vertical;
+  transition: border-color var(--dur-2) var(--ease-work);
+}
+
+.vk-benk-textarea::placeholder {
+  color: rgba(201, 187, 168, 0.7);
+}
+
+.vk-benk-textarea:focus {
+  border-bottom-color: var(--glod);
+}
+
+.vk-benk-skjemarad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The file button is the <label> of a visually-hidden input — the focus
+   ring must follow the input's keyboard focus onto the visible label. */
+.vk-benk-filknapp {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px dashed var(--hairline);
+  color: var(--stov);
+  cursor: pointer;
+  transition:
+    color var(--dur-2) var(--ease-work),
+    border-color var(--dur-2) var(--ease-work);
+}
+
+.vk-benk-filknapp:hover {
+  color: var(--papir);
+  border-color: var(--stov);
+}
+
+.vk-benk-filinput:focus-visible + .vk-benk-filknapp {
+  outline: 2px solid var(--glod);
+  outline-offset: 3px;
+}
+
+.vk-benk-filhint {
+  font-size: 12px;
+  color: var(--stov);
+}
+
+.vk-benk-filvalgt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--papir);
+  overflow-wrap: anywhere;
+}
+
+.vk-benk-filstr {
+  color: var(--stov);
+}
+
+.vk-benk-fjernfil {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  background: transparent;
+  border: 0;
+  color: var(--stov);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-benk-fjernfil:hover {
+  color: var(--papir);
+}
+
+.vk-benk-send {
+  margin-left: auto;
+}
+
+/* The quiet secrets line — under the composer, never a popup. */
+.vk-benk-sikkerhet {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--stov);
+}
