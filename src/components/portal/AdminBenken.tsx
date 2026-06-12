@@ -15,6 +15,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useLang } from "@/components/LanguageProvider";
 import { formatDato } from "@/components/portal/AdminDetalj";
 import Lysbord, { type LysbordBilde } from "@/components/portal/Lysbord";
+import { linkify } from "@/lib/linkify";
 import { portalContent, type PortalContent } from "@/lib/portalContent";
 import type { Lang } from "@/lib/translations";
 import {
@@ -596,10 +597,12 @@ export default function AdminBenken({ kartleggingId, kundeEpost }: AdminBenkenPr
             </span>
           ) : null}
         </p>
+        {/* Escaped text with https-links rendered live (linkify — the
+            XSS wall stands: text stays text, only validated URLs link). */}
         {i.tekst
           ? i.tekst.split("\n\n").map((avsnitt, idx) => (
               <p key={idx} className="vk-adm-innlegg-tekst">
-                {avsnitt}
+                {linkify(avsnitt)}
               </p>
             ))
           : null}

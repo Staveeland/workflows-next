@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { useLang } from "@/components/LanguageProvider";
 import AdminBenken from "@/components/portal/AdminBenken";
 import AdminFaktura from "@/components/portal/AdminFaktura";
+import Faner, { FanePanel, type FaneDef } from "@/components/portal/Faner";
 import { portalContent, type PortalContent } from "@/lib/portalContent";
 import type { Lang } from "@/lib/translations";
 import {
@@ -14,6 +21,7 @@ import {
   TILBUD_PRIS_MAX,
   TILBUD_TEKST_MAX,
   type AdminKartlegging,
+  type AdminListItem,
   type PortalOppfolgingAnswer,
   type PortalSluttrapport,
   type PortalTilbud,
@@ -37,8 +45,27 @@ import {
  * database — the form gives way to a locked, read-only view with the why.
  */
 
+/** The detail's tabs — Oversikt first; the project tabs join on «videre». */
+type AdmFane =
+  | "oversikt"
+  | "kartlegging"
+  | "tilbud"
+  | "meldinger"
+  | "fakturering"
+  | "bygging";
+
 interface AdminDetaljProps {
   kartlegging: AdminKartlegging;
+  /**
+   * The matching LIST row — carries the unread counters (NYTT FRA KUNDE →
+   * the Meldinger badge), open requests and last activity. Optional: the
+   * detail stands on its own when the list hasn't loaded it.
+   */
+  listeRad?: AdminListItem | null;
+  /** The venter-på-deg/SLA reason — computed by AdminApp's list logic. */
+  venterTekst?: string | null;
+  /** Future: byggefabrikken mounts its UI here (the Bygging tab). */
+  bygging?: ReactNode;
   onBack: () => void;
   /** POSTs admin/tilbud — resolves true on success. */
   onSendTilbud: (tilbud: PortalTilbud) => Promise<boolean>;
@@ -304,6 +331,9 @@ function Prislapp({
 
 export default function AdminDetalj({
   kartlegging,
+  listeRad = null,
+  venterTekst = null,
+  bygging = null,
   onBack,
   onSendTilbud,
   onLever,
@@ -377,6 +407,48 @@ export default function AdminDetalj({
     k.status === "forslag_klart" ||
     k.status === "likt" ||
     k.status === "tilbud_sendt";
+
+  /* ── Faner — re-housing only: every section keeps its data flow,
+        it just lives behind a tab instead of further down the scroll. ── */
+  const [valgtFane, setValgtFane] = useState<AdmFane>("oversikt");
+  const fdef = t.admin.detalj.faner;
+  // Meldinger/Fakturering/Bygging exist once the run is a PROJECT.
+  const harProsjekt = k.status === "videre" || k.status === "levert";
+  const nyttAntall = listeRad?.nyttAntall ?? 0;
+  const nyttFraKunde = listeRad?.nyttFraKunde ?? false;
+  const faner: FaneDef[] = [
+    { id: "oversikt", label: fdef.oversikt },
+    { id: "kartlegging", label: fdef.kartlegging },
+    { id: "tilbud", label: fdef.tilbud },
+    ...(harProsjekt
+      ? [
+          {
+            id: "meldinger",
+            label: fdef.meldinger,
+            // The list's NYTT FRA KUNDE counter — count when known,
+            // plain dot when only the flag is set (e.g. a godkjenning).
+            badge:
+              nyttAntall > 0
+                ? nyttAntall
+                : nyttFraKunde
+                  ? ("dot" as const)
+                  : undefined,
+            badgeSr:
+              nyttAntall > 0
+                ? fdef.nyttTemplate.replace("{n}", String(nyttAntall))
+                : nyttFraKunde
+                  ? t.admin.liste.nyttFraKunde
+                  : undefined,
+          },
+          { id: "fakturering", label: fdef.fakturering },
+          { id: "bygging", label: fdef.bygging },
+        ]
+      : []),
+  ];
+  // Statuses only move forward, but never select a ghost tab regardless.
+  const fane: AdmFane = faner.some((f) => f.id === valgtFane)
+    ? valgtFane
+    : "oversikt";
 
   async function send(e: FormEvent) {
     e.preventDefault();
@@ -555,9 +627,67 @@ export default function AdminDetalj({
         </p>
       </header>
 
-      {/* ── Price signals — the first thing Petter needs for the quote ── */}
-      <Prislapp answers={k.answers} research={research} t={t} />
+      <Faner
+        faner={faner}
+        aktiv={fane}
+        label={fdef.label}
+        idPrefix="vk-adm-detalj"
+        className="vk-adm-faner"
+        onVelg={(id) => setValgtFane(id as AdmFane)}
+      />
 
+      {/* ── OVERSIKT — key signals: venter-på-deg, pris, prislapp ── */}
+      <FanePanel
+        idPrefix="vk-adm-detalj"
+        id="oversikt"
+        aktiv={fane}
+        className="vk-adm-fanepanel"
+      >
+        {venterTekst ? (
+          <div className="vk-adm-ovventer">
+            <p className="vk-mono vk-adm-ovventer-tittel">
+              {t.admin.detalj.oversikt.venterTittel}
+            </p>
+            <p className="vk-adm-ovventer-tekst">{venterTekst}</p>
+          </div>
+        ) : null}
+
+        {/* ── Price signals — the first thing Petter needs for the quote ── */}
+        <Prislapp answers={k.answers} research={research} t={t} />
+
+        <dl className="vk-adm-svar">
+          <div className="vk-adm-svarrad">
+            <dt>{t.admin.detalj.oversikt.prisLabel}</dt>
+            <dd>
+              {k.tilbud
+                ? typeof k.tilbud.prisBelopOre === "number"
+                  ? `${formatBelopOre(k.tilbud.prisBelopOre)} ${t.tilbud.belopEksMva}`
+                  : k.tilbud.pris
+                : t.admin.detalj.oversikt.prisIkkeSatt}
+            </dd>
+          </div>
+          {listeRad ? (
+            <div className="vk-adm-svarrad">
+              <dt>{t.admin.detalj.oversikt.apneForesporslerLabel}</dt>
+              <dd>{listeRad.apneForesporsler}</dd>
+            </div>
+          ) : null}
+          {listeRad ? (
+            <div className="vk-adm-svarrad">
+              <dt>{t.admin.detalj.oversikt.sistAktivitetLabel}</dt>
+              <dd>{formatDato(listeRad.sistAktivitet, lang, true)}</dd>
+            </div>
+          ) : null}
+        </dl>
+      </FanePanel>
+
+      {/* ── KARTLEGGING — answers, research, the assessment ── */}
+      <FanePanel
+        idPrefix="vk-adm-detalj"
+        id="kartlegging"
+        aktiv={fane}
+        className="vk-adm-fanepanel"
+      >
       {/* ── The answers ── */}
       <section className="vk-adm-seksjon" aria-label={t.admin.detalj.svarTittel}>
         <h2 className="vk-mono vk-adm-stittel">{t.admin.detalj.svarTittel}</h2>
@@ -679,7 +809,15 @@ export default function AdminDetalj({
           <p className="vk-mono vk-adm-tomt">{t.admin.detalj.ingenVurdering}</p>
         )}
       </section>
+      </FanePanel>
 
+      {/* ── TILBUD — the quote AND the lever-flow that closes it ── */}
+      <FanePanel
+        idPrefix="vk-adm-detalj"
+        id="tilbud"
+        aktiv={fane}
+        className="vk-adm-fanepanel"
+      >
       {/* ── THE QUOTE — Petters benk. Editable until the customer approves;
             after that the DB freezes it and the form yields to the locked
             read-only view with the explanation. ── */}
@@ -862,23 +1000,6 @@ export default function AdminDetalj({
         )}
       </section>
 
-      {/* ── Fakturering — Fiken. Self-contained; only meaningful once the
-            customer has approved (videre) or the project is delivered. ── */}
-      {k.status === "videre" || k.status === "levert" ? (
-        <AdminFaktura
-          kartleggingId={k.id}
-          kundeEpost={k.email}
-          kundeNavn={bedriftNavn}
-          orgnr={research?.orgnr}
-        />
-      ) : null}
-
-      {/* ── Benken — the project room. Open while building («videre»),
-            readable archive after delivery («levert»). ── */}
-      {k.status === "videre" || k.status === "levert" ? (
-        <AdminBenken kartleggingId={k.id} kundeEpost={k.email} />
-      ) : null}
-
       {/* ── The lever-flow — close the circle to level 5 SKJØTET ── */}
       {k.status === "videre" ? (
         <section className="vk-adm-seksjon" aria-label={t.admin.lever.tittel}>
@@ -968,6 +1089,59 @@ export default function AdminDetalj({
             </p>
           ) : null}
         </section>
+      ) : null}
+      </FanePanel>
+
+      {/* ── MELDINGER — Benken seen from the office. Mounted (hidden)
+            whenever the project exists: realtime + the NYTT-counters
+            keep working across tab switches. ── */}
+      {harProsjekt ? (
+        <FanePanel
+          idPrefix="vk-adm-detalj"
+          id="meldinger"
+          aktiv={fane}
+          className="vk-adm-fanepanel"
+        >
+          <AdminBenken kartleggingId={k.id} kundeEpost={k.email} />
+        </FanePanel>
+      ) : null}
+
+      {/* ── FAKTURERING — Fiken. Self-contained; meaningful once the
+            customer has approved (videre) or the project is delivered. ── */}
+      {harProsjekt ? (
+        <FanePanel
+          idPrefix="vk-adm-detalj"
+          id="fakturering"
+          aktiv={fane}
+          className="vk-adm-fanepanel"
+        >
+          <AdminFaktura
+            kartleggingId={k.id}
+            kundeEpost={k.email}
+            kundeNavn={bedriftNavn}
+            orgnr={research?.orgnr}
+          />
+        </FanePanel>
+      ) : null}
+
+      {/* ── BYGGING — byggefabrikken plugs in via the prop; the empty
+            plate keeps the tab honest until then. ── */}
+      {harProsjekt ? (
+        <FanePanel
+          idPrefix="vk-adm-detalj"
+          id="bygging"
+          aktiv={fane}
+          className="vk-adm-fanepanel"
+        >
+          {bygging ?? (
+            <div className="vk-adm-byggtomt">
+              <p className="vk-display vk-adm-byggtomt-tittel">
+                {t.admin.detalj.bygging.tomTittel}
+              </p>
+              <p>{t.admin.detalj.bygging.tomTekst}</p>
+            </div>
+          )}
+        </FanePanel>
       ) : null}
 
       {/* ── Slett — destructive (soft), two-stage, at the very bottom ── */}

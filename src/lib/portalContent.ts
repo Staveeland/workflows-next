@@ -375,6 +375,43 @@ export interface PortalContent {
     fakturaStatus: Record<ProsjektFakturaStatus, string>;
     /** Replaces the composer once the project is «levert» (read-only room). */
     levertMelding: string;
+    /** The tab strip inside the project room. */
+    faner: {
+      /** Accessible name for the tablist. */
+      label: string;
+      oversikt: string;
+      meldinger: string;
+      filer: string;
+      faktura: string;
+      forhandsvisning: string;
+      /** sr-suffix on the Meldinger badge: «{n} uleste». */
+      ulesteTemplate: string;
+      /** sr-suffix on the Faktura badge (overdue / freshly sent). */
+      fakturaVarsel: string;
+    };
+    /** The Oversikt tab — the room at a glance. */
+    oversikt: {
+      aktivitetTittel: string;
+      aktivitetTom: string;
+      /** sr-label on the jump-to-Meldinger buttons. */
+      visIMeldinger: string;
+      /** Heading over highlighted OPEN foresporsler. */
+      apneTittel: string;
+      svarIMeldinger: string;
+    };
+    /** The Filer tab — every shared file, both directions. */
+    filer: {
+      tom: string;
+      /** «delt {dato}» — which innlegg (by date) the file came from. */
+      deltTemplate: string;
+    };
+    /** The Forhåndsvisning tab — empty until the build wires it up. */
+    forhandsvisning: {
+      tomTittel: string;
+      tomTekst: string;
+      apneKnapp: string;
+      sistOppdatertTemplate: string;
+    };
   };
   /** Verkstedkontoret (/start/admin) — Petters bakrom. Quiet, dense. */
   admin: {
@@ -475,6 +512,33 @@ export interface PortalContent {
       /** The price-signal box at the top: budsjett + regnskapstall. */
       prislappTittel: string;
       prislappBudsjett: string;
+      /** The tab strip in the detail view. */
+      faner: {
+        /** Accessible name for the tablist. */
+        label: string;
+        oversikt: string;
+        kartlegging: string;
+        tilbud: string;
+        meldinger: string;
+        fakturering: string;
+        bygging: string;
+        /** sr-suffix on the Meldinger badge: «{n} nye fra kunden». */
+        nyttTemplate: string;
+      };
+      /** The Oversikt tab — key signals at a glance. */
+      oversikt: {
+        prisLabel: string;
+        prisIkkeSatt: string;
+        apneForesporslerLabel: string;
+        sistAktivitetLabel: string;
+        /** Heading on the venter-på-deg box (text = the SLA reason). */
+        venterTittel: string;
+      };
+      /** The Bygging tab — empty until byggefabrikken wires in. */
+      bygging: {
+        tomTittel: string;
+        tomTekst: string;
+      };
     };
     tilbudForm: {
       tittel: string;
@@ -976,6 +1040,34 @@ export const portalContent: Record<Lang, PortalContent> = {
       },
       levertMelding:
         "Prosjektet er levert — loggen blir stående her. Trenger dere noe, er verkstedet aldri lenger unna enn en e-post.",
+      faner: {
+        label: "Prosjektrommet",
+        oversikt: "Oversikt",
+        meldinger: "Meldinger",
+        filer: "Filer",
+        faktura: "Faktura",
+        forhandsvisning: "Forhåndsvisning",
+        ulesteTemplate: "{n} uleste",
+        fakturaVarsel: "en faktura trenger et blikk",
+      },
+      oversikt: {
+        aktivitetTittel: "Siste aktivitet",
+        aktivitetTom: "Stille ennå — det første innlegget lander her.",
+        visIMeldinger: "Vis i meldingene",
+        apneTittel: "Venter på svar fra dere",
+        svarIMeldinger: "Svar i meldingene",
+      },
+      filer: {
+        tom: "Ingen filer delt ennå — vedlegg fra meldingene samles her.",
+        deltTemplate: "delt {dato}",
+      },
+      forhandsvisning: {
+        tomTittel: "Vinduet inn til verkstedet.",
+        tomTekst:
+          "Her kommer en levende forhåndsvisning når byggingen starter.",
+        apneKnapp: "Åpne forhåndsvisningen",
+        sistOppdatertTemplate: "sist oppdatert {dato}",
+      },
     },
     admin: {
       kicker: "Verkstedkontoret",
@@ -1080,6 +1172,28 @@ export const portalContent: Record<Lang, PortalContent> = {
         oppfolgingSuffix: "— oppfølgingsspørsmålet (AI)",
         prislappTittel: "Prissignaler",
         prislappBudsjett: "Budsjett",
+        faner: {
+          label: "Detaljvisningen",
+          oversikt: "Oversikt",
+          kartlegging: "Kartlegging",
+          tilbud: "Tilbud",
+          meldinger: "Meldinger",
+          fakturering: "Fakturering",
+          bygging: "Bygging",
+          nyttTemplate: "{n} nye fra kunden",
+        },
+        oversikt: {
+          prisLabel: "Tilbudspris",
+          prisIkkeSatt: "ikke satt ennå",
+          apneForesporslerLabel: "Åpne forespørsler",
+          sistAktivitetLabel: "Sist aktivitet",
+          venterTittel: "Venter på deg",
+        },
+        bygging: {
+          tomTittel: "Byggefabrikken.",
+          tomTekst:
+            "Byggefabrikken kobles på her — når den er i drift, styres byggingen fra denne fanen.",
+        },
       },
       tilbudForm: {
         tittel: "Tilbudet",
@@ -1567,6 +1681,33 @@ export const portalContent: Record<Lang, PortalContent> = {
       },
       levertMelding:
         "The project is delivered — the log stays right here. Need anything, the workshop is never further away than an email.",
+      faner: {
+        label: "The project room",
+        oversikt: "Overview",
+        meldinger: "Messages",
+        filer: "Files",
+        faktura: "Invoices",
+        forhandsvisning: "Preview",
+        ulesteTemplate: "{n} unread",
+        fakturaVarsel: "an invoice needs a look",
+      },
+      oversikt: {
+        aktivitetTittel: "Latest activity",
+        aktivitetTom: "Quiet so far — the first post lands here.",
+        visIMeldinger: "Show in messages",
+        apneTittel: "Waiting on your answer",
+        svarIMeldinger: "Answer in messages",
+      },
+      filer: {
+        tom: "No files shared yet — attachments from the messages gather here.",
+        deltTemplate: "shared {dato}",
+      },
+      forhandsvisning: {
+        tomTittel: "The window into the workshop.",
+        tomTekst: "A live preview appears here once the build starts.",
+        apneKnapp: "Open the preview",
+        sistOppdatertTemplate: "last updated {dato}",
+      },
     },
     admin: {
       kicker: "The back office",
@@ -1671,6 +1812,28 @@ export const portalContent: Record<Lang, PortalContent> = {
         oppfolgingSuffix: "— the follow-up question (AI)",
         prislappTittel: "Price signals",
         prislappBudsjett: "Budget",
+        faner: {
+          label: "The detail view",
+          oversikt: "Overview",
+          kartlegging: "Mapping",
+          tilbud: "Quote",
+          meldinger: "Messages",
+          fakturering: "Invoicing",
+          bygging: "Build",
+          nyttTemplate: "{n} new from the customer",
+        },
+        oversikt: {
+          prisLabel: "Quoted price",
+          prisIkkeSatt: "not set yet",
+          apneForesporslerLabel: "Open requests",
+          sistAktivitetLabel: "Last activity",
+          venterTittel: "Waiting on you",
+        },
+        bygging: {
+          tomTittel: "The build factory.",
+          tomTekst:
+            "The build factory plugs in here — once it's running, the build is steered from this tab.",
+        },
       },
       tilbudForm: {
         tittel: "The quote",

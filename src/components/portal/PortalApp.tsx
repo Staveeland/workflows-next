@@ -25,7 +25,7 @@ import Benken from "@/components/portal/Benken";
 import { useSesjonEpost } from "@/components/portal/useSesjonEpost";
 import Forslag, { FORSLAG_HEADING_ID } from "@/components/portal/Forslag";
 import LevelRail from "@/components/portal/LevelRail";
-import Tilbud, { Kvittering, Skjotet, TILBUD_VURDERING_ID } from "@/components/portal/Tilbud";
+import Tilbud, { Kvittering, TILBUD_VURDERING_ID } from "@/components/portal/Tilbud";
 import Wizard, { type PortalAnswers } from "@/components/portal/Wizard";
 
 /**
@@ -375,6 +375,39 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
       return null;
     }
   }, [devMock]);
+
+  /* ── Byggefabrikken: kundens delte forhåndsvisning (Forhåndsvisning-
+        fanen i Benken). Null = fanen viser empty-state. Hentes når rommet
+        åpner; fail-silent — forhåndsvisningen er aldri lastbærende. ── */
+  const [forhandsvisning, setForhandsvisning] = useState<{
+    url: string;
+    sistOppdatert: string;
+  } | null>(null);
+  useEffect(() => {
+    if (devMock) return;
+    if (phase !== "videre" && phase !== "levert") return;
+    let avbrutt = false;
+    void (async () => {
+      const token = await getToken();
+      if (!token || avbrutt) return;
+      try {
+        const res = await apiFetch<{
+          forhandsvisning: { url: string; sistOppdatert: string | null } | null;
+        }>("/api/portal/bygg", token);
+        if (!avbrutt && res.forhandsvisning?.url) {
+          setForhandsvisning({
+            url: res.forhandsvisning.url,
+            sistOppdatert: res.forhandsvisning.sistOppdatert ?? "",
+          });
+        }
+      } catch {
+        // stille — fanen står som empty-state
+      }
+    })();
+    return () => {
+      avbrutt = true;
+    };
+  }, [phase, devMock, getToken]);
 
   /** Land a finished row on its phase — the draft has served its purpose. */
   const land = useCallback((k: PortalKartlegging) => {
@@ -998,22 +1031,22 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
               devMock={devMock}
               autoFocus={interactedRef.current}
               getToken={getToken}
+              forhandsvisning={forhandsvisning}
             />
           </>
         ) : null}
 
-        {/* Level 5 — SKJØTET: the handover sheet, then the room as a
-            readable archive (Benken tolerates the levert status). */}
+        {/* Level 5 — SKJØTET: the room carries the handover now — the
+            sheet lives in Benken's Oversikt tab (default tab), with the
+            feed as a readable archive one tab over. */}
         {phase === "levert" && kart ? (
-          <>
-            <Skjotet kartlegging={kart} autoFocus={interactedRef.current} />
-            <Benken
-              kartlegging={kart}
-              devMock={devMock}
-              autoFocus={false}
-              getToken={getToken}
-            />
-          </>
+          <Benken
+            kartlegging={kart}
+            devMock={devMock}
+            autoFocus={interactedRef.current}
+            getToken={getToken}
+            forhandsvisning={forhandsvisning}
+          />
         ) : null}
 
         {phase === "error" ? (

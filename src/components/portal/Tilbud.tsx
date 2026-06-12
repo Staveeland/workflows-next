@@ -334,9 +334,13 @@ export function Kvittering({ kartlegging }: { kartlegging: PortalKartlegging }) 
 export function Skjotet({
   kartlegging,
   autoFocus = false,
+  iPanel = false,
 }: {
   kartlegging: PortalKartlegging;
   autoFocus?: boolean;
+  /** Rendered inside Benken's Oversikt tab: h2 heading, no own kicker
+      (the room header above already carries the level). */
+  iPanel?: boolean;
 }) {
   const { lang } = useLang();
   const t = portalContent[lang];
@@ -350,13 +354,22 @@ export function Skjotet({
     ? formatDato(kartlegging.levertAt, lang)
     : null;
   const rapport = kartlegging.sluttrapport;
+  // Same look, right semantics: standalone = the page's h1; as panel
+  // content it slots under the room's h1 as an h2.
+  const Overskrift = iPanel ? ("h2" as const) : ("h1" as const);
 
   return (
     <section className="vk-portal-skjotet">
-      <p className="vk-kicker vk-portal-fkicker">{t.levels[4].navn}</p>
-      <h1 ref={headingRef} tabIndex={-1} className="vk-display vk-portal-h1">
+      {!iPanel ? (
+        <p className="vk-kicker vk-portal-fkicker">{t.levels[4].navn}</p>
+      ) : null}
+      <Overskrift
+        ref={headingRef}
+        tabIndex={-1}
+        className="vk-display vk-portal-h1"
+      >
         {t.skjotet.tittel}
-      </h1>
+      </Overskrift>
       <p className="vk-portal-lead">{t.skjotet.tekst}</p>
 
       {/* The deed — cream sheet; the print button prints ONLY this. */}

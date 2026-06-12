@@ -847,3 +847,76 @@
 .vk-adm-detalj .vk-btn--cta[data-armed="true"] {
   box-shadow: 0 0 0 2px rgba(226, 89, 61, 0.45);
 }
+
+/* ════════════════════════════════════════════
+   FANER i detaljen — the office variant of the shared strip
+   (base styles live in benken.css, loaded on both surfaces).
+   ════════════════════════════════════════════ */
+
+.vk-adm-faner .vk-fane {
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+/* The detail's column rhythm inside each panel. */
+.vk-adm-fanepanel {
+  gap: 28px;
+}
+
+/* The first section in a panel sits right under the strip's hairline —
+   drop the doubled border. */
+.vk-adm-fanepanel > .vk-adm-seksjon:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+/* ── Oversikt-fanen: venter-på-deg + nøkkelinfo ── */
+
+/* The SLA reason — same stamp-red edge language as the list pulse. */
+.vk-adm-ovventer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 560px;
+  padding: 12px 14px;
+  background: rgba(226, 89, 61, 0.06);
+  border-left: 3px solid var(--stempel);
+}
+
+.vk-adm-ovventer-tittel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-adm-ovventer-tekst {
+  margin: 0;
+  color: var(--papir);
+}
+
+/* ── Bygging-fanen: the empty plate until byggefabrikken plugs in ── */
+
+.vk-adm-byggtomt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 560px;
+  padding: 28px 22px;
+  border: 1px dashed var(--hairline);
+}
+
+.vk-adm-byggtomt-tittel {
+  margin: 0;
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 500;
+}
+
+.vk-adm-byggtomt p {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--stov);
+}

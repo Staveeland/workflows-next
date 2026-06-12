@@ -30,7 +30,10 @@ import {
   type ProsjektResponse,
 } from "@/lib/portalTypes";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
+import Faner, { FanePanel, type FaneDef } from "@/components/portal/Faner";
 import Lysbord, { type LysbordBilde } from "@/components/portal/Lysbord";
+import { Skjotet } from "@/components/portal/Tilbud";
+import { linkify, validerHttpsUrl } from "@/lib/linkify";
 
 /**
  * «Benken» — the customer's project room (status «videre», level 4 BYGGES;
@@ -586,7 +589,9 @@ function ForesporselKort({
         ) : null}
       </div>
       <Byline fra={innlegg.fra} tid={formatKlokke(innlegg.createdAt, lang)} t={t} />
-      {innlegg.tekst ? <p className="vk-benk-tekst">{innlegg.tekst}</p> : null}
+      {innlegg.tekst ? (
+        <p className="vk-benk-tekst">{linkify(innlegg.tekst)}</p>
+      ) : null}
       <Filer filer={innlegg.filer} t={t} onVis={onVis} />
       {apen && !laast ? (
         <Komposer
@@ -601,7 +606,7 @@ function ForesporselKort({
           {svar.map((s) => (
             <li key={s.id} className="vk-benk-svar">
               <Byline fra={s.fra} tid={formatKlokke(s.createdAt, lang)} t={t} />
-              {s.tekst ? <p className="vk-benk-tekst">{s.tekst}</p> : null}
+              {s.tekst ? <p className="vk-benk-tekst">{linkify(s.tekst)}</p> : null}
               <Filer filer={s.filer} t={t} onVis={onVis} />
             </li>
           ))}
@@ -626,16 +631,53 @@ interface BenkenProps {
   autoFocus?: boolean;
   /** Same token source as the rest of the portal (dev-mock aware). */
   getToken: () => Promise<string | null>;
+  /**
+   * Live preview for the Forhåndsvisning tab — wired up later by the
+   * build factory. Absent/null renders the tab's empty state; the URL is
+   * https-validated before it ever becomes a link.
+   */
+  forhandsvisning?: { url: string; sistOppdatert: string } | null;
 }
 
 /** Feed older than this re-fetches on the quiet timer (signed URLs: 1h). */
 const URL_STALE_MS = 50 * 60_000;
+
+/* ── The room's tabs — ids double as the ?fane= URL values ── */
+
+const BENK_FANER = [
+  "oversikt",
+  "meldinger",
+  "filer",
+  "faktura",
+  "forhandsvisning",
+] as const;
+type BenkFane = (typeof BENK_FANER)[number];
+
+/**
+ * Initial tab from ?fane= — the room is ONE page (no Next-routing), so a
+ * bookmarkable tab travels as a query param via history.replaceState.
+ */
+function lesFaneFraUrl(): BenkFane | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const v = new URLSearchParams(window.location.search).get("fane");
+    return v && (BENK_FANER as readonly string[]).includes(v)
+      ? (v as BenkFane)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/** «sendt» invoices younger than this badge the Faktura tab. */
+const FAKTURA_NYLIG_MS = 14 * 24 * 60 * 60_000;
 
 export default function Benken({
   kartlegging,
   devMock = false,
   autoFocus = false,
   getToken,
+  forhandsvisning = null,
 }: BenkenProps) {
   const { lang } = useLang();
   const t = portalContent[lang];
@@ -655,6 +697,17 @@ export default function Benken({
   const [venter, setVenter] = useState<Record<string, VenterInnlegg>>({});
   /** Ids that arrived on the LAST fetch — they glide in (CSS, motion-gated). */
   const [nyeIds, setNyeIds] = useState<Set<string>>(() => new Set());
+  /** The room's tabs — ?fane= wins on boot, Oversikt otherwise. (Benken
+      never SSRs: PortalApp reaches «videre» via effects only.) */
+  const [valgtFane, setValgtFane] = useState<BenkFane>(
+    () => lesFaneFraUrl() ?? "oversikt"
+  );
+  /**
+   * The LIVE read boundary (kunde_sett_at as the badge sees it) — unlike
+   * the frozen nyttFraRef divider this one moves when markerLest stamps,
+   * so the Meldinger badge counts down as the reader actually reads.
+   */
+  const [lestGrense, setLestGrense] = useState<string | null>(null);
 
   const dataRef = useRef<ProsjektResponse | null>(null);
   const seqRef = useRef(0);
@@ -681,6 +734,10 @@ export default function Benken({
   const hentTimerRef = useRef<number | null>(null);
   /** Last successful fetch — the stale-URL timer reads this. */
   const sistHentetRef = useRef(0);
+  /** Mirrors the EFFECTIVE tab for callbacks (hent's first-load scroll). */
+  const faneRef = useRef<BenkFane>("oversikt");
+  /** Meldinger's first reveal lands the reader at the bottom — once. */
+  const meldingerVistRef = useRef(false);
 
   useEffect(() => {
     if (autoFocus) headingRef.current?.focus();
@@ -729,6 +786,11 @@ export default function Benken({
         body: JSON.stringify({ id: kartlegging.id, sett: true }),
       });
       sistMarkertRef.current = nyeste;
+      // The badge boundary follows the stamp — the «── nytt ──» divider
+      // (nyttFraRef) stays frozen where the session started.
+      setLestGrense((prev) =>
+        !prev || Date.parse(nyeste) > Date.parse(prev) ? nyeste : prev
+      );
     } catch (err) {
       // A failed read marker is invisible to the reader — log and move on.
       console.error("[benken] sett failed", err);
@@ -765,6 +827,14 @@ export default function Benken({
       sistHentetRef.current = Date.now();
       setData(res);
       setLastefeil(false);
+      // Keep the badge boundary in step with the server's read marker —
+      // it only ever moves forward (markerLest may already be ahead).
+      if (res.kundeSettAt) {
+        const stemplet = res.kundeSettAt;
+        setLestGrense((prev) =>
+          !prev || Date.parse(stemplet) > Date.parse(prev) ? stemplet : prev
+        );
+      }
       // Recovering via «Prøv igjen» unmounts the feilboks (and the focused
       // button) — land on the heading so the state change is perceivable.
       if (provIgjenRef.current) {
@@ -775,10 +845,17 @@ export default function Benken({
       const forrige = antallRef.current;
       if (forrige === null) {
         // First load: land the reader by the composer and the newest post —
-        // the established chat posture (history is one scroll up). NOT in
-        // the levert archive: there Benken sits under the skjøte, and the
-        // reader must meet the handover sheet, not the feed's tail.
-        if (antall > 0 && res.status !== "levert") {
+        // the established chat posture (history is one scroll up). ONLY
+        // when Meldinger is the showing tab (boot via ?fane=meldinger);
+        // an Oversikt boot scrolls on the tab's first reveal instead. NOT
+        // in the levert archive: there the reader must meet the skjøte
+        // (now living in the Oversikt tab), not the feed's tail.
+        if (
+          antall > 0 &&
+          res.status !== "levert" &&
+          faneRef.current === "meldinger"
+        ) {
+          meldingerVistRef.current = true;
           window.requestAnimationFrame(() => scrollTilBunn(false));
         }
       } else if (antall > forrige) {
@@ -1040,6 +1117,45 @@ export default function Benken({
     [annonser, devMock, getToken, hent, kartlegging.id, scrollTilBunn]
   );
 
+  /* ── Faner: switch + URL mirror + jumps from Oversikt ── */
+
+  /** Switch tab and mirror it into ?fane= — replaceState, never routing. */
+  const velgFane = useCallback((id: string) => {
+    const f = (BENK_FANER as readonly string[]).includes(id)
+      ? (id as BenkFane)
+      : "oversikt";
+    setValgtFane(f);
+    try {
+      const url = new URL(window.location.href);
+      if (f === "oversikt") url.searchParams.delete("fane");
+      else url.searchParams.set("fane", f);
+      window.history.replaceState(window.history.state, "", url.toString());
+    } catch {
+      // URL out of reach — the tab still switches.
+    }
+  }, []);
+
+  /**
+   * Jump from Oversikt into Meldinger and land ON the innlegg — focused,
+   * so keyboard/SR reading position follows the jump, not just the eye.
+   */
+  const gaTilInnlegg = useCallback(
+    (id: string) => {
+      velgFane("meldinger");
+      meldingerVistRef.current = true;
+      window.requestAnimationFrame(() => {
+        const el = document.getElementById(`vk-benk-innlegg-${id}`);
+        if (!el) return;
+        el.scrollIntoView({
+          block: "center",
+          behavior: reduserteBevegelser() ? "auto" : "smooth",
+        });
+        el.focus({ preventScroll: true });
+      });
+    },
+    [velgFane]
+  );
+
   /* ── Feed: nest foresporsel-answers, weave in date dividers ── */
 
   const innlegg = data?.innlegg ?? [];
@@ -1097,46 +1213,68 @@ export default function Benken({
     }
     const glir = nyeIds.has(i.id) ? " vk-benk-glir" : "";
     const tid = formatKlokke(i.createdAt, lang);
+    // Every innlegg row is addressable (id) and focusable (tabIndex -1) —
+    // the Oversikt tab's jump buttons land HERE with real focus.
     if (i.type === "status") {
       rader.push(
-        <li key={i.id} className={`vk-benk-statuslinje${glir}`}>
+        <li
+          key={i.id}
+          id={`vk-benk-innlegg-${i.id}`}
+          tabIndex={-1}
+          className={`vk-benk-statuslinje${glir}`}
+        >
           <p className="vk-mono">
             <span className="vk-benk-hake" aria-hidden="true">
               ✓{" "}
             </span>
-            {i.tekst}
+            {linkify(i.tekst)}
             <span className="vk-benk-tid">{tid}</span>
           </p>
         </li>
       );
     } else if (i.type === "milepael") {
       rader.push(
-        <li key={i.id} className={`vk-benk-milepael${glir}`}>
+        <li
+          key={i.id}
+          id={`vk-benk-innlegg-${i.id}`}
+          tabIndex={-1}
+          className={`vk-benk-milepael${glir}`}
+        >
           <span className="vk-benk-milepael-stjerne" aria-hidden="true">
             ✦
           </span>
           <span className="vk-mono vk-benk-milepael-label">
             {t.benken.milepaelLabel}
           </span>
-          <p className="vk-benk-milepael-tekst">{i.tekst}</p>
+          <p className="vk-benk-milepael-tekst">{linkify(i.tekst)}</p>
           <span className="vk-mono vk-benk-tid">{tid}</span>
         </li>
       );
     } else if (i.type === "faktura") {
       rader.push(
-        <li key={i.id} className={`vk-benk-kort vk-benk-kort--faktura${glir}`}>
+        <li
+          key={i.id}
+          id={`vk-benk-innlegg-${i.id}`}
+          tabIndex={-1}
+          className={`vk-benk-kort vk-benk-kort--faktura${glir}`}
+        >
           <p className="vk-mono vk-benk-kortlabel">{t.benken.fakturaLabel}</p>
           <Byline fra={i.fra} tid={tid} t={t} />
-          {i.tekst ? <p className="vk-benk-tekst">{i.tekst}</p> : null}
+          {i.tekst ? <p className="vk-benk-tekst">{linkify(i.tekst)}</p> : null}
         </li>
       );
     } else if (i.type === "leveranse") {
       const lenke = httpsLenke(i);
       rader.push(
-        <li key={i.id} className={`vk-benk-kort vk-benk-kort--leveranse${glir}`}>
+        <li
+          key={i.id}
+          id={`vk-benk-innlegg-${i.id}`}
+          tabIndex={-1}
+          className={`vk-benk-kort vk-benk-kort--leveranse${glir}`}
+        >
           <p className="vk-mono vk-benk-kortlabel">{t.benken.leveranseLabel}</p>
           <Byline fra={i.fra} tid={tid} t={t} />
-          {i.tekst ? <p className="vk-benk-tekst">{i.tekst}</p> : null}
+          {i.tekst ? <p className="vk-benk-tekst">{linkify(i.tekst)}</p> : null}
           <Filer filer={i.filer} t={t} onVis={setLysbilde} />
           {lenke ? (
             <div className="vk-benk-kortacts">
@@ -1156,6 +1294,8 @@ export default function Benken({
       rader.push(
         <li
           key={i.id}
+          id={`vk-benk-innlegg-${i.id}`}
+          tabIndex={-1}
           className={`vk-benk-kort vk-benk-kort--foresporsel${
             i.foresporselStatus === "apen" ? "" : " vk-benk-kort--levert"
           }${glir}`}
@@ -1178,12 +1318,14 @@ export default function Benken({
       rader.push(
         <li
           key={i.id}
+          id={`vk-benk-innlegg-${i.id}`}
+          tabIndex={-1}
           className={`vk-benk-note ${
             kunde ? "vk-benk-note--kunde" : "vk-benk-note--verksted"
           }${glir}`}
         >
           <Byline fra={i.fra} tid={tid} t={t} />
-          {i.tekst ? <p className="vk-benk-tekst">{i.tekst}</p> : null}
+          {i.tekst ? <p className="vk-benk-tekst">{linkify(i.tekst)}</p> : null}
           <Filer filer={i.filer} t={t} onVis={setLysbilde} />
           {lenke ? (
             <a
@@ -1204,42 +1346,123 @@ export default function Benken({
   const fakturaer: ProsjektFaktura[] = data?.fakturaer ?? [];
   const venterHoved = venter["hoved"] ?? null;
 
+  /* ── Faner: which tabs exist + their badges ── */
+
+  const harFakturaFane = data?.fakturaer !== undefined;
+  // The preview pane belongs to the BUILD — a delivered project has the
+  // real thing, so the tab retires with the composer.
+  const visForhandsvisning = !levert;
+
+  const lestMs = lestGrense ? Date.parse(lestGrense) : null;
+  const uleste = innlegg.filter(
+    (i) =>
+      i.fra === "workflows" &&
+      (lestMs === null || Date.parse(i.createdAt) > lestMs)
+  ).length;
+
+  const fakturaForfalt = fakturaer.some((f) => f.status === "forfalt");
+  const fakturaNyligSendt = fakturaer.some(
+    (f) =>
+      f.status === "sendt" &&
+      f.utstedt !== null &&
+      Date.now() - Date.parse(f.utstedt) < FAKTURA_NYLIG_MS
+  );
+
+  const faner: FaneDef[] = [
+    { id: "oversikt", label: t.benken.faner.oversikt },
+    {
+      id: "meldinger",
+      label: t.benken.faner.meldinger,
+      badge: uleste > 0 ? uleste : undefined,
+      badgeSr:
+        uleste > 0
+          ? t.benken.faner.ulesteTemplate.replace("{n}", String(uleste))
+          : undefined,
+    },
+    { id: "filer", label: t.benken.faner.filer },
+    ...(harFakturaFane
+      ? [
+          {
+            id: "faktura",
+            label: t.benken.faner.faktura,
+            badge:
+              fakturaForfalt || fakturaNyligSendt ? ("dot" as const) : undefined,
+            badgeTone: fakturaForfalt ? ("varsel" as const) : undefined,
+            badgeSr:
+              fakturaForfalt || fakturaNyligSendt
+                ? t.benken.faner.fakturaVarsel
+                : undefined,
+          },
+        ]
+      : []),
+    ...(visForhandsvisning
+      ? [{ id: "forhandsvisning", label: t.benken.faner.forhandsvisning }]
+      : []),
+  ];
+
+  // A ?fane= pointing at a tab that doesn't exist right now (forhånds-
+  // visning in the levert archive, faktura before the panel is in the
+  // response) falls back to Oversikt — the strip never selects a ghost.
+  const fane: BenkFane = faner.some((f) => f.id === valgtFane)
+    ? valgtFane
+    : "oversikt";
+
+  /* ── Oversikt: skjøte, siste aktivitet, åpne forespørsler ── */
+
+  // The skjøte renders once PortalApp has landed the row on «levert» —
+  // by then the prop carries sluttrapport/levertAt (the room's own status
+  // flip alone only retires the composer, as before).
+  const skjoteKlar = kartlegging.status === "levert";
+  const sisteAktivitet = topp.slice(-3).reverse();
+  const apneForesporsler = topp.filter(
+    (i) => i.type === "foresporsel" && i.foresporselStatus === "apen"
+  );
+  const forhandUrl = forhandsvisning
+    ? validerHttpsUrl(forhandsvisning.url)
+    : null;
+
+  /* ── Filer: every attachment across the thread, newest first ── */
+
+  const filRader = innlegg
+    .flatMap((i) =>
+      i.filer.map((f, idx) => ({
+        key: `${i.id}-${idx}`,
+        navn: f.navn,
+        url: f.url,
+        fra: i.fra,
+        createdAt: i.createdAt,
+      }))
+    )
+    .reverse();
+
+  // Callbacks (hent's first-load) read the EFFECTIVE tab through this ref.
+  useEffect(() => {
+    faneRef.current = fane;
+  }, [fane]);
+
+  // Meldinger's FIRST reveal lands the reader at the bottom — the chat
+  // posture. Later visits keep the window where the reader left it, and
+  // the levert archive never auto-scrolls.
+  useEffect(() => {
+    if (fane !== "meldinger" || !harData || meldingerVistRef.current) return;
+    meldingerVistRef.current = true;
+    if (!levert && (dataRef.current?.innlegg.length ?? 0) > 0) {
+      window.requestAnimationFrame(() => scrollTilBunn(false));
+    }
+  }, [fane, harData, levert, scrollTilBunn]);
+
   return (
     <section className="vk-benk">
       <header className="vk-benk-hode">
-        <p className="vk-kicker vk-portal-fkicker">{t.levels[3].navn}</p>
+        {/* Level 5 once the row is delivered — the skjøte lives in the
+            Oversikt tab below, so the kicker must agree with it. */}
+        <p className="vk-kicker vk-portal-fkicker">
+          {skjoteKlar ? t.levels[4].navn : t.levels[3].navn}
+        </p>
         <h1 ref={headingRef} tabIndex={-1} className="vk-display vk-portal-h1">
           {t.benken.tittel}
         </h1>
         <p className="vk-portal-lead">{t.benken.undertekst}</p>
-        {/* The project clock — six bench notches; drift-green once levert. */}
-        {typeof uke === "number" || levert ? (
-          <div
-            className="vk-benk-fremdrift"
-            data-levert={levert || undefined}
-            role="img"
-            aria-label={
-              levert
-                ? t.benken.levertChip
-                : t.benken.ukeTemplate.replace("{n}", String(uke))
-            }
-          >
-            <span className="vk-mono vk-benk-uke" aria-hidden="true">
-              {levert
-                ? t.benken.levertChip
-                : t.benken.ukeTemplate.replace("{n}", String(uke))}
-            </span>
-            <span className="vk-benk-fremdrift-spor" aria-hidden="true">
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <span
-                  key={n}
-                  className="vk-benk-fremdrift-steg"
-                  data-fylt={levert || n <= (uke ?? 0) || undefined}
-                />
-              ))}
-            </span>
-          </div>
-        ) : null}
       </header>
 
       {!data && !lastefeil ? (
@@ -1268,113 +1491,343 @@ export default function Benken({
 
       {data ? (
         <>
-          {/* The invoice panel — papers on the bench, drafts never leave
-              Fiken (RLS). The empty state keeps the shelf honest. */}
-          {data.fakturaer ? (
-            <section
-              className="vk-benk-fakturaer"
-              aria-label={t.benken.fakturaTittel}
-            >
-              <h2 className="vk-mono vk-benk-fakturatittel">
-                {t.benken.fakturaTittel}
-              </h2>
-              {fakturaer.length === 0 ? (
-                <p className="vk-benk-fakturatomt">{t.benken.fakturaTom}</p>
-              ) : (
-                <ul className="vk-benk-fakturaliste">
-                  {fakturaer.map((f) => {
-                    const belop = formatBelop(f.belopOre, f.valuta, lang);
-                    return (
-                      <li
-                        key={f.id}
-                        className="vk-benk-faktura"
-                        data-status={f.status}
+          <Faner
+            faner={faner}
+            aktiv={fane}
+            label={t.benken.faner.label}
+            idPrefix="vk-benk-rom"
+            onVelg={velgFane}
+          />
+
+          {/* ── OVERSIKT — the room at a glance. Hidden panels stay
+                mounted (state/realtime survive); display:none also means
+                the read-sentinel below can never fire from here. ── */}
+          <FanePanel idPrefix="vk-benk-rom" id="oversikt" aktiv={fane}>
+            {/* The project clock — six bench notches; drift-green once
+                levert (moved here from the room header). */}
+            {typeof uke === "number" || levert ? (
+              <div
+                className="vk-benk-fremdrift"
+                data-levert={levert || undefined}
+                role="img"
+                aria-label={
+                  levert
+                    ? t.benken.levertChip
+                    : t.benken.ukeTemplate.replace("{n}", String(uke))
+                }
+              >
+                <span className="vk-mono vk-benk-uke" aria-hidden="true">
+                  {levert
+                    ? t.benken.levertChip
+                    : t.benken.ukeTemplate.replace("{n}", String(uke))}
+                </span>
+                <span className="vk-benk-fremdrift-spor" aria-hidden="true">
+                  {[1, 2, 3, 4, 5, 6].map((n) => (
+                    <span
+                      key={n}
+                      className="vk-benk-fremdrift-steg"
+                      data-fylt={levert || n <= (uke ?? 0) || undefined}
+                    />
+                  ))}
+                </span>
+              </div>
+            ) : null}
+
+            {/* Level 5 — the handover sheet lives HERE once delivered. */}
+            {skjoteKlar ? <Skjotet kartlegging={kartlegging} iPanel /> : null}
+
+            {/* Open requests — the things waiting on the customer. */}
+            {apneForesporsler.length > 0 ? (
+              <section
+                className="vk-benk-ovgruppe"
+                aria-label={t.benken.oversikt.apneTittel}
+              >
+                <h2 className="vk-mono vk-benk-ovtittel">
+                  {t.benken.oversikt.apneTittel}
+                </h2>
+                {apneForesporsler.map((i) => (
+                  <div
+                    key={i.id}
+                    className="vk-benk-kort vk-benk-kort--foresporsel"
+                  >
+                    <p className="vk-mono vk-benk-kortlabel">
+                      {t.benken.foresporselLabel}
+                    </p>
+                    <p className="vk-benk-akt-tekst">{linkify(i.tekst)}</p>
+                    <div className="vk-benk-kortacts">
+                      <button
+                        type="button"
+                        className="vk-btn"
+                        onClick={() => gaTilInnlegg(i.id)}
                       >
-                        <div className="vk-benk-faktura-rad">
-                          <span className="vk-mono vk-benk-faktura-nr">
-                            {f.nummer !== null
-                              ? t.benken.fakturaNrTemplate.replace(
-                                  "{nr}",
-                                  String(f.nummer)
-                                )
-                              : t.benken.fakturaUtenNr}
-                          </span>
-                          {belop ? (
-                            <span className="vk-mono vk-benk-faktura-belop">
-                              {belop}
-                            </span>
-                          ) : null}
-                        </div>
-                        {f.beskrivelse ? (
-                          <p className="vk-benk-faktura-besk">{f.beskrivelse}</p>
-                        ) : null}
-                        <div className="vk-benk-faktura-meta">
-                          <span
-                            className="vk-mono vk-benk-faktura-status"
-                            data-status={f.status}
-                          >
-                            {t.benken.fakturaStatus[f.status]}
-                          </span>
-                          {f.status === "betalt" && f.betalt ? (
-                            <span className="vk-mono">
-                              {t.benken.fakturaBetaltTemplate.replace(
-                                "{dato}",
-                                formatDatoKort(f.betalt, lang)
-                              )}
-                            </span>
-                          ) : f.forfall ? (
-                            <span className="vk-mono">
-                              {t.benken.fakturaForfallTemplate.replace(
-                                "{dato}",
-                                formatDatoKort(f.forfall, lang)
-                              )}
-                            </span>
-                          ) : null}
-                          {f.status === "forfalt" ? (
-                            <span className="vk-mono vk-benk-faktura-purr">
-                              {t.benken.fakturaForfaltTekst}
-                            </span>
-                          ) : null}
-                        </div>
-                      </li>
-                    );
-                  })}
+                        {t.benken.oversikt.svarIMeldinger}{" "}
+                        <span aria-hidden="true">→</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </section>
+            ) : null}
+
+            {/* The latest 2–3 posts — each meta line jumps to Meldinger;
+                links inside the excerpt stay separate links (linkify). */}
+            <section
+              className="vk-benk-ovgruppe"
+              aria-label={t.benken.oversikt.aktivitetTittel}
+            >
+              <h2 className="vk-mono vk-benk-ovtittel">
+                {t.benken.oversikt.aktivitetTittel}
+              </h2>
+              {sisteAktivitet.length === 0 ? (
+                <p className="vk-benk-akt-tom">
+                  {t.benken.oversikt.aktivitetTom}
+                </p>
+              ) : (
+                <ul className="vk-benk-akt-liste">
+                  {sisteAktivitet.map((i) => (
+                    <li key={i.id} className="vk-benk-akt">
+                      <button
+                        type="button"
+                        className="vk-mono vk-benk-akt-knapp"
+                        onClick={() => gaTilInnlegg(i.id)}
+                      >
+                        {i.fra === "workflows" ? (
+                          <>
+                            <span
+                              className="vk-benk-byline-dot"
+                              aria-hidden="true"
+                            />
+                            {t.benken.fraWorkflows}
+                          </>
+                        ) : (
+                          t.benken.degSelv
+                        )}
+                        <span className="vk-benk-tid">
+                          {formatDag(i.createdAt, lang, t)} ·{" "}
+                          {formatKlokke(i.createdAt, lang)}
+                        </span>
+                        <span className="vk-benk-akt-pil" aria-hidden="true">
+                          →
+                        </span>
+                        <span className="vk-sr">
+                          {t.benken.oversikt.visIMeldinger}
+                        </span>
+                      </button>
+                      <p className="vk-benk-akt-tekst">
+                        {i.tekst
+                          ? linkify(i.tekst)
+                          : i.filer.map((f) => f.navn).join(", ")}
+                      </p>
+                    </li>
+                  ))}
                 </ul>
               )}
             </section>
+          </FanePanel>
+
+          {/* ── MELDINGER — the clean conversation: feed + composer.
+                Read-stamping (the bottom sentinel) lives in here, so the
+                stamp can only ever fire while THIS tab is showing. ── */}
+          <FanePanel idPrefix="vk-benk-rom" id="meldinger" aktiv={fane}>
+            {topp.length === 0 && !venterHoved ? (
+              <p className="vk-benk-tomt">{t.benken.tomt}</p>
+            ) : (
+              <ol className="vk-benk-feed" aria-label={t.benken.feedLabel}>
+                {rader}
+                {venterHoved ? (
+                  <li className="vk-benk-note vk-benk-note--kunde vk-benk-venter">
+                    <VenterVisning venter={venterHoved} t={t} />
+                  </li>
+                ) : null}
+              </ol>
+            )}
+
+            {/* The bottom sentinel — scroll target + the read marker's eye. */}
+            <div ref={bunnRef} className="vk-benk-bunn" aria-hidden="true" />
+
+            {levert ? (
+              <div className="vk-benk-levertboks">
+                <p className="vk-benk-levertlinje">{t.benken.levertMelding}</p>
+              </div>
+            ) : (
+              <div className="vk-benk-komposer">
+                <Komposer
+                  t={t}
+                  idPrefix="vk-benk-hoved"
+                  variant="hoved"
+                  onSend={(tekst, filer) => send(tekst, filer)}
+                />
+                <p className="vk-mono vk-benk-sikkerhet">{t.benken.sikkerhet}</p>
+              </div>
+            )}
+          </FanePanel>
+
+          {/* ── FILER — every shared file, both directions, with the
+                innlegg date it came from. Same signed download URLs. ── */}
+          <FanePanel idPrefix="vk-benk-rom" id="filer" aktiv={fane}>
+            {filRader.length === 0 ? (
+              <p className="vk-benk-tomt">{t.benken.filer.tom}</p>
+            ) : (
+              <ul className="vk-benk-filpanel">
+                {filRader.map((f) => (
+                  <li key={f.key}>
+                    {f.url ? (
+                      <a
+                        className="vk-mono vk-benk-fil"
+                        href={f.url}
+                        aria-label={t.benken.lastNedTemplate.replace(
+                          "{navn}",
+                          f.navn
+                        )}
+                      >
+                        <span aria-hidden="true">↓</span>
+                        {f.navn}
+                      </a>
+                    ) : (
+                      <span className="vk-mono vk-benk-fil vk-benk-fil--dau">
+                        {f.navn}
+                      </span>
+                    )}
+                    <p className="vk-mono vk-benk-filpanel-meta">
+                      <span>
+                        {f.fra === "workflows"
+                          ? t.benken.fraWorkflows
+                          : t.benken.degSelv}
+                      </span>
+                      <span aria-hidden="true">·</span>
+                      <span>
+                        {t.benken.filer.deltTemplate.replace(
+                          "{dato}",
+                          `${formatDag(f.createdAt, lang, t)} ${formatKlokke(
+                            f.createdAt,
+                            lang
+                          )}`
+                        )}
+                      </span>
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </FanePanel>
+
+          {/* ── FAKTURA — papers on the bench, drafts never leave Fiken
+                (RLS). The empty state keeps the shelf honest. ── */}
+          {harFakturaFane ? (
+            <FanePanel idPrefix="vk-benk-rom" id="faktura" aktiv={fane}>
+              <section
+                className="vk-benk-fakturaer"
+                aria-label={t.benken.fakturaTittel}
+              >
+                <h2 className="vk-mono vk-benk-fakturatittel">
+                  {t.benken.fakturaTittel}
+                </h2>
+                {fakturaer.length === 0 ? (
+                  <p className="vk-benk-fakturatomt">{t.benken.fakturaTom}</p>
+                ) : (
+                  <ul className="vk-benk-fakturaliste">
+                    {fakturaer.map((f) => {
+                      const belop = formatBelop(f.belopOre, f.valuta, lang);
+                      return (
+                        <li
+                          key={f.id}
+                          className="vk-benk-faktura"
+                          data-status={f.status}
+                        >
+                          <div className="vk-benk-faktura-rad">
+                            <span className="vk-mono vk-benk-faktura-nr">
+                              {f.nummer !== null
+                                ? t.benken.fakturaNrTemplate.replace(
+                                    "{nr}",
+                                    String(f.nummer)
+                                  )
+                                : t.benken.fakturaUtenNr}
+                            </span>
+                            {belop ? (
+                              <span className="vk-mono vk-benk-faktura-belop">
+                                {belop}
+                              </span>
+                            ) : null}
+                          </div>
+                          {f.beskrivelse ? (
+                            <p className="vk-benk-faktura-besk">
+                              {f.beskrivelse}
+                            </p>
+                          ) : null}
+                          <div className="vk-benk-faktura-meta">
+                            <span
+                              className="vk-mono vk-benk-faktura-status"
+                              data-status={f.status}
+                            >
+                              {t.benken.fakturaStatus[f.status]}
+                            </span>
+                            {f.status === "betalt" && f.betalt ? (
+                              <span className="vk-mono">
+                                {t.benken.fakturaBetaltTemplate.replace(
+                                  "{dato}",
+                                  formatDatoKort(f.betalt, lang)
+                                )}
+                              </span>
+                            ) : f.forfall ? (
+                              <span className="vk-mono">
+                                {t.benken.fakturaForfallTemplate.replace(
+                                  "{dato}",
+                                  formatDatoKort(f.forfall, lang)
+                                )}
+                              </span>
+                            ) : null}
+                            {f.status === "forfalt" ? (
+                              <span className="vk-mono vk-benk-faktura-purr">
+                                {t.benken.fakturaForfaltTekst}
+                              </span>
+                            ) : null}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+            </FanePanel>
           ) : null}
 
-          {topp.length === 0 && !venterHoved ? (
-            <p className="vk-benk-tomt">{t.benken.tomt}</p>
-          ) : (
-            <ol className="vk-benk-feed" aria-label={t.benken.feedLabel}>
-              {rader}
-              {venterHoved ? (
-                <li className="vk-benk-note vk-benk-note--kunde vk-benk-venter">
-                  <VenterVisning venter={venterHoved} t={t} />
-                </li>
-              ) : null}
-            </ol>
-          )}
-
-          {/* The bottom sentinel — scroll target + the read marker's eye. */}
-          <div ref={bunnRef} className="vk-benk-bunn" aria-hidden="true" />
-
-          {levert ? (
-            <div className="vk-benk-levertboks">
-              <p className="vk-benk-levertlinje">{t.benken.levertMelding}</p>
-            </div>
-          ) : (
-            <div className="vk-benk-komposer">
-              <Komposer
-                t={t}
-                idPrefix="vk-benk-hoved"
-                variant="hoved"
-                onSend={(tekst, filer) => send(tekst, filer)}
-              />
-              <p className="vk-mono vk-benk-sikkerhet">{t.benken.sikkerhet}</p>
-            </div>
-          )}
+          {/* ── FORHÅNDSVISNING — empty pane until the build factory
+                hands the room {url, sistOppdatert} via the prop. ── */}
+          {visForhandsvisning ? (
+            <FanePanel idPrefix="vk-benk-rom" id="forhandsvisning" aktiv={fane}>
+              {forhandUrl && forhandsvisning ? (
+                <div className="vk-benk-forhand">
+                  <a
+                    className="vk-btn vk-benk-apne"
+                    href={forhandUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t.benken.forhandsvisning.apneKnapp}{" "}
+                    <span aria-hidden="true">→</span>
+                  </a>
+                  <p className="vk-mono vk-benk-forhand-tekst">
+                    {t.benken.forhandsvisning.sistOppdatertTemplate.replace(
+                      "{dato}",
+                      `${formatDag(forhandsvisning.sistOppdatert, lang, t)} ${formatKlokke(
+                        forhandsvisning.sistOppdatert,
+                        lang
+                      )}`
+                    )}
+                  </p>
+                </div>
+              ) : (
+                <div className="vk-benk-forhand vk-benk-forhand--tom">
+                  <p className="vk-display vk-benk-forhand-tittel">
+                    {t.benken.forhandsvisning.tomTittel}
+                  </p>
+                  <p className="vk-benk-forhand-tekst">
+                    {t.benken.forhandsvisning.tomTekst}
+                  </p>
+                </div>
+              )}
+            </FanePanel>
+          ) : null}
         </>
       ) : null}
 

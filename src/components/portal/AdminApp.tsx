@@ -25,6 +25,7 @@ import {
 } from "@/lib/portalTypes";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 import { consumeAuthErrorFromUrl } from "@/components/portal/AuthGate";
+import AdminBygg from "@/components/portal/AdminBygg";
 import AdminDetalj, {
   adminChipClass,
   formatBelopOre,
@@ -730,6 +731,13 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
     }
     return true;
   });
+  // The open detail's matching list row — feeds the Meldinger-fane badge
+  // (NYTT FRA KUNDE) and the Oversikt tab's venter-på-deg/SLA line.
+  const valgtRad = valgt ? (rows.find((r) => r.id === valgt.id) ?? null) : null;
+  const valgtVenter =
+    valgtRad && !valgtRad.slettetAt && venterPaDeg(valgtRad)
+      ? slaTekst(valgtRad, t, lang)
+      : null;
 
   return (
     <div
@@ -1036,11 +1044,16 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
           ) : valgt ? (
             <AdminDetalj
               kartlegging={valgt}
+              listeRad={valgtRad}
+              venterTekst={valgtVenter}
               onBack={tilListe}
               onSendTilbud={sendTilbud}
               onLever={markerLevert}
               onAngreLever={angreLevert}
               onSlett={slettKartlegging}
+              bygging={
+                <AdminBygg kartleggingId={valgt.id} kartStatus={valgt.status} />
+              }
             />
           ) : null
         ) : null}

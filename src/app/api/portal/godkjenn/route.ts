@@ -12,6 +12,7 @@ import type {
 } from "@/lib/portalTypes";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 import { sendTelegramToPetter } from "@/lib/telegram";
+import { startAutobyggVedGodkjenning } from "@/lib/fabrikk";
 
 export const runtime = "nodejs";
 
@@ -110,6 +111,12 @@ export async function POST(req: Request) {
     // Nothing transitioned — already approved (or no quote sent yet).
     return NextResponse.json<PortalGodkjennResponse>({ ok: true });
   }
+
+  // Byggefabrikken: har Petter slått på autobygg for løpet, trigges den nå
+  // (10 min angrefrist). Fail-silent — godkjenningen er allerede i boks, og
+  // dette ligger BAK den idempotente updated.length-vakten: en retry kan
+  // aldri starte to bygg.
+  await startAutobyggVedGodkjenning(id);
 
   // Notify Petter. Missing Telegram env (or a Telegram hiccup) must never
   // fail the approval — log and continue.

@@ -330,6 +330,275 @@
 }
 
 /* ════════════════════════════════════════════
+   FANER — the shared tab primitive (Faner.tsx). Base styles live HERE
+   because benken.css loads on BOTH surfaces (/start and /start/admin);
+   admin.css only adds density. Working-drawing voice: mono labels, a
+   2px amber underline carries the selection — no plates, no shadows.
+   ════════════════════════════════════════════ */
+
+.vk-faner {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  border-bottom: 1px solid var(--hairline);
+  /* Mobile: one horizontal strip, scrolled — never wrapped. */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.vk-faner::-webkit-scrollbar {
+  display: none;
+}
+
+.vk-fane {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--stov);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--dur-2) var(--ease-work),
+    border-color var(--dur-2) var(--ease-work);
+}
+
+.vk-fane:hover {
+  color: var(--papir);
+}
+
+.vk-fane[aria-selected="true"] {
+  color: var(--glod);
+  border-bottom-color: var(--glod);
+}
+
+/* The strip clips overflow — draw the focus ring INSIDE the button. */
+.vk-fane:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Badge — count pill or attention dot; meaning travels in a vk-sr span. */
+.vk-fane-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--glod);
+  color: #171310;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.vk-fane-badge--dot {
+  min-width: 8px;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+}
+
+/* Overdue invoice: a stamp-red rim — decorative only, never red text. */
+.vk-fane-badge[data-tone="varsel"] {
+  box-shadow: 0 0 0 2px rgba(226, 89, 61, 0.55);
+}
+
+/* Visible panels share the room's column rhythm … */
+.vk-fane-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* … and hidden ones must yield even though the class sets display:flex. */
+.vk-fane-panel[hidden] {
+  display: none;
+}
+
+/* ════════════════════════════════════════════
+   Inline links in user text (linkify.tsx) — both feeds + Oversikt.
+   ════════════════════════════════════════════ */
+
+.vk-lenke-inline {
+  color: var(--glod);
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 180, 84, 0.45);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+.vk-lenke-inline:hover {
+  text-decoration-color: var(--glod);
+}
+
+/* ════════════════════════════════════════════
+   OVERSIKT-fanen — the room at a glance (customer side)
+   ════════════════════════════════════════════ */
+
+.vk-benk-ovgruppe {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vk-benk-ovtittel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-benk-akt-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: 56ch;
+}
+
+.vk-benk-akt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-block: 10px;
+}
+
+.vk-benk-akt + .vk-benk-akt {
+  border-top: 1px solid var(--hairline);
+}
+
+/* The jump into Meldinger — byline/time IS the button, arrow as affordance.
+   Text links inside the excerpt stay separate (no nested interactives). */
+.vk-benk-akt-knapp {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--stov);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-benk-akt-knapp:hover {
+  color: var(--papir);
+}
+
+.vk-benk-akt-knapp .vk-benk-byline-dot {
+  flex: none;
+}
+
+.vk-benk-akt-pil {
+  margin-left: auto;
+  color: var(--glod);
+}
+
+/* Excerpt — full text in the DOM (links stay whole), clamped visually. */
+.vk-benk-akt-tekst {
+  margin: 0;
+  max-width: 58ch;
+  color: var(--papir);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.vk-benk-akt-tom {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--stov);
+}
+
+/* ════════════════════════════════════════════
+   FILER-fanen — every shared file, both directions
+   ════════════════════════════════════════════ */
+
+.vk-benk-filpanel {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: 56ch;
+}
+
+.vk-benk-filpanel li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-block: 8px;
+}
+
+.vk-benk-filpanel li + li {
+  border-top: 1px solid var(--hairline);
+}
+
+.vk-benk-filpanel-meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--stov);
+}
+
+/* ════════════════════════════════════════════
+   FORHÅNDSVISNING-fanen — the window pane (empty until the build)
+   ════════════════════════════════════════════ */
+
+.vk-benk-forhand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 56ch;
+  padding: 24px 22px;
+  border: 1px dashed var(--hairline);
+}
+
+.vk-benk-forhand--tom {
+  align-items: center;
+  padding-block: 44px;
+  text-align: center;
+}
+
+.vk-benk-forhand-tittel {
+  margin: 0;
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 500;
+}
+
+.vk-benk-forhand-tekst {
+  margin: 0;
+  max-width: 44ch;
+  color: var(--stov);
+}
+
+/* ════════════════════════════════════════════
    Verkstedkontoret — admin-side additions (AdminBenken)
    ════════════════════════════════════════════ */
 

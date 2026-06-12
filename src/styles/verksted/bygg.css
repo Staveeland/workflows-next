@@ -1,0 +1,148 @@
+/* Byggefabrikken i verkstedkontoret (AdminBygg) — bor i Bygging-fanen.
+   Følger admin.css-språket: krem på mørk benk, amber som bærende aksent,
+   rød kun dekorativ. Tokens fra .vk-scope. */
+
+.vk-scope .vk-bygg {
+  display: grid;
+  gap: 16px;
+}
+
+.vk-scope .vk-bygg-topp {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.vk-scope .vk-bygg-badge {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid var(--feltkant, #3a3027);
+  border-radius: 999px;
+  color: var(--stov, #b8a896);
+}
+
+.vk-scope .vk-bygg-badge--bygger,
+.vk-scope .vk-bygg-badge--venter {
+  border-color: var(--amber, #f0a32f);
+  color: var(--amber, #f0a32f);
+}
+
+.vk-scope .vk-bygg-badge--klar,
+.vk-scope .vk-bygg-badge--delt {
+  border-color: var(--drift-green, #7da27a);
+  color: var(--drift-green, #7da27a);
+}
+
+.vk-scope .vk-bygg-badge--feilet {
+  border-color: var(--amber, #f0a32f);
+  color: var(--krem, #f3e9d8);
+}
+
+.vk-scope .vk-bygg-meta {
+  font-size: 0.75rem;
+  color: var(--stov, #b8a896);
+}
+
+.vk-scope .vk-bygg-feil {
+  color: var(--krem, #f3e9d8);
+  border-left: 3px solid var(--amber, #f0a32f);
+  padding-left: 10px;
+  font-size: 0.85rem;
+}
+
+.vk-scope .vk-bygg-auto {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  color: var(--krem, #f3e9d8);
+  cursor: pointer;
+}
+
+.vk-scope .vk-bygg-auto input {
+  margin-top: 3px;
+  accent-color: var(--amber, #f0a32f);
+}
+
+.vk-scope .vk-bygg-auto-hint {
+  color: var(--stov, #b8a896);
+  font-size: 0.8rem;
+}
+
+.vk-scope .vk-bygg-knapper {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.vk-scope .vk-bygg-stopp {
+  border-color: var(--feltkant, #3a3027);
+}
+
+.vk-scope .vk-bygg-lenker {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.vk-scope .vk-bygg-lenker dt {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stov, #b8a896);
+}
+
+.vk-scope .vk-bygg-lenker dd {
+  margin: 2px 0 0;
+}
+
+.vk-scope .vk-bygg-lenker a {
+  color: var(--amber, #f0a32f);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  word-break: break-all;
+}
+
+.vk-scope .vk-bygg-sha {
+  color: var(--stov, #b8a896);
+  font-size: 0.78rem;
+}
+
+.vk-scope .vk-bygg-logg {
+  list-style: none;
+  margin: 0;
+  padding: 12px 14px;
+  display: grid;
+  gap: 6px;
+  background: var(--benk, #211b15);
+  border: 1px solid var(--feltkant, #3a3027);
+  border-radius: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.vk-scope .vk-bygg-logg li {
+  display: flex;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--krem, #f3e9d8);
+}
+
+.vk-scope .vk-bygg-logg-tid {
+  color: var(--stov, #b8a896);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  padding-top: 1px;
+}
+
+.vk-scope .vk-bygg-status,
+.vk-scope .vk-bygg-intro {
+  color: var(--stov, #b8a896);
+  font-size: 0.9rem;
+  max-width: 56ch;
+}
