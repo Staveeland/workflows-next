@@ -23,6 +23,7 @@ import {
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 import { consumeAuthErrorFromUrl } from "@/components/portal/AuthGate";
 import AdminDetalj, { adminChipClass, formatDato } from "@/components/portal/AdminDetalj";
+import { useSesjonEpost } from "@/components/portal/useSesjonEpost";
 
 /**
  * Verkstedkontoret (/start/admin) — Petters bakrom. Same bare chrome and
@@ -216,6 +217,7 @@ function AdminAuthGate({
 export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
   const { lang } = useLang();
   const t = portalContent[lang];
+  const sesjonEpost = useSesjonEpost(devMock);
 
   const [phase, setPhase] = useState<Phase>("auth");
   const [rows, setRows] = useState<AdminListItem[]>([]);
@@ -515,14 +517,26 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
           <span className="vk-mono vk-portal-mockbadge">dev-mock</span>
         ) : null}
         <span className="vk-portal-topplenker">
+          {/* The quiet mono address says WHO is in — truncated, full on
+              title. Especially load-bearing on «ikke din dør». */}
           {phase !== "auth" ? (
-            <button
-              type="button"
-              className="vk-portal-avbryt vk-mono"
-              onClick={byttKonto}
-            >
-              {t.header.loggUt}
-            </button>
+            <>
+              {sesjonEpost ? (
+                <span
+                  className="vk-mono vk-portal-sesjonepost"
+                  title={sesjonEpost}
+                >
+                  {sesjonEpost}
+                </span>
+              ) : null}
+              <button
+                type="button"
+                className="vk-portal-avbryt vk-mono"
+                onClick={byttKonto}
+              >
+                {t.header.loggUt}
+              </button>
+            </>
           ) : null}
           <span className="vk-mono vk-adm-merke">{t.admin.kicker}</span>
         </span>
@@ -622,6 +636,11 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
                             <span className="vk-mono vk-adm-anbefaling">
                               {row.anbefaling ? t.admin.anbefaling[row.anbefaling] : "—"}
                             </span>
+                            {row.nyttFraKunde ? (
+                              <span className="vk-stamp vk-adm-nyttchip">
+                                {t.admin.liste.nyttFraKunde}
+                              </span>
+                            ) : null}
                             <span className={adminChipClass(row.status)}>
                               {t.admin.status[row.status]}
                             </span>

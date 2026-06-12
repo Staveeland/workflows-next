@@ -198,6 +198,8 @@ export interface AdminListItem {
   bedriftNavn: string | null;
   anbefaling: PortalAnbefaling | null;
   status: PortalStatus;
+  /** Customer activity (innlegg/likt/godkjent) newer than admin_sett_at. */
+  nyttFraKunde: boolean;
 }
 
 export interface AdminListeResponse {
@@ -256,6 +258,9 @@ export interface AdminSlettResponse {
 
    Files are ALWAYS delivered as downloads (signed URL, 1h, attachment
    disposition) — never inline, so an uploaded SVG/HTML can't script.
+   ONE nuance: raster images (PROSJEKT_BILDE_ETTERNAVN) may render as
+   <img> previews in the feeds — browsers never execute script in <img>.
+   SVG stays download-only regardless.
    ════════════════════════════════════════════ */
 
 /** Mirrors public.prosjekt_innlegg.fra. */
@@ -276,8 +281,32 @@ export const PROSJEKT_TEKST_MAX = 4000;
 export const PROSJEKT_LENKE_MAX = 500;
 export const PROSJEKT_FILNAVN_MAX = 200;
 export const PROSJEKT_FIL_MAX_BYTES = 25 * 1024 * 1024;
+/** Max file references per innlegg (filer[] on the POST bodies). */
+export const PROSJEKT_FILER_MAX = 6;
 export const PROSJEKT_UKE_MIN = 1;
 export const PROSJEKT_UKE_MAX = 6;
+
+/**
+ * RASTER extensions eligible for inline <img> preview in the feeds.
+ * Browsers never execute script inside <img> — but SVG stays download-only
+ * anyway (consistency + content-sniffing paranoia), and so does everything
+ * else on the allowlist. This list gates PREVIEW only; delivery is still
+ * the signed download URL.
+ */
+export const PROSJEKT_BILDE_ETTERNAVN: readonly string[] = [
+  "png",
+  "jpg",
+  "jpeg",
+  "webp",
+  "gif",
+];
+
+/** Preview-eligible by extension (after the last dot) — never SVG. */
+export function erBildeFil(navn: string): boolean {
+  const dot = navn.lastIndexOf(".");
+  if (dot <= 0 || dot === navn.length - 1) return false;
+  return PROSJEKT_BILDE_ETTERNAVN.includes(navn.slice(dot + 1).toLowerCase());
+}
 
 /**
  * Upload allowlist — extension AND the declared MIME type must both match.
@@ -306,6 +335,18 @@ export const PROSJEKT_FIL_TYPER: Record<string, readonly string[]> = {
   svg: ["image/svg+xml"],
 };
 
+/**
+ * One attached file as the clients see it. The server merges legacy
+ * fil_path/fil_navn rows AND the filer jsonb array into this ONE shape.
+ */
+export interface ProsjektInnleggFil {
+  navn: string;
+  /** Signed download URL (1h, attachment disposition) — null if signing hiccuped. */
+  url: string | null;
+  /** Raster preview-eligible (erBildeFil) — the feeds may render <img>. */
+  bilde: boolean;
+}
+
 /** One innlegg as BOTH clients see it (file paths already signed). */
 export interface ProsjektInnlegg {
   id: string;
@@ -314,9 +355,8 @@ export interface ProsjektInnlegg {
   tekst: string;
   /** Validated https-URL — or null. Render as <a rel="noopener noreferrer">. */
   lenke: string | null;
-  /** Signed download URL (1h, attachment disposition) — or null. */
-  filUrl: string | null;
-  filNavn: string | null;
+  /** Unified attachment list — legacy single-file rows arrive here too. */
+  filer: ProsjektInnleggFil[];
   /** Set only on type «foresporsel». */
   foresporselStatus: ForesporselStatus | null;
   /** id of the innlegg this one answers — or null. */
@@ -340,11 +380,14 @@ export interface ProsjektFilRef {
   navn: string;
 }
 
-/** POST /api/portal/prosjekt — tekst (1–4000) OR fil required. */
+/** POST /api/portal/prosjekt — tekst (1–4000) OR file(s) required. */
 export interface ProsjektPostBody {
   id: string;
   tekst?: string;
+  /** Legacy single-file shape — still accepted (old clients). */
   fil?: ProsjektFilRef;
+  /** Up to PROSJEKT_FILER_MAX refs — every one validated like fil. */
+  filer?: ProsjektFilRef[];
   /** Answering a workflows-foresporsel flips it to «levert». */
   svarPa?: string;
 }
@@ -374,7 +417,10 @@ export interface AdminProsjektPostBody {
   type: ProsjektInnleggType;
   tekst: string;
   lenke?: string;
+  /** Legacy single-file shape — still accepted (old clients). */
   fil?: ProsjektFilRef;
+  /** Up to PROSJEKT_FILER_MAX refs — every one validated like fil. */
+  filer?: ProsjektFilRef[];
   /** 1–6 — also stamps kartlegginger.uke. */
   /** 1-6 sets a manual override; "auto" clears it (week follows godkjent_at). */
   uke?: number | "auto";

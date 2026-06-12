@@ -106,6 +106,18 @@ export async function GET(req: Request) {
       mockupUrl = signed?.signedUrl ?? null;
     }
 
+    // Opening the detail counts as «sett» — the list's NYTT-tag clears.
+    // Fire-and-forget: a failed stamp only means the tag lingers.
+    void supabase
+      .from("kartlegginger")
+      .update({ admin_sett_at: new Date().toISOString() })
+      .eq("id", id)
+      .then(({ error: settError }) => {
+        if (settError) {
+          console.error("[portal/admin/liste] admin_sett_at failed", settError);
+        }
+      });
+
     return NextResponse.json<AdminDetaljResponse>({
       kartlegging: {
         id: row.id as string,
@@ -125,11 +137,28 @@ export async function GET(req: Request) {
   /* ── The list — trimmed rows, no signed URLs (the list shows none) ── */
   const { data: rows, error } = await supabase
     .from("kartlegginger")
-    .select("id, status, email, answers, assessment, created_at")
+    .select("id, status, email, answers, assessment, created_at, liked_at, godkjent_at, admin_sett_at")
     .order("created_at", { ascending: false });
   if (error) {
     console.error("[portal/admin/liste] list select failed", error);
     return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+
+  // Latest customer post per project — one aggregate query (admin RLS
+  // sees all rows). Used for the NYTT FRA KUNDE-tag.
+  const sisteKunde = new Map<string, number>();
+  const { data: kundeInnlegg, error: innleggError } = await supabase
+    .from("prosjekt_innlegg")
+    .select("kartlegging_id, created_at")
+    .eq("fra", "kunde")
+    .order("created_at", { ascending: false });
+  if (innleggError) {
+    // The tag is a convenience — the list itself must never fail on it.
+    console.error("[portal/admin/liste] kunde-innlegg select failed", innleggError);
+  }
+  for (const r of kundeInnlegg ?? []) {
+    const kid = r.kartlegging_id as string;
+    if (!sisteKunde.has(kid)) sisteKunde.set(kid, Date.parse(r.created_at as string));
   }
 
   return NextResponse.json<AdminListeResponse>({
@@ -142,9 +171,24 @@ export async function GET(req: Request) {
         bedriftNavn: bedriftNavnOf(row.answers),
         anbefaling: (assessment?.anbefaling ?? null) as PortalAnbefaling | null,
         status: row.status as PortalStatus,
+        nyttFraKunde: harNyttFraKunde(row, sisteKunde),
       };
     }),
   });
+}
+
+/** Any customer activity newer than the admin's last look? */
+function harNyttFraKunde(
+  row: Record<string, unknown>,
+  sisteKunde: Map<string, number>
+): boolean {
+  const sett = row.admin_sett_at ? Date.parse(row.admin_sett_at as string) : 0;
+  const kandidater = [
+    sisteKunde.get(row.id as string) ?? 0,
+    row.liked_at ? Date.parse(row.liked_at as string) : 0,
+    row.godkjent_at ? Date.parse(row.godkjent_at as string) : 0,
+  ];
+  return Math.max(...kandidater) > sett;
 }
 
 /* ── DELETE ?id= — mockup object first, then the row ── */

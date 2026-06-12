@@ -457,7 +457,9 @@ export default function AdminDetalj({
 
       {/* ── Benken — the project room, only once the customer went videre.
           Self-contained: fetches and posts with its own admin token. ── */}
-      {k.status === "videre" ? <AdminBenken kartleggingId={k.id} /> : null}
+      {k.status === "videre" ? (
+        <AdminBenken kartleggingId={k.id} kundeEpost={k.email} />
+      ) : null}
 
       {/* ── Slett — destructive, two-stage, at the very bottom ── */}
       <section className="vk-adm-seksjon">

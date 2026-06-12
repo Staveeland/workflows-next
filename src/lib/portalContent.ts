@@ -216,6 +216,10 @@ export interface PortalContent {
     /** sr-prefixes on notes — who wrote it (sighted users read the layout). */
     fraOss: string;
     fraDere: string;
+    /** Byline on workflows-innlegg (lantern dot + name) — both feeds. */
+    fraWorkflows: string;
+    /** Byline on the customer's OWN posts (customer side only). */
+    degSelv: string;
     /** Mono card label on type «leveranse» (CSS uppercases it). */
     leveranseLabel: string;
     /** Button on a leveranse carrying an https-link (arrow added in JSX). */
@@ -226,6 +230,11 @@ export interface PortalContent {
     levertChip: string;
     /** «Last ned {navn}» — aria-label on file download links. */
     lastNedTemplate: string;
+    /** «Vis {navn}» — aria-label on image thumbnails (opens lysbordet). */
+    visBildeTemplate: string;
+    /** Lysbordet (the shared lightbox dialog) — close + download. */
+    lysLukk: string;
+    lysLastNed: string;
     /** Inline answer composer on an open foresporsel. */
     svarLabel: string;
     svarSend: string;
@@ -244,6 +253,8 @@ export interface PortalContent {
     tomMelding: string;
     filForStor: string;
     filType: string;
+    /** More than PROSJEKT_FILER_MAX files picked for one message. */
+    forMangeFiler: string;
     sendFeil: string;
     forMange: string;
     /** Polite live region: own post landed / something new arrived. */
@@ -278,6 +289,8 @@ export interface PortalContent {
       tom: string;
       /** Row fallback when answers carry no company name. */
       ukjentBedrift: string;
+      /** Unread tag — customer activity since the admin last opened it. */
+      nyttFraKunde: string;
       /** Quiet manual refresh button (mono, ≥44px target). */
       oppdater: string;
       /** «sist hentet {tid}» — quiet mono line beside the refresh button. */
@@ -361,8 +374,12 @@ export interface PortalContent {
         filLabel: string;
         velgFil: string;
         fjernFil: string;
+        /** «Fjern {navn}» — aria-label on the per-file remove buttons. */
+        fjernFilTemplate: string;
         filUgyldig: string;
         filForStor: string;
+        /** More than PROSJEKT_FILER_MAX files picked for one innlegg. */
+        forMangeFiler: string;
         filFeil: string;
         /** Week setter — 1–6 chips, current highlighted. */
         ukeLabel: string;
@@ -614,24 +631,30 @@ export const portalContent: Record<Lang, PortalContent> = {
       feedLabel: "Prosjektloggen",
       fraOss: "Fra verkstedet",
       fraDere: "Fra dere",
+      fraWorkflows: "Workflows",
+      degSelv: "Deg",
       leveranseLabel: "Noe å se på",
       apneKnapp: "Åpne",
       foresporselLabel: "Vi trenger noe fra deg",
       levertChip: "levert",
       lastNedTemplate: "Last ned {navn}",
+      visBildeTemplate: "Vis {navn}",
+      lysLukk: "Lukk",
+      lysLastNed: "Last ned",
       svarLabel: "Svaret ditt",
       svarSend: "Send svaret",
       skrivLabel: "Skriv til verkstedet",
       skrivPlassholder: "spørsmål, beskjed — eller bare et hei",
       sendKnapp: "Send",
-      velgFil: "Legg ved fil",
+      velgFil: "Legg ved filer",
       fjernFilTemplate: "Fjern {navn}",
-      filHint: "pdf, bilder eller dokumenter — maks 25 MB",
+      filHint: "pdf, bilder eller dokumenter — maks 25 MB, inntil 6 filer",
       sikkerhet:
         "aldri passord eller API-nøkler her — slikt avtaler vi i egen sikker kanal",
       tomMelding: "Skriv en melding eller legg ved en fil først.",
       filForStor: "Fila er for stor — maks 25 MB.",
       filType: "Filtypen støttes ikke — pdf, bilder eller vanlige dokumenter funker.",
+      forMangeFiler: "Maks 6 filer per melding — fjern noen først.",
       sendFeil: "Det gikk ikke å sende. Teksten ligger her ennå — prøv igjen.",
       forMange: "Mange meldinger på kort tid — vent et lite minutt og prøv igjen.",
       sendtBekreftelse: "Sendt — ligger på benken.",
@@ -661,6 +684,7 @@ export const portalContent: Record<Lang, PortalContent> = {
         antallTemplate: "{n} på benken",
         tom: "Ingen kartlegginger ennå. Benken er ryddet.",
         ukjentBedrift: "(uten bedriftsnavn)",
+        nyttFraKunde: "NYTT FRA KUNDE",
         oppdater: "Oppdater",
         sistHentetTemplate: "sist hentet {tid}",
       },
@@ -756,10 +780,12 @@ export const portalContent: Record<Lang, PortalContent> = {
             "leveranse-lenker bør peke på test-/staging-miljøer uten produksjonsdata",
           lenkeUgyldig: "Lenka må være en gyldig https-adresse.",
           filLabel: "Vedlegg",
-          velgFil: "Velg fil",
+          velgFil: "Velg filer",
           fjernFil: "Fjern fila",
+          fjernFilTemplate: "Fjern {navn}",
           filUgyldig: "Filtypen støttes ikke.",
           filForStor: "Fila er for stor — maks 25 MB.",
+          forMangeFiler: "Maks 6 filer per innlegg — fjern noen først.",
           filFeil: "Opplastingen feilet. Prøv igjen.",
           ukeLabel: "Uke (1–6)",
           ukeChipTemplate: "uke {n}",
@@ -1006,24 +1032,30 @@ export const portalContent: Record<Lang, PortalContent> = {
       feedLabel: "The project log",
       fraOss: "From the workshop",
       fraDere: "From you",
+      fraWorkflows: "Workflows",
+      degSelv: "You",
       leveranseLabel: "Something to look at",
       apneKnapp: "Open",
       foresporselLabel: "We need something from you",
       levertChip: "delivered",
       lastNedTemplate: "Download {navn}",
+      visBildeTemplate: "View {navn}",
+      lysLukk: "Close",
+      lysLastNed: "Download",
       svarLabel: "Your answer",
       svarSend: "Send the answer",
       skrivLabel: "Write to the workshop",
       skrivPlassholder: "a question, a note — or just a hello",
       sendKnapp: "Send",
-      velgFil: "Attach a file",
+      velgFil: "Attach files",
       fjernFilTemplate: "Remove {navn}",
-      filHint: "pdf, images or documents — max 25 MB",
+      filHint: "pdf, images or documents — max 25 MB, up to 6 files",
       sikkerhet:
         "never passwords or API keys here — that sort of thing we agree on in a separate, secure channel",
       tomMelding: "Write a message or attach a file first.",
       filForStor: "That file is too big — max 25 MB.",
       filType: "That file type isn't supported — pdf, images or ordinary documents work.",
+      forMangeFiler: "Max 6 files per message — remove some first.",
       sendFeil: "Sending failed. Your text is still here — try again.",
       forMange: "A lot of messages in a short time — give it a minute and try again.",
       sendtBekreftelse: "Sent — it's on the bench.",
@@ -1053,6 +1085,7 @@ export const portalContent: Record<Lang, PortalContent> = {
         antallTemplate: "{n} on the bench",
         tom: "No mappings yet. The bench is clear.",
         ukjentBedrift: "(no company name)",
+        nyttFraKunde: "NEW FROM CUSTOMER",
         oppdater: "Refresh",
         sistHentetTemplate: "last fetched {tid}",
       },
@@ -1147,11 +1180,13 @@ export const portalContent: Record<Lang, PortalContent> = {
           lenkeVeiledning:
             "delivery links should point at test or staging environments without production data",
           lenkeUgyldig: "The link must be a valid https address.",
-          filLabel: "Attachment",
-          velgFil: "Choose file",
+          filLabel: "Attachments",
+          velgFil: "Choose files",
           fjernFil: "Remove the file",
+          fjernFilTemplate: "Remove {navn}",
           filUgyldig: "That file type isn't supported.",
           filForStor: "The file is too big — 25 MB max.",
+          forMangeFiler: "Max 6 files per post — remove some first.",
           filFeil: "The upload failed. Try again.",
           ukeLabel: "Week (1–6)",
           ukeChipTemplate: "week {n}",

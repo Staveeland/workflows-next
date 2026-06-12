@@ -10,10 +10,13 @@ import {
 } from "react";
 import { useLang } from "@/components/LanguageProvider";
 import { formatDato } from "@/components/portal/AdminDetalj";
+import Lysbord, { type LysbordBilde } from "@/components/portal/Lysbord";
 import { portalContent, type PortalContent } from "@/lib/portalContent";
+import type { Lang } from "@/lib/translations";
 import {
   PROSJEKT_FIL_MAX_BYTES,
   PROSJEKT_FIL_TYPER,
+  PROSJEKT_FILER_MAX,
   PROSJEKT_LENKE_MAX,
   PROSJEKT_TEKST_MAX,
   PROSJEKT_UKE_MAX,
@@ -52,6 +55,8 @@ import { supabaseBrowser } from "@/lib/supabaseBrowser";
 interface AdminBenkenProps {
   /** The kartlegging id — the room key. */
   kartleggingId: string;
+  /** The project owner's address — the byline on kunde-innlegg. */
+  kundeEpost?: string;
 }
 
 type Lasting = "laster" | "klar" | "feil";
@@ -124,6 +129,15 @@ function validerFil(f: File, t: PortalContent): string | null {
   return null;
 }
 
+/** «1,2 MB» / «412 kB» — same shape as the customer composer. */
+function formatStorrelse(bytes: number, lang: Lang): string {
+  if (bytes >= 1024 * 1024) {
+    const mb = (bytes / (1024 * 1024)).toFixed(1);
+    return `${lang === "no" ? mb.replace(".", ",") : mb} MB`;
+  }
+  return `${Math.max(1, Math.round(bytes / 1024))} kB`;
+}
+
 /** https only, no smuggled credentials, ≤500 chars — URL parser, no regex. */
 function validerLenke(raw: string): string | null {
   if (raw.length > PROSJEKT_LENKE_MAX) return null;
@@ -139,19 +153,21 @@ function validerLenke(raw: string): string | null {
   return url.href;
 }
 
-export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
+export default function AdminBenken({ kartleggingId, kundeEpost }: AdminBenkenProps) {
   const { lang } = useLang();
   const t = portalContent[lang];
   const b = t.admin.benken;
 
   const [prosjekt, setProsjekt] = useState<ProsjektResponse | null>(null);
   const [tilstand, setTilstand] = useState<Lasting>("laster");
+  /** Lysbordet — the ONE lightbox instance for every preview in the feed. */
+  const [lysbilde, setLysbilde] = useState<LysbordBilde | null>(null);
 
   // The composer.
   const [type, setType] = useState<ProsjektInnleggType>("melding");
   const [tekst, setTekst] = useState("");
   const [lenke, setLenke] = useState("");
-  const [fil, setFil] = useState<File | null>(null);
+  const [filer, setFiler] = useState<File[]>([]);
   /** Pending week pick — null means «leave kartlegginger.uke alone». */
   const [nyUke, setNyUke] = useState<number | "auto" | null>(null);
   const [sender, setSender] = useState(false);
@@ -168,6 +184,7 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
   const filFeil =
     feil === b.komp.filUgyldig ||
     feil === b.komp.filForStor ||
+    feil === b.komp.forMangeFiler ||
     feil === b.komp.filFeil;
 
   const hentFeed = useCallback(
@@ -250,21 +267,34 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
   );
 
   function velgFil(e: ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0] ?? null;
-    if (!f) return;
-    const filFeil = validerFil(f, t);
-    if (filFeil) {
-      setFeil(filFeil);
+    const valgte = Array.from(e.target.files ?? []);
+    // The File objects live in state — reset the input so the same file
+    // can be re-picked after a remove.
+    e.target.value = "";
+    if (valgte.length === 0) return;
+    for (const f of valgte) {
+      const brudd = validerFil(f, t);
+      if (brudd) {
+        setFeil(brudd);
+        setBekreftet(false);
+        return;
+      }
+    }
+    if (filer.length + valgte.length > PROSJEKT_FILER_MAX) {
+      setFeil(b.komp.forMangeFiler);
       setBekreftet(false);
-      e.target.value = "";
       return;
     }
     setFeil(null);
-    setFil(f);
+    setFiler((fs) => [...fs, ...valgte]);
   }
 
-  function fjernFil() {
-    setFil(null);
+  function fjernFil(idx: number) {
+    setFiler((fs) => fs.filter((_, i) => i !== idx));
+  }
+
+  function fjernAlleFiler() {
+    setFiler([]);
     if (filInput.current) filInput.current.value = "";
   }
 
@@ -292,10 +322,11 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
     setSender(true);
     try {
       const token = await hentToken();
-      let filRef: ProsjektFilRef | null = null;
-      if (fil) {
+      // Sequential — one failure stops the run before anything is posted.
+      const filRefs: ProsjektFilRef[] = [];
+      for (const f of filer) {
         try {
-          filRef = await lastOppFil(token, fil);
+          filRefs.push(await lastOppFil(token, f));
         } catch (err) {
           console.error("[portal/admin/benken] upload failed", err);
           setFeil(b.komp.filFeil);
@@ -307,13 +338,13 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
         type,
         tekst: innhold,
         ...(lenkeUt ? { lenke: lenkeUt } : {}),
-        ...(filRef ? { fil: filRef } : {}),
+        ...(filRefs.length ? { filer: filRefs } : {}),
         ...(nyUke !== null ? { uke: nyUke } : {}),
       });
       // On the bench — clear everything but the type (runs come in batches).
       setTekst("");
       setLenke("");
-      fjernFil();
+      fjernAlleFiler();
       setNyUke(null);
       setBekreftet(true);
       await hentFeed(true);
@@ -357,10 +388,23 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
   }
 
   function innleggRad(i: ProsjektInnlegg) {
+    const bilder = i.filer.filter((f) => f.bilde && f.url);
+    const andreFiler = i.filer.filter((f) => !f.bilde || !f.url);
     return (
       <li key={i.id} className="vk-adm-innlegg" data-fra={i.fra}>
         <p className="vk-mono vk-adm-innlegg-meta">
-          <span className="vk-adm-innlegg-fra">{b.fra[i.fra]}</span>
+          {/* The byline — unmistakable sender: the lantern dot + Workflows
+              for own posts, the project owner's address for the customer. */}
+          {i.fra === "workflows" ? (
+            <span className="vk-adm-innlegg-fra">
+              <span className="vk-benk-byline-dot" aria-hidden="true" />
+              {t.benken.fraWorkflows}
+            </span>
+          ) : (
+            <span className="vk-adm-innlegg-fra vk-adm-innlegg-epost">
+              {kundeEpost || b.fra.kunde}
+            </span>
+          )}
           <span aria-hidden="true">·</span>
           <span>{b.typer[i.type]}</span>
           <span aria-hidden="true">·</span>
@@ -401,19 +445,45 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
             {i.lenke}
           </a>
         ) : null}
-        {i.filUrl && i.filNavn ? (
-          <a
-            className="vk-mono vk-adm-innlegg-fil"
-            href={i.filUrl}
-            aria-label={b.lastNedTemplate.replace("{navn}", i.filNavn)}
+        {/* Raster previews (bilde=true, server-set) open lysbordet; the
+            shared thumbnail classes live in portal.css. */}
+        {bilder.length > 0 ? (
+          <div
+            className="vk-benk-bilder"
+            data-antall={Math.min(bilder.length, 3)}
           >
-            <span aria-hidden="true">↓ </span>
-            {i.filNavn}
-          </a>
-        ) : i.filNavn ? (
-          // Signing hiccuped — the name still tells what was attached.
-          <p className="vk-mono vk-adm-innlegg-filnavn">{i.filNavn}</p>
+            {bilder.map((f, idx) => (
+              <button
+                key={`${f.navn}-${idx}`}
+                type="button"
+                className="vk-benk-bilde"
+                aria-label={t.benken.visBildeTemplate.replace("{navn}", f.navn)}
+                onClick={() => setLysbilde({ navn: f.navn, url: f.url as string })}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={f.url as string} alt="" loading="lazy" />
+              </button>
+            ))}
+          </div>
         ) : null}
+        {andreFiler.map((f, idx) =>
+          f.url ? (
+            <a
+              key={`${f.navn}-${idx}`}
+              className="vk-mono vk-adm-innlegg-fil"
+              href={f.url}
+              aria-label={b.lastNedTemplate.replace("{navn}", f.navn)}
+            >
+              <span aria-hidden="true">↓ </span>
+              {f.navn}
+            </a>
+          ) : (
+            // Signing hiccuped — the name still tells what was attached.
+            <p key={`${f.navn}-${idx}`} className="vk-mono vk-adm-innlegg-filnavn">
+              {f.navn}
+            </p>
+          )
+        )}
       </li>
     );
   }
@@ -544,6 +614,7 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
                 <input
                   ref={filInput}
                   type="file"
+                  multiple
                   accept={FIL_ACCEPT}
                   className="vk-adm-komp-filinput"
                   tabIndex={-1}
@@ -558,19 +629,34 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
                 >
                   {b.komp.velgFil}
                 </button>
-                {fil ? (
-                  <>
-                    <span className="vk-mono vk-adm-komp-filnavn">{fil.name}</span>
-                    <button
-                      type="button"
-                      className="vk-portal-quietlink vk-mono"
-                      onClick={fjernFil}
-                    >
-                      {b.komp.fjernFil}
-                    </button>
-                  </>
-                ) : null}
               </div>
+              {/* The picked files — name + size + a 44px remove per file. */}
+              {filer.length > 0 ? (
+                <ul className="vk-benk-filliste">
+                  {filer.map((f, idx) => (
+                    <li
+                      key={`${f.name}-${idx}`}
+                      className="vk-mono vk-benk-filvalgt"
+                    >
+                      <span className="vk-adm-komp-filnavn">{f.name}</span>
+                      <span className="vk-benk-filstr">
+                        {formatStorrelse(f.size, lang)}
+                      </span>
+                      <button
+                        type="button"
+                        className="vk-benk-fjernfil"
+                        aria-label={b.komp.fjernFilTemplate.replace(
+                          "{navn}",
+                          f.name
+                        )}
+                        onClick={() => fjernFil(idx)}
+                      >
+                        <span aria-hidden="true">×</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
 
             <div className="vk-portal-felt">
@@ -653,6 +739,10 @@ export default function AdminBenken({ kartleggingId }: AdminBenkenProps) {
             ) : null}
           </form>
         </>
+      ) : null}
+
+      {lysbilde ? (
+        <Lysbord bilde={lysbilde} onClose={() => setLysbilde(null)} />
       ) : null}
     </section>
   );

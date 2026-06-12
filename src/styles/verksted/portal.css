@@ -1542,3 +1542,193 @@ html:has(.vk-benk) {
   font-size: 12px;
   color: var(--stov);
 }
+
+/* ── Session email — the quiet «who am I in as?» span in the topbar.
+      Shared by /start and /start/admin (admin.css builds on this file). ── */
+
+.vk-portal-sesjonepost {
+  max-width: 24ch;
+  overflow: hidden;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--stov);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Bylines — who wrote the innlegg (owner feedback: «uklart hvem som
+      har sendt hva»). Workflows posts carry the small lantern dot. ── */
+
+.vk-benk-byline {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+/* The 16px lantern stamp: an 8px amber dot in its halo. */
+.vk-benk-byline-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--glod);
+  box-shadow: 0 0 6px var(--glod-halo);
+  vertical-align: 1px;
+}
+
+/* ── Composer file list — one row per picked file, 44px remove each ── */
+
+.vk-benk-filliste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ── Image previews — raster-only thumbnails in the feeds (bilde=true).
+      Click opens lysbordet; everything else stays a download link. ── */
+
+.vk-benk-bilder {
+  display: grid;
+  gap: 8px;
+  max-width: 480px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.vk-benk-bilder[data-antall="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.vk-benk-bilder[data-antall="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.vk-benk-bilde {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: zoom-in;
+  transition: border-color var(--dur-2) var(--ease-work);
+}
+
+.vk-benk-bilde:hover {
+  border-color: var(--stov);
+}
+
+.vk-benk-bilde img {
+  display: block;
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+/* Several side by side — shorter tiles keep the row card-sized. */
+.vk-benk-bilder[data-antall="2"] .vk-benk-bilde img,
+.vk-benk-bilder[data-antall="3"] .vk-benk-bilde img {
+  height: 130px;
+}
+
+/* ════════════════════════════════════════════
+   «Lysbordet» — the shared image lightbox (Lysbord.tsx), used by BOTH
+   Benken feeds. Poster law: no animation — the open dialog IS the
+   composed state. Raster <img> only; the download link is the same
+   signed URL the feed holds.
+   ════════════════════════════════════════════ */
+
+.vk-lys {
+  position: fixed;
+  inset: 0;
+  z-index: 80; /* over the sticky composer (2) and the topbar */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 3vw, 36px);
+  background: rgba(10, 8, 6, 0.88);
+}
+
+.vk-lys-ramme {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: min(960px, 100%);
+  max-height: 100%;
+}
+
+.vk-lys-lukk {
+  appearance: none;
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  background: var(--bek);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--papir);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color var(--dur-2) var(--ease-work),
+    border-color var(--dur-2) var(--ease-work);
+}
+
+.vk-lys-lukk:hover {
+  color: var(--glod);
+  border-color: var(--glod);
+}
+
+.vk-lys-bilde {
+  display: block;
+  max-width: 100%;
+  max-height: min(72dvh, 900px);
+  width: auto;
+  height: auto;
+  margin-inline: auto;
+  object-fit: contain;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+}
+
+.vk-lys-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 18px;
+}
+
+.vk-lys-navn {
+  font-size: 13px;
+  color: var(--papir);
+  overflow-wrap: anywhere;
+}
+
+.vk-lys-lastned {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--glod);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--dur-2) var(--ease-work);
+}
+
+.vk-lys-lastned:hover {
+  text-decoration-color: var(--glod);
+}

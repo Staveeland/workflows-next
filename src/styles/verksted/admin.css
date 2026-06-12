@@ -441,6 +441,14 @@
   color: var(--glod);
 }
 
+/* The kunde-byline is an e-mail address — the meta line's uppercase would
+   misquote it. Long addresses wrap rather than shear the column. */
+.vk-adm-innlegg-epost {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+
 .vk-adm-innlegg-svarpa {
   color: var(--kritt);
 }
@@ -558,4 +566,14 @@
 .vk-adm-oppdater[disabled]:hover {
   color: var(--stov);
   background: transparent;
+}
+
+/* Unread tag — customer activity since the detail was last opened. The
+   tag is informative, not decorative: full amber, slightly louder than
+   the status chips so a scan of the list catches it first. */
+.vk-adm-nyttchip {
+  color: #171310;
+  background: var(--glod);
+  border-color: var(--glod);
+  font-weight: 600;
 }

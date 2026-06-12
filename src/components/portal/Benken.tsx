@@ -15,15 +15,18 @@ import type { Lang } from "@/lib/translations";
 import {
   PROSJEKT_FIL_MAX_BYTES,
   PROSJEKT_FIL_TYPER,
+  PROSJEKT_FILER_MAX,
   PROSJEKT_TEKST_MAX,
   type PortalKartlegging,
   type ProsjektFilRef,
   type ProsjektFilResponse,
   type ProsjektInnlegg,
+  type ProsjektInnleggFil,
   type ProsjektPostResponse,
   type ProsjektResponse,
 } from "@/lib/portalTypes";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
+import Lysbord, { type LysbordBilde } from "@/components/portal/Lysbord";
 
 /**
  * «Benken» — the customer's project room (status «videre», level 4 BYGGES).
@@ -121,20 +124,26 @@ function formatDag(iso: string, lang: Lang): string {
 /* ── The composer — main (bottom) and inline (foresporsel answer) ── */
 
 type SendResultat = "ok" | "sendFeil" | "forMange";
-type FeilKey = "tomMelding" | "filForStor" | "filType" | "sendFeil" | "forMange";
+type FeilKey =
+  | "tomMelding"
+  | "filForStor"
+  | "filType"
+  | "forMangeFiler"
+  | "sendFeil"
+  | "forMange";
 
 interface KomposerProps {
   t: PortalContent;
   /** Unique id prefix — several composers can live on one screen. */
   idPrefix: string;
   variant: "hoved" | "svar";
-  onSend: (tekst: string, fil: File | null) => Promise<SendResultat>;
+  onSend: (tekst: string, filer: File[]) => Promise<SendResultat>;
 }
 
 function Komposer({ t, idPrefix, variant, onSend }: KomposerProps) {
   const { lang } = useLang();
   const [tekst, setTekst] = useState("");
-  const [fil, setFil] = useState<File | null>(null);
+  const [filer, setFiler] = useState<File[]>([]);
   const [feil, setFeil] = useState<FeilKey | null>(null);
   const [sender, setSender] = useState(false);
   const filInputRef = useRef<HTMLInputElement>(null);
@@ -145,24 +154,38 @@ function Komposer({ t, idPrefix, variant, onSend }: KomposerProps) {
 
   // File errors belong to the file control, the rest to the textarea — a
   // SR user re-querying the control they must re-operate needs the context.
-  const filFeil = feil === "filForStor" || feil === "filType";
+  const filFeil =
+    feil === "filForStor" || feil === "filType" || feil === "forMangeFiler";
 
   const velgFil = (e: ChangeEvent<HTMLInputElement>) => {
-    const valgt = e.target.files?.[0] ?? null;
-    if (!valgt) return;
-    const brudd = validerFil(valgt);
-    if (brudd) {
-      setFeil(brudd);
-      setFil(null);
-      e.target.value = "";
+    const valgte = Array.from(e.target.files ?? []);
+    // The File objects live in state — the input can always reset, so the
+    // same file can be re-picked after a remove.
+    e.target.value = "";
+    if (valgte.length === 0) return;
+    for (const f of valgte) {
+      const brudd = validerFil(f);
+      if (brudd) {
+        setFeil(brudd);
+        return;
+      }
+    }
+    if (filer.length + valgte.length > PROSJEKT_FILER_MAX) {
+      setFeil("forMangeFiler");
       return;
     }
-    setFeil((f) => (f === "filForStor" || f === "filType" ? null : f));
-    setFil(valgt);
+    setFeil((f) =>
+      f === "filForStor" || f === "filType" || f === "forMangeFiler" ? null : f
+    );
+    setFiler((fs) => [...fs, ...valgte]);
   };
 
-  const fjernFil = () => {
-    setFil(null);
+  const fjernFil = (idx: number) => {
+    setFiler((fs) => fs.filter((_, i) => i !== idx));
+  };
+
+  const fjernAlleFiler = () => {
+    setFiler([]);
     if (filInputRef.current) filInputRef.current.value = "";
   };
 
@@ -171,17 +194,17 @@ function Komposer({ t, idPrefix, variant, onSend }: KomposerProps) {
     if (sender) return;
     const trimmet = tekst.trim();
     // noValidate — say what's missing instead of a silent native bubble.
-    if (!trimmet && !fil) {
+    if (!trimmet && filer.length === 0) {
       setFeil("tomMelding");
       return;
     }
     setFeil(null);
     setSender(true);
-    const res = await onSend(trimmet, fil);
+    const res = await onSend(trimmet, filer);
     setSender(false);
     if (res === "ok") {
       setTekst("");
-      fjernFil();
+      fjernAlleFiler();
     } else {
       setFeil(res);
     }
@@ -203,14 +226,36 @@ function Komposer({ t, idPrefix, variant, onSend }: KomposerProps) {
         aria-describedby={feil && !filFeil ? feilId : undefined}
         onChange={(e) => setTekst(e.target.value)}
       />
+      {/* The picked files — name + size + a 44px remove per file. */}
+      {filer.length > 0 ? (
+        <ul className="vk-benk-filliste">
+          {filer.map((f, idx) => (
+            <li key={`${f.name}-${idx}`} className="vk-mono vk-benk-filvalgt">
+              <span>{f.name}</span>
+              <span className="vk-benk-filstr">
+                {formatStorrelse(f.size, lang)}
+              </span>
+              <button
+                type="button"
+                className="vk-benk-fjernfil"
+                aria-label={t.benken.fjernFilTemplate.replace("{navn}", f.name)}
+                onClick={() => fjernFil(idx)}
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       <div className="vk-benk-skjemarad">
-        {/* The visible «Legg ved fil» is the label of this visually-hidden
+        {/* The visible «Legg ved filer» is the label of this visually-hidden
             input — keyboard focus lands on the input and the focus ring is
             drawn on the label (sibling selector in portal.css). */}
         <input
           ref={filInputRef}
           id={filId}
           type="file"
+          multiple
           className="vk-sr vk-benk-filinput"
           accept={FIL_ACCEPT}
           aria-describedby={filFeil ? feilId : undefined}
@@ -219,22 +264,9 @@ function Komposer({ t, idPrefix, variant, onSend }: KomposerProps) {
         <label htmlFor={filId} className="vk-mono vk-benk-filknapp">
           {t.benken.velgFil}
         </label>
-        {fil ? (
-          <span className="vk-mono vk-benk-filvalgt">
-            <span>{fil.name}</span>
-            <span className="vk-benk-filstr">{formatStorrelse(fil.size, lang)}</span>
-            <button
-              type="button"
-              className="vk-benk-fjernfil"
-              aria-label={t.benken.fjernFilTemplate.replace("{navn}", fil.name)}
-              onClick={fjernFil}
-            >
-              <span aria-hidden="true">×</span>
-            </button>
-          </span>
-        ) : (
+        {filer.length === 0 ? (
           <span className="vk-mono vk-benk-filhint">{t.benken.filHint}</span>
-        )}
+        ) : null}
         {/* Never disabled mid-flight: disabling the focused button drops
             keyboard focus to <body>. The `if (sender) return` guard in
             submit() stops double sends; aria-disabled + aria-busy tell AT. */}
@@ -258,22 +290,83 @@ function Komposer({ t, idPrefix, variant, onSend }: KomposerProps) {
 
 /* ── Feed pieces ── */
 
-/** Filename as the link text, forced-download signed URL behind it. */
-function FilLenke({ innlegg, t }: { innlegg: ProsjektInnlegg; t: PortalContent }) {
-  if (!innlegg.filNavn) return null;
-  if (!innlegg.filUrl) {
-    // Signing hiccuped server-side — name the file without a dead link.
-    return <span className="vk-mono vk-benk-fil vk-benk-fil--dau">{innlegg.filNavn}</span>;
+/**
+ * Who wrote it — the visible byline on every feed card. Workflows-innlegg
+ * carry the small lantern dot + «Workflows»; the customer's own posts say
+ * «Deg» (this room only ever holds the owner and the workshop).
+ */
+function Byline({ fra, t }: { fra: ProsjektInnlegg["fra"]; t: PortalContent }) {
+  if (fra === "workflows") {
+    return (
+      <p className="vk-mono vk-benk-byline">
+        <span className="vk-benk-byline-dot" aria-hidden="true" />
+        {t.benken.fraWorkflows}
+      </p>
+    );
   }
+  return <p className="vk-mono vk-benk-byline">{t.benken.degSelv}</p>;
+}
+
+/**
+ * The attachments on one innlegg: raster previews (bilde=true) as
+ * thumbnails that open lysbordet, everything else as the forced-download
+ * link row. A file whose signing hiccuped keeps its name, link-less.
+ */
+function Filer({
+  filer,
+  t,
+  onVis,
+}: {
+  filer: ProsjektInnleggFil[];
+  t: PortalContent;
+  onVis: (bilde: LysbordBilde) => void;
+}) {
+  if (filer.length === 0) return null;
+  const bilder = filer.filter((f) => f.bilde && f.url);
+  const andre = filer.filter((f) => !f.bilde || !f.url);
   return (
-    <a
-      className="vk-mono vk-benk-fil"
-      href={innlegg.filUrl}
-      aria-label={t.benken.lastNedTemplate.replace("{navn}", innlegg.filNavn)}
-    >
-      <span aria-hidden="true">↓</span>
-      {innlegg.filNavn}
-    </a>
+    <>
+      {bilder.length > 0 ? (
+        <div className="vk-benk-bilder" data-antall={Math.min(bilder.length, 3)}>
+          {bilder.map((f, idx) => (
+            <button
+              key={`${f.navn}-${idx}`}
+              type="button"
+              className="vk-benk-bilde"
+              aria-label={t.benken.visBildeTemplate.replace("{navn}", f.navn)}
+              onClick={() => onVis({ navn: f.navn, url: f.url as string })}
+            >
+              {/* Raster only (bilde=true is server-set) — <img> never runs
+                  script. alt lives on the button label; the lysbord repeats
+                  the filename as proper alt text. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={f.url as string} alt="" loading="lazy" />
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {andre.map((f, idx) =>
+        f.url ? (
+          <a
+            key={`${f.navn}-${idx}`}
+            className="vk-mono vk-benk-fil"
+            href={f.url}
+            aria-label={t.benken.lastNedTemplate.replace("{navn}", f.navn)}
+          >
+            <span aria-hidden="true">↓</span>
+            {f.navn}
+          </a>
+        ) : (
+          // Signing hiccuped server-side — name the file without a dead link.
+          <span
+            key={`${f.navn}-${idx}`}
+            className="vk-mono vk-benk-fil vk-benk-fil--dau"
+          >
+            {f.navn}
+          </span>
+        )
+      )}
+    </>
   );
 }
 
@@ -287,10 +380,11 @@ interface ForesporselKortProps {
   /** The customer's answers (svar_pa → this innlegg), rendered beneath. */
   svar: ProsjektInnlegg[];
   t: PortalContent;
-  onSvar: (tekst: string, fil: File | null) => Promise<SendResultat>;
+  onSvar: (tekst: string, filer: File[]) => Promise<SendResultat>;
+  onVis: (bilde: LysbordBilde) => void;
 }
 
-function ForesporselKort({ innlegg, svar, t, onSvar }: ForesporselKortProps) {
+function ForesporselKort({ innlegg, svar, t, onSvar, onVis }: ForesporselKortProps) {
   const apen = innlegg.foresporselStatus === "apen";
   const levertRef = useRef<HTMLSpanElement>(null);
   const svarte = useRef(false);
@@ -301,8 +395,8 @@ function ForesporselKort({ innlegg, svar, t, onSvar }: ForesporselKortProps) {
     if (!apen && svarte.current) levertRef.current?.focus();
   }, [apen]);
 
-  const send = async (tekst: string, fil: File | null): Promise<SendResultat> => {
-    const res = await onSvar(tekst, fil);
+  const send = async (tekst: string, filer: File[]): Promise<SendResultat> => {
+    const res = await onSvar(tekst, filer);
     if (res === "ok") svarte.current = true;
     return res;
   };
@@ -321,8 +415,9 @@ function ForesporselKort({ innlegg, svar, t, onSvar }: ForesporselKortProps) {
           </span>
         ) : null}
       </div>
+      <Byline fra={innlegg.fra} t={t} />
       {innlegg.tekst ? <p className="vk-benk-tekst">{innlegg.tekst}</p> : null}
-      <FilLenke innlegg={innlegg} t={t} />
+      <Filer filer={innlegg.filer} t={t} onVis={onVis} />
       {apen ? (
         <Komposer
           t={t}
@@ -335,9 +430,9 @@ function ForesporselKort({ innlegg, svar, t, onSvar }: ForesporselKortProps) {
         <ul className="vk-benk-svarliste">
           {svar.map((s) => (
             <li key={s.id} className="vk-benk-svar">
-              <span className="vk-sr">{t.benken.fraDere}: </span>
+              <Byline fra={s.fra} t={t} />
               {s.tekst ? <p className="vk-benk-tekst">{s.tekst}</p> : null}
-              <FilLenke innlegg={s} t={t} />
+              <Filer filer={s.filer} t={t} onVis={onVis} />
             </li>
           ))}
         </ul>
@@ -372,6 +467,8 @@ export default function Benken({
   const [lastefeil, setLastefeil] = useState(false);
   // Polite live region — keys, not strings, so hent() stays language-free.
   const [live, setLive] = useState<"" | "sendt" | "nytt">("");
+  /** Lysbordet — the ONE lightbox instance both card types open into. */
+  const [lysbilde, setLysbilde] = useState<LysbordBilde | null>(null);
 
   const dataRef = useRef<ProsjektResponse | null>(null);
   const seqRef = useRef(0);
@@ -455,22 +552,23 @@ export default function Benken({
   }, [hent]);
 
   /**
-   * One customer post: optional file (validated path from /fil, then the
-   * DIRECT upload with the user's own token), then the innlegg POST —
-   * optionally answering a foresporsel (svarPa flips it to «levert»).
+   * One customer post: each file through /fil (the validated path), then
+   * the DIRECT upload with the user's own token — sequentially, so one
+   * failure stops the run before the innlegg POST. Then the innlegg POST
+   * with filer[] — optionally answering a foresporsel (svarPa → «levert»).
    */
   const send = useCallback(
     async (
       tekst: string,
-      fil: File | null,
+      filer: File[],
       svarPa?: string
     ): Promise<SendResultat> => {
       try {
         const token = await getToken();
         if (!token) return "sendFeil";
 
-        let filRef: ProsjektFilRef | undefined;
-        if (fil) {
+        const filRefs: ProsjektFilRef[] = [];
+        for (const fil of filer) {
           const mime = filMime(fil);
           const ref = await api<ProsjektFilResponse>(
             "/api/portal/prosjekt/fil",
@@ -495,7 +593,7 @@ export default function Benken({
               return "sendFeil";
             }
           }
-          filRef = { path: ref.path, navn: ref.navn };
+          filRefs.push({ path: ref.path, navn: ref.navn });
         }
 
         await api<ProsjektPostResponse>("/api/portal/prosjekt", token, {
@@ -503,7 +601,7 @@ export default function Benken({
           body: JSON.stringify({
             id: kartlegging.id,
             ...(tekst ? { tekst } : {}),
-            ...(filRef ? { fil: filRef } : {}),
+            ...(filRefs.length ? { filer: filRefs } : {}),
             ...(svarPa ? { svarPa } : {}),
           }),
         });
@@ -566,20 +664,19 @@ export default function Benken({
       rader.push(
         <li key={i.id} className="vk-benk-kort vk-benk-kort--leveranse">
           <p className="vk-mono vk-benk-kortlabel">{t.benken.leveranseLabel}</p>
+          <Byline fra={i.fra} t={t} />
           {i.tekst ? <p className="vk-benk-tekst">{i.tekst}</p> : null}
-          {lenke || i.filNavn ? (
+          <Filer filer={i.filer} t={t} onVis={setLysbilde} />
+          {lenke ? (
             <div className="vk-benk-kortacts">
-              {lenke ? (
-                <a
-                  className="vk-btn vk-benk-apne"
-                  href={lenke}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t.benken.apneKnapp} <span aria-hidden="true">→</span>
-                </a>
-              ) : null}
-              <FilLenke innlegg={i} t={t} />
+              <a
+                className="vk-btn vk-benk-apne"
+                href={lenke}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t.benken.apneKnapp} <span aria-hidden="true">→</span>
+              </a>
             </div>
           ) : null}
         </li>
@@ -596,7 +693,8 @@ export default function Benken({
             innlegg={i}
             svar={svarMap.get(i.id) ?? []}
             t={t}
-            onSvar={(tekst, fil) => send(tekst, fil, i.id)}
+            onSvar={(tekst, filer) => send(tekst, filer, i.id)}
+            onVis={setLysbilde}
           />
         </li>
       );
@@ -610,11 +708,9 @@ export default function Benken({
             kunde ? "vk-benk-note--kunde" : "vk-benk-note--verksted"
           }`}
         >
-          <span className="vk-sr">
-            {kunde ? t.benken.fraDere : t.benken.fraOss}:{" "}
-          </span>
+          <Byline fra={i.fra} t={t} />
           {i.tekst ? <p className="vk-benk-tekst">{i.tekst}</p> : null}
-          <FilLenke innlegg={i} t={t} />
+          <Filer filer={i.filer} t={t} onVis={setLysbilde} />
           {lenke ? (
             <a
               className="vk-portal-quietlink vk-mono"
@@ -685,11 +781,15 @@ export default function Benken({
               t={t}
               idPrefix="vk-benk-hoved"
               variant="hoved"
-              onSend={(tekst, fil) => send(tekst, fil)}
+              onSend={(tekst, filer) => send(tekst, filer)}
             />
             <p className="vk-mono vk-benk-sikkerhet">{t.benken.sikkerhet}</p>
           </div>
         </>
+      ) : null}
+
+      {lysbilde ? (
+        <Lysbord bilde={lysbilde} onClose={() => setLysbilde(null)} />
       ) : null}
 
       <p className="vk-sr" role="status">

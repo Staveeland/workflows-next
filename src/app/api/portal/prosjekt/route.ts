@@ -8,14 +8,16 @@ import type {
   ProsjektFilRef,
   ProsjektFra,
   ProsjektInnlegg,
+  ProsjektInnleggFil,
   ProsjektInnleggType,
   ProsjektPostBody,
   ProsjektPostResponse,
   ProsjektResponse,
 } from "@/lib/portalTypes";
-import { effektivUke } from "@/lib/portalTypes";
+import { effektivUke, erBildeFil } from "@/lib/portalTypes";
 import {
   PROSJEKT_FIL_TYPER,
+  PROSJEKT_FILER_MAX,
   PROSJEKT_FILNAVN_MAX,
   PROSJEKT_TEKST_MAX,
 } from "@/lib/portalTypes";
@@ -66,13 +68,15 @@ type InnleggRow = {
   lenke: string | null;
   fil_path: string | null;
   fil_navn: string | null;
+  /** jsonb array of {path, navn} — new multi-file rows. */
+  filer: unknown;
   foresporsel_status: string | null;
   svar_pa: string | null;
   created_at: string;
 };
 
 const INNLEGG_SELECT =
-  "id, fra, type, tekst, lenke, fil_path, fil_navn, foresporsel_status, svar_pa, created_at";
+  "id, fra, type, tekst, lenke, fil_path, fil_navn, filer, foresporsel_status, svar_pa, created_at";
 
 function harKontrolltegn(s: string): boolean {
   for (let i = 0; i < s.length; i += 1) {
@@ -137,25 +141,59 @@ function parseFilRef(
   return { path, navn };
 }
 
-/** DB row → API shape, signing the file as a forced download (1h). */
+/**
+ * Legacy fil_path/fil_navn + the filer jsonb array, merged into ONE list
+ * of storage refs. Old rows keep reading; new rows carry the array.
+ */
+function radFiler(row: InnleggRow): { path: string; navn: string }[] {
+  const ut: { path: string; navn: string }[] = [];
+  if (row.fil_path) {
+    ut.push({
+      path: row.fil_path,
+      navn:
+        row.fil_navn || row.fil_path.slice(row.fil_path.lastIndexOf("/") + 1),
+    });
+  }
+  if (Array.isArray(row.filer)) {
+    for (const f of row.filer as Array<Record<string, unknown>>) {
+      if (
+        f &&
+        typeof f.path === "string" &&
+        f.path &&
+        typeof f.navn === "string" &&
+        f.navn
+      ) {
+        ut.push({ path: f.path, navn: f.navn });
+      }
+    }
+  }
+  return ut;
+}
+
+/** DB row → API shape, signing every file as a forced download (1h). */
 async function tilInnlegg(
   supabase: SupabaseClient,
   row: InnleggRow,
   loggKilde: string
 ): Promise<ProsjektInnlegg> {
-  let filUrl: string | null = null;
-  if (row.fil_path) {
+  const filer: ProsjektInnleggFil[] = [];
+  for (const ref of radFiler(row)) {
     const { data: signed, error: signError } = await supabase.storage
       .from("prosjektfiler")
-      .createSignedUrl(row.fil_path, SIGNED_URL_TTL_SECONDS, {
+      .createSignedUrl(ref.path, SIGNED_URL_TTL_SECONDS, {
         // Attachment disposition with the human filename — NEVER inline.
-        download: row.fil_navn || true,
+        download: ref.navn || true,
       });
     if (signError) {
-      // The text still carries the thread — degrade softly.
+      // The text still carries the thread — degrade softly (url: null).
       console.error(`[${loggKilde}] signed url failed`, signError);
     }
-    filUrl = signed?.signedUrl ?? null;
+    filer.push({
+      navn: ref.navn,
+      url: signed?.signedUrl ?? null,
+      // Raster-only preview flag — SVG is deliberately NOT on the list.
+      bilde: erBildeFil(ref.navn),
+    });
   }
   // Belt and suspenders: the write side validated, but only https leaves.
   const lenke =
@@ -168,8 +206,7 @@ async function tilInnlegg(
       : "melding") as ProsjektInnleggType,
     tekst: row.tekst ?? "",
     lenke,
-    filUrl,
-    filNavn: row.fil_navn ?? null,
+    filer,
     foresporselStatus: (row.foresporsel_status ??
       null) as ForesporselStatus | null,
     svarPa: row.svar_pa ?? null,
@@ -280,8 +317,38 @@ export async function POST(req: Request) {
   if (fil === "ugyldig") {
     return NextResponse.json({ error: "Ugyldig filreferanse" }, { status: 400 });
   }
-  // The contract: tekst (1–4000) OR a file — an empty innlegg says nothing.
-  if (!tekst && !fil) {
+  // filer[] — EVERY ref through the same gate as the legacy fil, capped.
+  const filer: ProsjektFilRef[] = [];
+  if (body.filer !== undefined && body.filer !== null) {
+    if (!Array.isArray(body.filer)) {
+      return NextResponse.json({ error: "Ugyldig filreferanse" }, { status: 400 });
+    }
+    if (body.filer.length > PROSJEKT_FILER_MAX) {
+      return NextResponse.json(
+        { error: `Maks ${PROSJEKT_FILER_MAX} filer per melding` },
+        { status: 400 }
+      );
+    }
+    for (const rawRef of body.filer) {
+      const ref = parseFilRef(rawRef, id);
+      if (ref === "ugyldig" || ref === null) {
+        return NextResponse.json(
+          { error: "Ugyldig filreferanse" },
+          { status: 400 }
+        );
+      }
+      filer.push(ref);
+    }
+  }
+  // Legacy fil + filer[] together must respect the same cap.
+  if ((fil ? 1 : 0) + filer.length > PROSJEKT_FILER_MAX) {
+    return NextResponse.json(
+      { error: `Maks ${PROSJEKT_FILER_MAX} filer per melding` },
+      { status: 400 }
+    );
+  }
+  // The contract: tekst (1–4000) OR file(s) — an empty innlegg says nothing.
+  if (!tekst && !fil && filer.length === 0) {
     return NextResponse.json(
       { error: "Skriv en melding eller legg ved en fil" },
       { status: 400 }
@@ -295,6 +362,7 @@ export async function POST(req: Request) {
       await mockProsjektPost(id, {
         tekst,
         fil: fil ?? undefined,
+        filer: filer.length ? filer : undefined,
         svarPa: svarPa || undefined,
       })
     );
@@ -370,6 +438,7 @@ export async function POST(req: Request) {
   }
 
   // The insert — RLS allows exactly this shape (fra=kunde, type=melding).
+  // Legacy fil keeps its columns; filer[] lands as jsonb [{path, navn}].
   const { error: insertError } = await supabase.from("prosjekt_innlegg").insert({
     kartlegging_id: id,
     fra: "kunde",
@@ -377,6 +446,9 @@ export async function POST(req: Request) {
     tekst,
     fil_path: fil?.path ?? null,
     fil_navn: fil?.navn ?? null,
+    filer: filer.length
+      ? filer.map((f) => ({ path: f.path, navn: f.navn }))
+      : null,
     svar_pa: svarPa || null,
   });
   if (insertError) {

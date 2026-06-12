@@ -33,11 +33,13 @@ import type {
   ProsjektFilRef,
   ProsjektFilResponse,
   ProsjektInnlegg,
+  ProsjektInnleggFil,
   ProsjektInnleggType,
   ProsjektPostResponse,
   ProsjektResponse,
   ResearchFunn,
 } from "@/lib/portalTypes";
+import { erBildeFil } from "@/lib/portalTypes";
 
 /** Server-side check — env var is deliberately NOT NEXT_PUBLIC. */
 export function portalMockEnabled(): boolean {
@@ -366,6 +368,8 @@ export async function mockAdminListe(): Promise<AdminListeResponse> {
         createdAt: row.createdAt,
         email: row.email,
         bedriftNavn: bedrift?.navn ?? null,
+        // The videre row demos the NYTT FRA KUNDE-tag in dev-mock.
+        nyttFraKunde: row.status === "videre",
         anbefaling: row.assessment?.anbefaling ?? null,
         status: row.status,
       };
@@ -419,6 +423,11 @@ type MockProsjekt = { uke: number | null; innlegg: ProsjektInnlegg[] };
 
 const DAG_MS = 24 * HOUR_MS;
 
+/** A fil ref → the unified ProsjektInnleggFil shape, mock-signed. */
+function mockInnleggFil(navn: string): ProsjektInnleggFil {
+  return { navn, url: MOCK_MOCKUP_URL, bilde: erBildeFil(navn) };
+}
+
 /** Six canned innlegg — a believable week-two thread in the room. */
 function seedProsjektInnlegg(): MockProsjekt {
   const now = Date.now();
@@ -432,8 +441,7 @@ function seedProsjektInnlegg(): MockProsjekt {
         tekst:
           "Da er benken rigget. Vi starter i den enden vi ble enige om: røret fra innboksen til køen. Du hører fra oss her når det skjer noe — og du kan skrive når som helst.",
         lenke: null,
-        filUrl: null,
-        filNavn: null,
+        filer: [],
         foresporselStatus: null,
         svarPa: null,
         createdAt: new Date(now - 8 * DAG_MS).toISOString(),
@@ -444,8 +452,7 @@ function seedProsjektInnlegg(): MockProsjekt {
         type: "melding",
         tekst: "Flott! Si fra om dere trenger noe fra oss underveis.",
         lenke: null,
-        filUrl: null,
-        filNavn: null,
+        filer: [],
         foresporselStatus: null,
         svarPa: null,
         createdAt: new Date(now - 8 * DAG_MS + 2 * HOUR_MS).toISOString(),
@@ -457,8 +464,7 @@ function seedProsjektInnlegg(): MockProsjekt {
         tekst:
           "Vi trenger to-tre eksempler på typiske henvendelser dere får — gjerne e-poster, anonymisert. Da treffer flyten ordlyden deres fra dag én.",
         lenke: null,
-        filUrl: null,
-        filNavn: null,
+        filer: [],
         foresporselStatus: "levert",
         svarPa: null,
         createdAt: new Date(now - 6 * DAG_MS).toISOString(),
@@ -469,8 +475,7 @@ function seedProsjektInnlegg(): MockProsjekt {
         type: "melding",
         tekst: "Her er tre stykker — anonymisert som avtalt.",
         lenke: null,
-        filUrl: MOCK_MOCKUP_URL,
-        filNavn: "eksempel-henvendelser.pdf",
+        filer: [mockInnleggFil("eksempel-henvendelser.pdf")],
         foresporselStatus: null,
         svarPa: "pi-mock-foresporsel-1",
         createdAt: new Date(now - 5 * DAG_MS).toISOString(),
@@ -482,8 +487,12 @@ function seedProsjektInnlegg(): MockProsjekt {
         tekst:
           "Første versjon av flyten kjører i testmiljøet. Lenka under viser køen med de tre eksemplene deres lagt inn — se om feltene havner der dere venter dem.",
         lenke: "https://demo.workflows.no/flyt-test",
-        filUrl: null,
-        filNavn: null,
+        // Two raster previews — exercises the thumbnail grid + lysbordet
+        // in dev (the webp resolves; bilde=true by extension).
+        filer: [
+          mockInnleggFil("ko-skjermbilde.webp"),
+          mockInnleggFil("felt-mapping.webp"),
+        ],
         foresporselStatus: null,
         svarPa: null,
         createdAt: new Date(now - 2 * DAG_MS).toISOString(),
@@ -495,8 +504,7 @@ function seedProsjektInnlegg(): MockProsjekt {
         tekst:
           "Neste steg er standardsvarene: vi trenger lista over svarene dere bruker i dag — Word, PDF eller bare en tekstfil, det dere har.",
         lenke: null,
-        filUrl: null,
-        filNavn: null,
+        filer: [],
         foresporselStatus: "apen",
         svarPa: null,
         createdAt: new Date(now - 1 * DAG_MS).toISOString(),
@@ -531,7 +539,12 @@ export async function mockProsjekt(id: string): Promise<ProsjektResponse> {
 /** POST /api/portal/prosjekt — customer message (fra=kunde, type=melding). */
 export async function mockProsjektPost(
   id: string,
-  innspill: { tekst: string; fil?: ProsjektFilRef; svarPa?: string }
+  innspill: {
+    tekst: string;
+    fil?: ProsjektFilRef;
+    filer?: ProsjektFilRef[];
+    svarPa?: string;
+  }
 ): Promise<ProsjektPostResponse> {
   await delay(MOCK_ADMIN_DELAY_MS);
   const p = ensureProsjekt(id);
@@ -542,8 +555,11 @@ export async function mockProsjektPost(
     type: "melding",
     tekst: innspill.tekst,
     lenke: null,
-    filUrl: innspill.fil ? MOCK_MOCKUP_URL : null,
-    filNavn: innspill.fil?.navn ?? null,
+    // Same merge as production: legacy fil first, then filer[].
+    filer: [
+      ...(innspill.fil ? [innspill.fil] : []),
+      ...(innspill.filer ?? []),
+    ].map((f) => mockInnleggFil(f.navn)),
     foresporselStatus: null,
     svarPa: innspill.svarPa ?? null,
     createdAt: new Date().toISOString(),
@@ -582,6 +598,7 @@ export async function mockAdminProsjektPost(
     tekst: string;
     lenke?: string;
     fil?: ProsjektFilRef;
+    filer?: ProsjektFilRef[];
     uke?: number;
   }
 ): Promise<AdminProsjektPostResponse> {
@@ -594,8 +611,11 @@ export async function mockAdminProsjektPost(
     type: innspill.type,
     tekst: innspill.tekst,
     lenke: innspill.lenke ?? null,
-    filUrl: innspill.fil ? MOCK_MOCKUP_URL : null,
-    filNavn: innspill.fil?.navn ?? null,
+    // Same merge as production: legacy fil first, then filer[].
+    filer: [
+      ...(innspill.fil ? [innspill.fil] : []),
+      ...(innspill.filer ?? []),
+    ].map((f) => mockInnleggFil(f.navn)),
     foresporselStatus: innspill.type === "foresporsel" ? "apen" : null,
     svarPa: null,
     createdAt: new Date().toISOString(),

@@ -21,6 +21,7 @@ import {
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 import AuthGate from "@/components/portal/AuthGate";
 import Benken from "@/components/portal/Benken";
+import { useSesjonEpost } from "@/components/portal/useSesjonEpost";
 import Forslag, { FORSLAG_HEADING_ID } from "@/components/portal/Forslag";
 import LevelRail from "@/components/portal/LevelRail";
 import Tilbud, { TILBUD_VURDERING_ID } from "@/components/portal/Tilbud";
@@ -294,6 +295,7 @@ function ErrorScreen({
 export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
   const { lang, setLang } = useLang();
   const t = portalContent[lang];
+  const sesjonEpost = useSesjonEpost(devMock);
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [draft, setDraft] = useState<Draft>({ answers: {}, step: 0 });
@@ -748,15 +750,27 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
         ) : null}
         <span className="vk-portal-topplenker">
           {/* Session escape — only once the visitor IS someone (post-auth
-              phases). Mid-generation logout would orphan a paid drawing. */}
+              phases). Mid-generation logout would orphan a paid drawing.
+              The quiet mono address says WHO is in — truncated, full on
+              title (and the toolbar reads it out loud on hover). */}
           {phase === "forslag" || phase === "tilbud" || phase === "videre" ? (
-            <button
-              type="button"
-              className="vk-portal-avbryt vk-mono"
-              onClick={loggUt}
-            >
-              {t.header.loggUt}
-            </button>
+            <>
+              {sesjonEpost ? (
+                <span
+                  className="vk-mono vk-portal-sesjonepost"
+                  title={sesjonEpost}
+                >
+                  {sesjonEpost}
+                </span>
+              ) : null}
+              <button
+                type="button"
+                className="vk-portal-avbryt vk-mono"
+                onClick={loggUt}
+              >
+                {t.header.loggUt}
+              </button>
+            </>
           ) : null}
           <Link href="/#kontakt" className="vk-portal-avbryt vk-mono">
             {t.header.avbryt}
