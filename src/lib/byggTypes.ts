@@ -43,6 +43,8 @@ export type AdminBygg = {
   ferdigAt: string | null;
   /** Petters stående føringer til fabrikken (brukes ved førstebygg). */
   byggenotat: string | null;
+  /** Valgt modell-innsats ('auto' = etter pris). */
+  effort: ByggEffort;
   logg: ByggLoggLinje[];
 };
 
@@ -56,7 +58,8 @@ export type AdminByggHandling =
   | "del"
   | "autobygg"
   | "notat"
-  | "endre";
+  | "endre"
+  | "effort";
 
 export type AdminByggBody = {
   kartleggingId: string;
@@ -67,6 +70,8 @@ export type AdminByggBody = {
   byggenotat?: string;
   /** Kun for handling: 'endre' — endringsønske som starter et revisjonsbygg. */
   endringsonske?: string;
+  /** Kun for handling: 'effort' — valgt modell-innsats (lagres). */
+  effort?: ByggEffort;
 };
 
 /** Maks lengde på byggenotat/endringsønske. */
@@ -74,6 +79,28 @@ export const BYGG_NOTAT_MAX = 4000;
 
 /** Byggemodus fabrikken kjører i. */
 export type ByggModus = "full" | "revisjon";
+
+/**
+ * Modell-innsats. 'auto' skalerer etter tilbudspris; ellers eksplisitt
+ * Fable 5-nivå. 'max' er CLI-ens dypeste flagg-nivå («ultracode» finnes
+ * KUN som interaktiv sesjonsmodus, ikke som headless flagg).
+ */
+export type ByggEffort =
+  | "auto"
+  | "low"
+  | "medium"
+  | "high"
+  | "xhigh"
+  | "max";
+
+export const BYGG_EFFORTS: readonly ByggEffort[] = [
+  "auto",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+];
 
 /** Kundens forhåndsvisnings-fane — bevisst minimal. */
 export type KundeByggResponse = {

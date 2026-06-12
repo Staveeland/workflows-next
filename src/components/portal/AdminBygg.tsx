@@ -4,11 +4,13 @@ import "@/styles/verksted/bygg.css";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
-import type {
-  AdminBygg as AdminByggData,
-  AdminByggHandling,
-  AdminByggResponse,
-  ByggStatus,
+import {
+  BYGG_EFFORTS,
+  type AdminBygg as AdminByggData,
+  type AdminByggHandling,
+  type AdminByggResponse,
+  type ByggEffort,
+  type ByggStatus,
 } from "@/lib/byggTypes";
 
 /**
@@ -37,6 +39,16 @@ const STATUS_LABEL: Record<ByggStatus, string> = {
 };
 
 const AKTIV: ReadonlySet<ByggStatus> = new Set(["venter", "bygger"]);
+
+/** Menyetiketter for modell-innsats. */
+const EFFORT_LABEL: Record<ByggEffort, string> = {
+  auto: "Auto (etter pris)",
+  low: "Low — raskt & rimelig",
+  medium: "Medium",
+  high: "High — grundig",
+  xhigh: "Xhigh — svært grundig",
+  max: "Max — dypest (tar lengst)",
+};
 
 /**
  * De kanoniske fasene fabrikken går gjennom, hver med et nøkkelord vi
@@ -165,7 +177,12 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
   const utfor = useCallback(
     async (
       handling: AdminByggHandling,
-      ekstra?: { autobygg?: boolean; byggenotat?: string; endringsonske?: string }
+      ekstra?: {
+        autobygg?: boolean;
+        byggenotat?: string;
+        endringsonske?: string;
+        effort?: ByggEffort;
+      }
     ) => {
       if (travel) return;
       setTravel(true);
@@ -255,6 +272,33 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
         <p className="vk-mono vk-bygg-feil" role="alert">
           {feil}
         </p>
+      ) : null}
+
+      {/* Modell-innsats — default Auto (skalerer etter pris); kan overstyres
+          manuelt. Lagres umiddelbart ved valg. Låst mens et bygg kjører. */}
+      {!AKTIV.has(status) ? (
+        <div className="vk-bygg-effort">
+          <label className="vk-bygg-notat-label" htmlFor="vk-bygg-effort">
+            Modell-innsats (Fable 5)
+          </label>
+          <select
+            id="vk-bygg-effort"
+            className="vk-bygg-effort-felt"
+            value={bygg?.effort ?? "auto"}
+            disabled={travel}
+            onChange={(e) => void utfor("effort", { effort: e.target.value as ByggEffort })}
+          >
+            {BYGG_EFFORTS.map((nivaa) => (
+              <option key={nivaa} value={nivaa}>
+                {EFFORT_LABEL[nivaa]}
+              </option>
+            ))}
+          </select>
+          <p className="vk-bygg-effort-hint">
+            Auto gir low under 20 000 kr og high over. Velg Max for de største
+            prosjektene — dypere kvalitet, men lengre byggetid.
+          </p>
+        </div>
       ) : null}
 
       {/* Byggenotat — Petters føringer som går inn i byggeprompten med

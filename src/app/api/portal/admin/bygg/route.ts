@@ -10,9 +10,11 @@ import { ADMIN_EMAIL } from "@/lib/portalTypes";
 import {
   BYGG_LOGG_MAX,
   BYGG_NOTAT_MAX,
+  BYGG_EFFORTS,
   type AdminBygg,
   type AdminByggBody,
   type AdminByggResponse,
+  type ByggEffort,
   type ByggLoggLinje,
   type ByggStatus,
 } from "@/lib/byggTypes";
@@ -60,10 +62,11 @@ type Rad = {
   startet_at: string | null;
   ferdig_at: string | null;
   byggenotat: string | null;
+  effort: ByggEffort;
 };
 
 const RAD_SELECT =
-  "id, kartlegging_id, status, autobygg, github_repo, vercel_project_id, preview_url, nettsted_bruker, nettsted_passord, siste_commit_sha, siste_deploy_at, logg, delt_med_kunde_at, startet_at, ferdig_at, byggenotat";
+  "id, kartlegging_id, status, autobygg, github_repo, vercel_project_id, preview_url, nettsted_bruker, nettsted_passord, siste_commit_sha, siste_deploy_at, logg, delt_med_kunde_at, startet_at, ferdig_at, byggenotat, effort";
 
 function tilLogg(raw: unknown): ByggLoggLinje[] {
   if (!Array.isArray(raw)) return [];
@@ -93,6 +96,7 @@ function tilAdminBygg(rad: Rad): AdminBygg {
     startetAt: rad.startet_at,
     ferdigAt: rad.ferdig_at,
     byggenotat: rad.byggenotat,
+    effort: rad.effort ?? "auto",
     logg: tilLogg(rad.logg),
   };
 }
@@ -195,7 +199,7 @@ export async function POST(req: Request) {
       ? body.kartleggingId
       : null;
   const handling = body.handling;
-  const lovligeHandlinger = ["start", "stopp", "del", "autobygg", "notat", "endre"];
+  const lovligeHandlinger = ["start", "stopp", "del", "autobygg", "notat", "endre", "effort"];
   if (!kartleggingId || !handling || !lovligeHandlinger.includes(handling)) {
     return NextResponse.json({ error: "Ugyldig forespørsel" }, { status: 400 });
   }
@@ -245,6 +249,32 @@ export async function POST(req: Request) {
         .insert({ kartlegging_id: kartleggingId, autobygg });
       if (error) {
         console.error("[admin/bygg] autobygg insert failed", error);
+        return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+      }
+    }
+    return hentOgSvar(supabase, kartleggingId);
+  }
+
+  if (handling === "effort") {
+    // Modell-innsats — kan velges når som helst (også før godkjenning).
+    const valgt = BYGG_EFFORTS.includes(body.effort as ByggEffort)
+      ? (body.effort as ByggEffort)
+      : "auto";
+    if (eksisterende) {
+      const { error } = await supabase
+        .from("byggeprosjekter")
+        .update({ effort: valgt, updated_at: now })
+        .eq("id", (eksisterende as Rad).id);
+      if (error) {
+        console.error("[admin/bygg] effort update failed", error);
+        return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+      }
+    } else {
+      const { error } = await supabase
+        .from("byggeprosjekter")
+        .insert({ kartlegging_id: kartleggingId, effort: valgt });
+      if (error) {
+        console.error("[admin/bygg] effort insert failed", error);
         return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
       }
     }

@@ -41,7 +41,7 @@ export async function GET(req: Request) {
   const { data: bygg, error: byggError } = await supabase
     .from("byggeprosjekter")
     .select(
-      "id, kartlegging_id, status, kansellert_at, byggenotat, endringsonske, github_repo"
+      "id, kartlegging_id, status, kansellert_at, byggenotat, endringsonske, github_repo, effort"
     )
     .eq("id", byggId)
     .maybeSingle();
@@ -95,5 +95,7 @@ export async function GET(req: Request) {
     byggenotat: (bygg.byggenotat as string | null) ?? "",
     endringsonske: (bygg.endringsonske as string | null) ?? "",
     githubRepo: (bygg.github_repo as string | null) ?? "",
+    // Valgt modell-innsats ('auto' = fabrikken skalerer etter pris).
+    effort: (bygg.effort as string | null) ?? "auto",
   });
 }
