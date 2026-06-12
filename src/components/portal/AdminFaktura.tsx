@@ -15,6 +15,7 @@ import {
   FAKTURA_DAGER_FORFALL_MIN,
   FAKTURA_LINJE_BESKRIVELSE_MAX,
   FAKTURA_LINJER_MAX,
+  FAKTURA_REFERANSE_MAX,
   MVA_SATSER,
   type AdminFakturaListeResponse,
   type AdminFakturaOpprettBody,
@@ -149,7 +150,10 @@ export default function AdminFaktura({
     String(FAKTURA_DAGER_FORFALL_DEFAULT)
   );
   const [fakturatekst, setFakturatekst] = useState("");
+  const [varReferanse, setVarReferanse] = useState("Workflows AS");
+  const [deresReferanse, setDeresReferanse] = useState("");
   const [lagrer, setLagrer] = useState(false);
+  const [forslagHentet, setForslagHentet] = useState(false);
 
   // Radhandlinger: to-stegs bekreftelse (arm → 5 s → utfør) per knapp.
   const [armet, setArmet] = useState<{
@@ -201,6 +205,55 @@ export default function AdminFaktura({
   useEffect(() => {
     void hentAlt();
   }, [hentAlt]);
+
+  // Autoutfyll skjemaet fra det godkjente tilbudet — én gang per løp, så
+  // Petter bare trykker «Lag fakturautkast». Stille ved feil.
+  useEffect(() => {
+    if (forslagHentet) return;
+    let avbrutt = false;
+    void (async () => {
+      try {
+        const token = await hentToken();
+        const res = await fetch(
+          `/api/portal/admin/fiken/faktura?kartleggingId=${encodeURIComponent(
+            kartleggingId
+          )}&forslag=1`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (!res.ok || avbrutt) return;
+        const { forslag } = (await res.json()) as {
+          forslag: {
+            linjer: Array<{ beskrivelse: string; antall: number; enhetsprisOre: number; mvaSats: MvaSats }>;
+            dagerTilForfall: number;
+            fakturatekst: string;
+            varReferanse: string;
+            deresReferanse: string;
+          };
+        };
+        if (avbrutt || !forslag) return;
+        if (forslag.linjer.length > 0) {
+          setLinjer(
+            forslag.linjer.map((l) => ({
+              beskrivelse: l.beskrivelse,
+              antall: String(l.antall),
+              prisKr: l.enhetsprisOre > 0 ? String(l.enhetsprisOre / 100).replace(".", ",") : "",
+              mvaSats: l.mvaSats,
+            }))
+          );
+        }
+        setDagerTilForfall(String(forslag.dagerTilForfall));
+        if (forslag.fakturatekst) setFakturatekst(forslag.fakturatekst);
+        if (forslag.deresReferanse) setDeresReferanse(forslag.deresReferanse);
+      } catch {
+        // stille — skjemaet står med tom standardlinje
+      } finally {
+        if (!avbrutt) setForslagHentet(true);
+      }
+    })();
+    return () => {
+      avbrutt = true;
+    };
+  }, [kartleggingId, forslagHentet]);
 
   /** POST mot admin-API-et — kaster med serverens feilmelding når den finnes. */
   const postJson = useCallback(
@@ -305,10 +358,13 @@ export default function AdminFaktura({
         linjer: bygde,
         dagerTilForfall: dager,
         ...(fakturatekst.trim() ? { fakturatekst: fakturatekst.trim() } : {}),
+        ...(varReferanse.trim() ? { varReferanse: varReferanse.trim() } : {}),
+        ...(deresReferanse.trim() ? { deresReferanse: deresReferanse.trim() } : {}),
       };
       await postJson("/api/portal/admin/fiken/faktura", body);
       setLinjer([{ ...TOM_LINJE }]);
       setFakturatekst("");
+      setDeresReferanse("");
       setDagerTilForfall(String(FAKTURA_DAGER_FORFALL_DEFAULT));
       setMelding("Utkastet ligger i Fiken — neste steg er «Lag faktura».");
       await hentAlt(true);
@@ -699,6 +755,37 @@ export default function AdminFaktura({
                     value={fakturatekst}
                     placeholder="Vises på fakturaen i Fiken"
                     onChange={(e) => setFakturatekst(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="vk-fak-skjemarad vk-fak-skjemarad--detaljer">
+                <div className="vk-portal-felt vk-fak-felt--tekst">
+                  <label className="vk-portal-label" htmlFor="vk-fak-varref">
+                    Vår referanse
+                  </label>
+                  <input
+                    id="vk-fak-varref"
+                    type="text"
+                    className="vk-portal-input"
+                    maxLength={FAKTURA_REFERANSE_MAX}
+                    value={varReferanse}
+                    placeholder="f.eks. Petter Staveland"
+                    onChange={(e) => setVarReferanse(e.target.value)}
+                  />
+                </div>
+                <div className="vk-portal-felt vk-fak-felt--tekst">
+                  <label className="vk-portal-label" htmlFor="vk-fak-deresref">
+                    Deres referanse
+                  </label>
+                  <input
+                    id="vk-fak-deresref"
+                    type="text"
+                    className="vk-portal-input"
+                    maxLength={FAKTURA_REFERANSE_MAX}
+                    value={deresReferanse}
+                    placeholder="kundens kontaktperson"
+                    onChange={(e) => setDeresReferanse(e.target.value)}
                   />
                 </div>
               </div>

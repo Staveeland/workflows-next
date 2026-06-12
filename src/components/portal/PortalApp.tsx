@@ -382,6 +382,8 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
   const [forhandsvisning, setForhandsvisning] = useState<{
     url: string;
     sistOppdatert: string;
+    bruker: string | null;
+    passord: string | null;
   } | null>(null);
   useEffect(() => {
     if (devMock) return;
@@ -392,12 +394,19 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
       if (!token || avbrutt) return;
       try {
         const res = await apiFetch<{
-          forhandsvisning: { url: string; sistOppdatert: string | null } | null;
+          forhandsvisning: {
+            url: string;
+            sistOppdatert: string | null;
+            bruker: string | null;
+            passord: string | null;
+          } | null;
         }>("/api/portal/bygg", token);
         if (!avbrutt && res.forhandsvisning?.url) {
           setForhandsvisning({
             url: res.forhandsvisning.url,
             sistOppdatert: res.forhandsvisning.sistOppdatert ?? "",
+            bruker: res.forhandsvisning.bruker,
+            passord: res.forhandsvisning.passord,
           });
         }
       } catch {

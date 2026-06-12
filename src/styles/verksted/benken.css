@@ -598,6 +598,48 @@
   color: var(--stov);
 }
 
+.vk-benk-forhand-laas {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--feltkant, #3a3027);
+  border-radius: 8px;
+  background: var(--benk, #211b15);
+  max-width: 36ch;
+}
+
+.vk-benk-forhand-laas-tittel {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: var(--krem, #f3e9d8);
+}
+
+.vk-benk-forhand-laas-felt {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.vk-benk-forhand-laas-felt > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.vk-benk-forhand-laas-felt dt {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--stov, #b8a896);
+}
+
+.vk-benk-forhand-laas-felt dd {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--amber, #f0a32f);
+  user-select: all;
+}
+
 /* ════════════════════════════════════════════
    Verkstedkontoret — admin-side additions (AdminBenken)
    ════════════════════════════════════════════ */

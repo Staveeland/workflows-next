@@ -411,6 +411,9 @@ export interface PortalContent {
       tomTekst: string;
       apneKnapp: string;
       sistOppdatertTemplate: string;
+      laasTittel: string;
+      brukernavn: string;
+      passord: string;
     };
   };
   /** Verkstedkontoret (/start/admin) — Petters bakrom. Quiet, dense. */
@@ -1067,6 +1070,9 @@ export const portalContent: Record<Lang, PortalContent> = {
           "Her kommer en levende forhåndsvisning når byggingen starter.",
         apneKnapp: "Åpne forhåndsvisningen",
         sistOppdatertTemplate: "sist oppdatert {dato}",
+        laasTittel: "Forhåndsvisningen er passordbeskyttet — bruk denne:",
+        brukernavn: "Brukernavn",
+        passord: "Passord",
       },
     },
     admin: {
@@ -1707,6 +1713,9 @@ export const portalContent: Record<Lang, PortalContent> = {
         tomTekst: "A live preview appears here once the build starts.",
         apneKnapp: "Open the preview",
         sistOppdatertTemplate: "last updated {dato}",
+        laasTittel: "The preview is password protected — use this:",
+        brukernavn: "Username",
+        passord: "Password",
       },
     },
     admin: {

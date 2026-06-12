@@ -636,7 +636,12 @@ interface BenkenProps {
    * build factory. Absent/null renders the tab's empty state; the URL is
    * https-validated before it ever becomes a link.
    */
-  forhandsvisning?: { url: string; sistOppdatert: string } | null;
+  forhandsvisning?: {
+    url: string;
+    sistOppdatert: string;
+    bruker?: string | null;
+    passord?: string | null;
+  } | null;
 }
 
 /** Feed older than this re-fetches on the quiet timer (signed URLs: 1h). */
@@ -1815,6 +1820,23 @@ export default function Benken({
                       )}`
                     )}
                   </p>
+                  {forhandsvisning.bruker && forhandsvisning.passord ? (
+                    <div className="vk-benk-forhand-laas">
+                      <p className="vk-benk-forhand-laas-tittel">
+                        {t.benken.forhandsvisning.laasTittel}
+                      </p>
+                      <dl className="vk-benk-forhand-laas-felt">
+                        <div>
+                          <dt>{t.benken.forhandsvisning.brukernavn}</dt>
+                          <dd className="vk-mono">{forhandsvisning.bruker}</dd>
+                        </div>
+                        <div>
+                          <dt>{t.benken.forhandsvisning.passord}</dt>
+                          <dd className="vk-mono">{forhandsvisning.passord}</dd>
+                        </div>
+                      </dl>
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <div className="vk-benk-forhand vk-benk-forhand--tom">

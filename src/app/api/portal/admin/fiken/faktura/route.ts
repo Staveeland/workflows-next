@@ -16,9 +16,12 @@ import {
   FAKTURA_ENHETSPRIS_ORE_MAX,
   FAKTURA_LINJE_BESKRIVELSE_MAX,
   FAKTURA_LINJER_MAX,
+  FAKTURA_REFERANSE_MAX,
   FAKTURA_SELECT,
+  FAKTURA_DAGER_FORFALL_DEFAULT,
   regnBelop,
   tilFakturaRad,
+  type AdminFakturaForslagResponse,
   type AdminFakturaListeResponse,
   type AdminFakturaOpprettBody,
   type AdminFakturaOpprettResponse,
@@ -219,6 +222,22 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Fant ikke løpet" }, { status: 404 });
   }
 
+  // ?forslag=1 — autoutfylt utkast fra det godkjente tilbudet.
+  if (new URL(req.url).searchParams.get("forslag") === "1") {
+    const { data: kart, error: kErr } = await auth.supabase
+      .from("kartlegginger")
+      .select("tilbud, answers")
+      .eq("id", kartleggingId)
+      .maybeSingle();
+    if (kErr) {
+      console.error("[portal/admin/fiken/faktura] forslag-select feilet", kErr);
+      return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+    }
+    return NextResponse.json<AdminFakturaForslagResponse>({
+      forslag: byggForslag(kart?.tilbud),
+    });
+  }
+
   const { data, error } = await auth.supabase
     .from("fakturaer")
     .select(FAKTURA_SELECT)
@@ -232,6 +251,44 @@ export async function GET(req: Request) {
   return NextResponse.json<AdminFakturaListeResponse>({
     fakturaer: ((data ?? []) as unknown as FakturaDbRow[]).map(tilFakturaRad),
   });
+}
+
+/**
+ * Autoutfylt fakturaforslag fra det godkjente tilbudet. Har tilbudet
+ * strukturert pris (prisBelopOre/mvaSats), lager vi én ferdig linje så
+ * Petter bare trykker «Lag utkast». Mangler den, kommer en tom linje med
+ * leveransebeskrivelsen som hint.
+ */
+function byggForslag(tilbud: unknown): AdminFakturaForslagResponse["forslag"] {
+  const t =
+    tilbud && typeof tilbud === "object"
+      ? (tilbud as {
+          tekst?: unknown;
+          leveranse?: unknown;
+          prisBelopOre?: unknown;
+          mvaSats?: unknown;
+        })
+      : null;
+  const leveranse = typeof t?.leveranse === "string" ? t.leveranse : "";
+  const beskrivelse =
+    (typeof t?.tekst === "string" && t.tekst.trim()) || leveranse || "Leveranse";
+  const harPris =
+    typeof t?.prisBelopOre === "number" && Number.isFinite(t.prisBelopOre) && t.prisBelopOre > 0;
+  const mvaSats = erMvaSats(t?.mvaSats) ? t.mvaSats : 25;
+  return {
+    linjer: [
+      {
+        beskrivelse: beskrivelse.slice(0, FAKTURA_LINJE_BESKRIVELSE_MAX),
+        antall: 1,
+        enhetsprisOre: harPris ? (t!.prisBelopOre as number) : 0,
+        mvaSats,
+      },
+    ],
+    dagerTilForfall: FAKTURA_DAGER_FORFALL_DEFAULT,
+    fakturatekst: leveranse ? `Iht. godkjent tilbud: ${leveranse}`.slice(0, FAKTURA_BESKRIVELSE_MAX) : "",
+    varReferanse: "",
+    deresReferanse: "",
+  };
 }
 
 /* ── POST — fakturaer-rad + Fiken-UTKAST ── */
@@ -283,6 +340,19 @@ export async function POST(req: Request) {
       );
     }
     fakturatekst = body.fakturatekst.trim() || null;
+  }
+  const parseRef = (verdi: unknown): string | null | "ugyldig" => {
+    if (verdi === undefined || verdi === null) return null;
+    if (typeof verdi !== "string" || verdi.length > FAKTURA_REFERANSE_MAX) return "ugyldig";
+    return verdi.trim() || null;
+  };
+  const varReferanse = parseRef(body.varReferanse);
+  const deresReferanse = parseRef(body.deresReferanse);
+  if (varReferanse === "ugyldig" || deresReferanse === "ugyldig") {
+    return NextResponse.json(
+      { error: `Referansene kan være maks ${FAKTURA_REFERANSE_MAX} tegn.` },
+      { status: 400 }
+    );
   }
 
   // DEV MOCK — everything fake lives in portalMock.ts (auto-admin).
@@ -461,6 +531,8 @@ export async function POST(req: Request) {
         uuid: rad.fiken_uuid,
         dagerTilForfall: dager,
         fakturatekst,
+        varReferanse,
+        deresReferanse,
         linjer,
       });
     }

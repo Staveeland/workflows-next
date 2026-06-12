@@ -91,6 +91,10 @@ export interface FikenDraftRequest {
   daysUntilDueDate: number;
   issueDate?: string;
   invoiceText?: string;
+  /** «Vår referanse» — Fiken: ourReference. */
+  ourReference?: string;
+  /** «Deres referanse» — Fiken: yourReference. */
+  yourReference?: string;
   lines: FikenDraftLineRequest[];
 }
 
@@ -178,8 +182,12 @@ export function mvaSatsTilVatType(sats: MvaSats): FikenVatType {
   }
 }
 
-/** Standard inntektskonto for tjenestesalg på utkastlinjene. */
-export const FIKEN_INNTEKTSKONTO = "3000";
+/**
+ * Standard inntektskonto for utkastlinjene. 3100 = «Salgsinntekt
+ * egentilvirkede varer/tjenester, avgiftspliktig» (Vare egenprodusert) —
+ * riktig for Workflows' egne leveranser. 3000 ville vært videresalg.
+ */
+export const FIKEN_INNTEKTSKONTO = "3100";
 
 /* ════════════════════════════════════════════
    Våre API-kontrakter (admin-rutene)
@@ -209,7 +217,9 @@ export const FAKTURA_LINJE_BESKRIVELSE_MAX = 200;
 export const FAKTURA_BESKRIVELSE_MAX = 500;
 export const FAKTURA_DAGER_FORFALL_MIN = 1;
 export const FAKTURA_DAGER_FORFALL_MAX = 365;
-export const FAKTURA_DAGER_FORFALL_DEFAULT = 14;
+export const FAKTURA_DAGER_FORFALL_DEFAULT = 30;
+/** Maks lengde på referansefeltene (vår/deres referanse). */
+export const FAKTURA_REFERANSE_MAX = 100;
 /** Maks antall per linje (romslig; fanger tastefeil). */
 export const FAKTURA_ANTALL_MAX = 10_000;
 /** Maks enhetspris i øre (10 mill. kr) — fanger tastefeil, ikke ambisjoner. */
@@ -236,10 +246,29 @@ export interface FakturaLinjeInput {
 export interface AdminFakturaOpprettBody {
   kartleggingId: string;
   linjer: FakturaLinjeInput[];
-  /** Heltall 1–365 — default 14 i UI. */
+  /** Heltall 1–365 — default 30 i UI. */
   dagerTilForfall: number;
   /** Valgfri fakturatekst (≤500) — vises på fakturaen i Fiken. */
   fakturatekst?: string;
+  /** «Vår referanse» (≤100). */
+  varReferanse?: string;
+  /** «Deres referanse» (≤100). */
+  deresReferanse?: string;
+}
+
+/**
+ * GET /api/portal/admin/fiken/faktura/forslag?kartleggingId= — autoutfylt
+ * fakturautkast fra det godkjente tilbudet, så admin bare trykker «Lag
+ * utkast». Tomt forslag (null-felter) når tilbudet mangler strukturert pris.
+ */
+export interface AdminFakturaForslagResponse {
+  forslag: {
+    linjer: FakturaLinjeInput[];
+    dagerTilForfall: number;
+    fakturatekst: string;
+    varReferanse: string;
+    deresReferanse: string;
+  };
 }
 
 /** Én fakturaer-rad slik admin-UI-et (og senere kundevisningen) ser den. */

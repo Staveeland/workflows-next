@@ -50,6 +50,8 @@ type Rad = {
   github_repo: string | null;
   vercel_project_id: string | null;
   preview_url: string | null;
+  nettsted_bruker: string | null;
+  nettsted_passord: string | null;
   siste_commit_sha: string | null;
   siste_deploy_at: string | null;
   logg: unknown;
@@ -59,7 +61,7 @@ type Rad = {
 };
 
 const RAD_SELECT =
-  "id, kartlegging_id, status, autobygg, github_repo, vercel_project_id, preview_url, siste_commit_sha, siste_deploy_at, logg, delt_med_kunde_at, startet_at, ferdig_at";
+  "id, kartlegging_id, status, autobygg, github_repo, vercel_project_id, preview_url, nettsted_bruker, nettsted_passord, siste_commit_sha, siste_deploy_at, logg, delt_med_kunde_at, startet_at, ferdig_at";
 
 function tilLogg(raw: unknown): ByggLoggLinje[] {
   if (!Array.isArray(raw)) return [];
@@ -81,6 +83,8 @@ function tilAdminBygg(rad: Rad): AdminBygg {
     githubRepo: rad.github_repo,
     githubUrl: rad.github_repo ? `https://github.com/${rad.github_repo}` : null,
     previewUrl: rad.preview_url,
+    nettstedBruker: rad.nettsted_bruker,
+    nettstedPassord: rad.nettsted_passord,
     sisteCommitSha: rad.siste_commit_sha,
     sisteDeployAt: rad.siste_deploy_at,
     deltMedKundeAt: rad.delt_med_kunde_at,

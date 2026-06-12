@@ -33,6 +33,9 @@ export type AdminBygg = {
   /** https://github.com/<repo> — avledet, klikkbar. */
   githubUrl: string | null;
   previewUrl: string | null;
+  /** Basic Auth-legitimasjon til forhåndsvisningen (lav sensitivitet). */
+  nettstedBruker: string | null;
+  nettstedPassord: string | null;
   sisteCommitSha: string | null;
   sisteDeployAt: string | null;
   deltMedKundeAt: string | null;
@@ -59,6 +62,8 @@ export type KundeByggResponse = {
   forhandsvisning: {
     url: string;
     sistOppdatert: string | null;
+    bruker: string | null;
+    passord: string | null;
   } | null;
 };
 
@@ -71,6 +76,8 @@ export type FabrikkStatusBody = {
   vercelProjectId?: string;
   previewUrl?: string;
   commitSha?: string;
+  nettstedBruker?: string;
+  nettstedPassord?: string;
 };
 
 export const BYGG_LOGG_MAX = 200;

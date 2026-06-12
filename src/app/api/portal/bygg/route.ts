@@ -52,7 +52,9 @@ export async function GET(req: Request) {
 
   const { data: bygg, error: byggError } = await supabase
     .from("byggeprosjekter")
-    .select("preview_url, siste_deploy_at, vercel_project_id, delt_med_kunde_at")
+    .select(
+      "preview_url, siste_deploy_at, vercel_project_id, delt_med_kunde_at, nettsted_bruker, nettsted_passord"
+    )
     .eq("kartlegging_id", kart.id)
     .maybeSingle();
   if (byggError) {
@@ -75,6 +77,11 @@ export async function GET(req: Request) {
   }
 
   return NextResponse.json<KundeByggResponse>({
-    forhandsvisning: { url, sistOppdatert: sist },
+    forhandsvisning: {
+      url,
+      sistOppdatert: sist,
+      bruker: (bygg.nettsted_bruker as string | null) ?? null,
+      passord: (bygg.nettsted_passord as string | null) ?? null,
+    },
   });
 }

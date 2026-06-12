@@ -146,3 +146,135 @@
   font-size: 0.9rem;
   max-width: 56ch;
 }
+
+/* Passord-port */
+.vk-scope .vk-bygg-laas {
+  padding: 14px 16px;
+  border: 1px solid var(--feltkant, #3a3027);
+  border-radius: 8px;
+  background: var(--benk, #211b15);
+}
+
+.vk-scope .vk-bygg-laas-tittel {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: var(--krem, #f3e9d8);
+}
+
+.vk-scope .vk-bygg-laas-felt {
+  margin: 0;
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.vk-scope .vk-bygg-laas-felt dt {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--stov, #b8a896);
+}
+
+.vk-scope .vk-bygg-laas-felt dd {
+  margin: 2px 0 0;
+  font-size: 1rem;
+  color: var(--amber, #f0a32f);
+  user-select: all;
+}
+
+.vk-scope .vk-bygg-laas-hint {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--stov, #b8a896);
+}
+
+/* Fase-tidslinje */
+.vk-scope .vk-bygg-faser {
+  list-style: none;
+  margin: 0;
+  padding: 14px 16px;
+  display: grid;
+  gap: 0;
+  background: var(--benk, #211b15);
+  border: 1px solid var(--feltkant, #3a3027);
+  border-radius: 8px;
+}
+
+.vk-scope .vk-bygg-fase {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  position: relative;
+  font-size: 0.9rem;
+}
+
+/* Loddrett strek mellom merkene */
+.vk-scope .vk-bygg-fase:not(:last-child) .vk-bygg-fase-merke::after {
+  content: "";
+  position: absolute;
+  left: 0.6rem;
+  top: 1.6rem;
+  bottom: -0.5rem;
+  width: 1px;
+  background: var(--feltkant, #3a3027);
+}
+
+.vk-scope .vk-bygg-fase-merke {
+  flex: none;
+  width: 1.2rem;
+  height: 1.2rem;
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  border-radius: 999px;
+  color: var(--stov, #b8a896);
+}
+
+.vk-scope .vk-bygg-fase--ferdig .vk-bygg-fase-merke {
+  color: var(--drift-green, #7da27a);
+}
+
+.vk-scope .vk-bygg-fase--ferdig .vk-bygg-fase-navn {
+  color: var(--krem, #f3e9d8);
+}
+
+.vk-scope .vk-bygg-fase--aktiv .vk-bygg-fase-merke {
+  color: var(--amber, #f0a32f);
+  animation: vk-bygg-puls 1.4s ease-in-out infinite;
+}
+
+.vk-scope .vk-bygg-fase--aktiv .vk-bygg-fase-navn {
+  color: var(--amber, #f0a32f);
+}
+
+.vk-scope .vk-bygg-fase--venter .vk-bygg-fase-navn {
+  color: var(--stov, #b8a896);
+}
+
+.vk-scope .vk-bygg-fase-na {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--amber, #f0a32f);
+}
+
+@keyframes vk-bygg-puls {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vk-scope .vk-bygg-fase--aktiv .vk-bygg-fase-merke {
+    animation: none;
+  }
+}
+
+.vk-scope .vk-bygg-rålogg summary {
+  font-size: 0.78rem;
+  color: var(--stov, #b8a896);
+  cursor: pointer;
+}
+
+.vk-scope .vk-bygg-rålogg .vk-bygg-logg {
+  margin-top: 10px;
+}

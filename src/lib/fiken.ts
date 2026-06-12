@@ -704,6 +704,8 @@ export async function createDraftInvoice(opts: {
   uuid: string;
   dagerTilForfall: number;
   fakturatekst?: string | null;
+  varReferanse?: string | null;
+  deresReferanse?: string | null;
   linjer: FakturaLinjeInput[];
 }): Promise<number> {
   const slug = await hentCompanySlug();
@@ -713,6 +715,8 @@ export async function createDraftInvoice(opts: {
     customerId: opts.customerId,
     daysUntilDueDate: opts.dagerTilForfall,
     ...(opts.fakturatekst ? { invoiceText: opts.fakturatekst } : {}),
+    ...(opts.varReferanse ? { ourReference: opts.varReferanse } : {}),
+    ...(opts.deresReferanse ? { yourReference: opts.deresReferanse } : {}),
     lines: opts.linjer.map((l) => ({
       description: l.beskrivelse,
       quantity: l.antall,

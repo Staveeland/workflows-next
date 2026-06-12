@@ -38,6 +38,43 @@ const STATUS_LABEL: Record<ByggStatus, string> = {
 
 const AKTIV: ReadonlySet<ByggStatus> = new Set(["venter", "bygger"]);
 
+/**
+ * De kanoniske fasene fabrikken går gjennom, hver med et nøkkelord vi
+ * kjenner igjen i loggteksten. Tidslinjen markerer hver fase som ferdig,
+ * pågående eller ikke startet ut fra hvor langt loggen har kommet.
+ */
+const FASER: ReadonlyArray<{ navn: string; nokkel: RegExp }> = [
+  { navn: "Henter byggegrunnlaget", nokkel: /byggegrunnlaget|i gang/i },
+  { navn: "Oppretter kunde-repo", nokkel: /repo/i },
+  { navn: "Designbrief fra kundens uttrykk", nokkel: /designbrief|uttrykk/i },
+  { navn: "Fable 5 koder førsteversjonen", nokkel: /koder|gjennomgang/i },
+  { navn: "Verifiserer bygget", nokkel: /verifiser|bygget/i },
+  { navn: "Passordbeskyttelse", nokkel: /passordbeskyttelse/i },
+  { navn: "Deployer til Vercel", nokkel: /vercel|deployer|laster opp/i },
+  { navn: "Live og klar", nokkel: /live|klar til/i },
+];
+
+type FaseTilstand = "ferdig" | "aktiv" | "venter";
+
+/** Hvor langt loggen har kommet → tilstand per fase. */
+function faseTilstander(
+  logg: ReadonlyArray<{ melding: string }>,
+  status: ByggStatus
+): FaseTilstand[] {
+  let nadd = -1;
+  FASER.forEach((f, i) => {
+    if (logg.some((l) => f.nokkel.test(l.melding))) nadd = i;
+  });
+  const ferdigBygg = status === "klar" || status === "delt";
+  if (ferdigBygg) nadd = FASER.length - 1;
+  const stoppet = status === "feilet" || status === "stoppet";
+  return FASER.map((_, i) => {
+    if (i <= nadd) return "ferdig";
+    if (i === nadd + 1 && !stoppet && AKTIV.has(status)) return "aktiv";
+    return "venter";
+  });
+}
+
 async function hentToken(): Promise<string> {
   try {
     const { data } = await supabaseBrowser().auth.getSession();
@@ -269,6 +306,26 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
         </dl>
       ) : null}
 
+      {/* Passord-porten — vis legitimasjonen når den finnes. */}
+      {bygg?.nettstedBruker && bygg?.nettstedPassord ? (
+        <div className="vk-bygg-laas">
+          <p className="vk-bygg-laas-tittel">🔒 Forhåndsvisningen er passordbeskyttet</p>
+          <dl className="vk-bygg-laas-felt">
+            <div>
+              <dt className="vk-mono">Bruker</dt>
+              <dd className="vk-mono">{bygg.nettstedBruker}</dd>
+            </div>
+            <div>
+              <dt className="vk-mono">Passord</dt>
+              <dd className="vk-mono">{bygg.nettstedPassord}</dd>
+            </div>
+          </dl>
+          <p className="vk-bygg-laas-hint">
+            Kunden får dette automatisk i Forhåndsvisning-fanen når du deler.
+          </p>
+        </div>
+      ) : null}
+
       {status === "delt" && bygg?.deltMedKundeAt ? (
         <p className="vk-mono vk-bygg-meta">
           Delt med kunden {formatTid(bygg.deltMedKundeAt)} — push til repoet
@@ -276,17 +333,20 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
         </p>
       ) : null}
 
+      {/* Strukturert fase-tidslinje i stedet for rå logg. */}
       {logg.length > 0 ? (
-        <ol className="vk-bygg-logg" aria-label="Byggelogg">
-          {logg
-            .slice(-15)
-            .reverse()
-            .map((l, i) => (
-              <li key={`${l.tid}-${i}`}>
-                <span className="vk-mono vk-bygg-logg-tid">{formatTid(l.tid)}</span>
-                <span>{l.melding}</span>
-              </li>
-            ))}
+        <ol className="vk-bygg-faser" aria-label="Byggesteg">
+          {faseTilstander(logg, status).map((tilstand, i) => (
+            <li key={FASER[i].navn} className={`vk-bygg-fase vk-bygg-fase--${tilstand}`}>
+              <span className="vk-bygg-fase-merke" aria-hidden="true">
+                {tilstand === "ferdig" ? "✓" : tilstand === "aktiv" ? "●" : "○"}
+              </span>
+              <span className="vk-bygg-fase-navn">{FASER[i].navn}</span>
+              {tilstand === "aktiv" ? (
+                <span className="vk-bygg-fase-na vk-mono">pågår …</span>
+              ) : null}
+            </li>
+          ))}
         </ol>
       ) : status === "ikke_startet" ? (
         <p className="vk-bygg-intro">
@@ -294,6 +354,24 @@ export default function AdminBygg({ kartleggingId, kartStatus }: AdminByggProps)
           eget uttrykk, koder en komplett førsteversjon med Fable 5 og
           deployer den — du får Telegram når den er klar til finpuss.
         </p>
+      ) : null}
+
+      {/* Rå logg tilgjengelig for den som vil grave. */}
+      {logg.length > 0 ? (
+        <details className="vk-bygg-rålogg">
+          <summary className="vk-mono">Detaljert logg ({logg.length} linjer)</summary>
+          <ol className="vk-bygg-logg" aria-label="Detaljert byggelogg">
+            {logg
+              .slice(-30)
+              .reverse()
+              .map((l, i) => (
+                <li key={`${l.tid}-${i}`}>
+                  <span className="vk-mono vk-bygg-logg-tid">{formatTid(l.tid)}</span>
+                  <span>{l.melding}</span>
+                </li>
+              ))}
+          </ol>
+        </details>
       ) : null}
     </div>
   );

@@ -127,6 +127,12 @@ export async function POST(req: Request) {
   if (typeof body.commitSha === "string" && /^[0-9a-f]{7,40}$/i.test(body.commitSha)) {
     oppdatering.siste_commit_sha = body.commitSha;
   }
+  if (typeof body.nettstedBruker === "string" && body.nettstedBruker.length < 100) {
+    oppdatering.nettsted_bruker = body.nettstedBruker;
+  }
+  if (typeof body.nettstedPassord === "string" && body.nettstedPassord.length < 200) {
+    oppdatering.nettsted_passord = body.nettstedPassord;
+  }
 
   // Statusflipp med vakter: et stoppet/ferdig løp kan ikke gjenopplives av
   // en etternølende fabrikk-jobb.
