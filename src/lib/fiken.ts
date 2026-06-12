@@ -4,6 +4,7 @@ import {
   FIKEN_INNTEKTSKONTO,
   mvaSatsTilVatType,
   type FakturaStatus,
+  type FikenBankAccount,
   type FikenCompany,
   type FikenContact,
   type FikenDraftRequest,
@@ -736,9 +737,36 @@ export async function ensureContact(opts: {
    ════════════════════════════════════════════ */
 
 /**
- * Nytt fakturautkast (utkast trenger IKKE bankkonto). uuid er vår
- * idempotensnøkkel (fakturaer.fiken_uuid) — finn igjen utkastet/fakturaen
- * med finnUtkastMedUuid/finnFakturaMedUuid før et nytt POST.
+ * Selskapets bankkontonummer (11 siffer) — kontoen fakturaen skal betales
+ * til. Settes på utkastet så «Lag faktura» ikke feiler med «Kontonummer
+ * mangler». Cachet per prosess. Kaster FikenConfigError med klar beskjed
+ * hvis selskapet ikke har en aktiv bankkonto i Fiken ennå.
+ */
+let bankkontoCache: string | null = null;
+
+export async function hentBankkontoNummer(): Promise<string> {
+  if (bankkontoCache) return bankkontoCache;
+  const slug = await hentCompanySlug();
+  const svar = await fikenFetch("GET", `/companies/${slug}/bankAccounts`);
+  const liste = Array.isArray(svar.json) ? (svar.json as FikenBankAccount[]) : [];
+  const konto = liste.find(
+    (k) => !k.inactive && typeof k.bankAccountNumber === "string" && k.bankAccountNumber
+  );
+  if (!konto?.bankAccountNumber) {
+    throw new FikenConfigError(
+      "Selskapet har ingen aktiv bankkonto i Fiken — fakturaen får da ikke et " +
+        "kontonummer. Legg til en bankkonto under Bank i Fiken og prøv igjen."
+    );
+  }
+  bankkontoCache = konto.bankAccountNumber;
+  return bankkontoCache;
+}
+
+/**
+ * Nytt fakturautkast. Setter bankkontonummer på utkastet (påkrevd for at
+ * det senere skal kunne bli en faktura). uuid er vår idempotensnøkkel
+ * (fakturaer.fiken_uuid) — finn igjen utkastet/fakturaen med
+ * finnUtkastMedUuid/finnFakturaMedUuid før et nytt POST.
  */
 export async function createDraftInvoice(opts: {
   customerId: number;
@@ -750,11 +778,13 @@ export async function createDraftInvoice(opts: {
   linjer: FakturaLinjeInput[];
 }): Promise<number> {
   const slug = await hentCompanySlug();
+  const bankAccountNumber = await hentBankkontoNummer();
   const body: FikenDraftRequest = {
     type: "invoice",
     uuid: opts.uuid,
     customerId: opts.customerId,
     daysUntilDueDate: opts.dagerTilForfall,
+    bankAccountNumber,
     ...(opts.fakturatekst ? { invoiceText: opts.fakturatekst } : {}),
     ...(opts.varReferanse ? { ourReference: opts.varReferanse } : {}),
     ...(opts.deresReferanse ? { yourReference: opts.deresReferanse } : {}),

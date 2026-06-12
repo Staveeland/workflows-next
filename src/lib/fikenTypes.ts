@@ -95,7 +95,17 @@ export interface FikenDraftRequest {
   ourReference?: string;
   /** «Deres referanse» — Fiken: yourReference. */
   yourReference?: string;
+  /** Bankkontonummer (11 siffer) pengene skal til — påkrevd for å fakturere. */
+  bankAccountNumber?: string;
   lines: FikenDraftLineRequest[];
+}
+
+/** GET /companies/{slug}/bankAccounts — kun det vi trenger. */
+export interface FikenBankAccount {
+  bankAccountNumber?: string;
+  accountCode?: string;
+  name?: string;
+  inactive?: boolean;
 }
 
 /** Fiken-utkast slik lista returnerer det (kun det vi trenger). */
