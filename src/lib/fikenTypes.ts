@@ -355,6 +355,8 @@ export interface AdminFikenSyncResponse {
   oppdatert: number;
   /** Antall som gikk → 'betalt' i denne kjøringen (innlegg postet). */
   nyBetalte: number;
+  /** Antall utkast-rader fjernet fordi utkastet var slettet i Fiken. */
+  fjernet?: number;
   /** Per-rad-feil (fortsetter forbi enkeltfeil) — tom = alt vel. */
   feil: string[];
 }

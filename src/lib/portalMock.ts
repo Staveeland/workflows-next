@@ -974,6 +974,25 @@ function finnFakturaRad(fakturaId: string): FakturaRad | null {
   return null;
 }
 
+/**
+ * DELETE /api/portal/admin/fiken/faktura — slett et UTKAST. Speiler
+ * produksjonens grense: kun rader uten fikenInvoiceId og status 'utkast'.
+ * true = slettet, false = nektet (route svarer 409).
+ */
+export async function mockFakturaSlett(fakturaId: string): Promise<boolean> {
+  await delay(MOCK_ADMIN_DELAY_MS);
+  for (const [kid, rader] of fakturaRader.entries()) {
+    const i = rader.findIndex((r) => r.id === fakturaId);
+    if (i === -1) continue;
+    const rad = rader[i];
+    if (rad.fikenInvoiceId !== null || rad.status !== "utkast") return false;
+    rader.splice(i, 1);
+    fakturaRader.set(kid, rader);
+    return true;
+  }
+  return false;
+}
+
 /** GET /api/portal/admin/fiken/faktura?kartleggingId= — the list. */
 export async function mockFakturaer(
   kartleggingId: string

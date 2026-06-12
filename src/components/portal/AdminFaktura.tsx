@@ -158,7 +158,7 @@ export default function AdminFaktura({
   // Radhandlinger: to-stegs bekreftelse (arm → 5 s → utfør) per knapp.
   const [armet, setArmet] = useState<{
     id: string;
-    handling: "opprett" | "send";
+    handling: "opprett" | "send" | "slett";
   } | null>(null);
   const [travelRad, setTravelRad] = useState<string | null>(null);
   const [synker, setSynker] = useState(false);
@@ -377,7 +377,7 @@ export default function AdminFaktura({
 
   /* ── Radhandlinger ── */
 
-  function arm(id: string, handling: "opprett" | "send") {
+  function arm(id: string, handling: "opprett" | "send" | "slett") {
     if (armTimer.current !== null) window.clearTimeout(armTimer.current);
     setArmet({ id, handling });
     armTimer.current = window.setTimeout(() => {
@@ -386,7 +386,7 @@ export default function AdminFaktura({
     }, 5000);
   }
 
-  async function utfor(f: FakturaRad, handling: "opprett" | "send") {
+  async function utfor(f: FakturaRad, handling: "opprett" | "send" | "slett") {
     // Aldri to handlinger i flukta — en faktura skal ikke kunne sendes to
     // ganger fordi knappen rakk et ekstra klikk.
     if (travelRad) return;
@@ -409,12 +409,25 @@ export default function AdminFaktura({
           fakturaId: f.id,
         });
         setMelding("Fakturaen er opprettet i Fiken — send når du er klar.");
-      } else {
+      } else if (handling === "send") {
         await postJson("/api/portal/admin/fiken/faktura/send", {
           fakturaId: f.id,
           metode: "auto",
         });
         setMelding("Fakturaen er sendt. Kunden ser den nå i Benken.");
+      } else {
+        // slett — DELETE; sletter utkastet i Fiken og fjerner raden.
+        const token = await hentToken();
+        const res = await fetch("/api/portal/admin/fiken/faktura", {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ fakturaId: f.id }),
+        });
+        if (!res.ok) {
+          const j = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(j.error ?? `Sletting feilet (${res.status}).`);
+        }
+        setMelding("Utkastet er slettet — også i Fiken.");
       }
       await hentAlt(true);
     } catch (err) {
@@ -454,9 +467,12 @@ export default function AdminFaktura({
     const travel = travelRad === f.id;
     const kanOpprette = f.fikenDraftId !== null && f.fikenInvoiceId === null;
     const kanSende = f.fikenInvoiceId !== null && f.status !== "kansellert";
+    // Kun rene utkast kan slettes — aldri en opprettet/sendt faktura.
+    const kanSlette = f.fikenInvoiceId === null && f.status === "utkast";
     const opprettArmet =
       armet?.id === f.id && armet.handling === "opprett";
     const sendArmet = armet?.id === f.id && armet.handling === "send";
+    const slettArmet = armet?.id === f.id && armet.handling === "slett";
     return (
       <li key={f.id} className="vk-fak-rad">
         <p className="vk-mono vk-fak-radmeta">
@@ -480,7 +496,7 @@ export default function AdminFaktura({
           ) : null}
           {f.sendtVia ? <span>Sendt via {f.sendtVia}</span> : null}
         </p>
-        {kanOpprette || kanSende ? (
+        {kanOpprette || kanSende || kanSlette ? (
           <div className="vk-fak-knapperad">
             {kanOpprette ? (
               <button
@@ -512,12 +528,25 @@ export default function AdminFaktura({
                     : "Send på nytt"}
               </button>
             ) : null}
+            {kanSlette ? (
+              <button
+                type="button"
+                className="vk-mono vk-fak-knapp vk-fak-knapp--slett"
+                data-armed={slettArmet ? "true" : undefined}
+                disabled={travel}
+                aria-busy={travel || undefined}
+                aria-disabled={travel || undefined}
+                onClick={() => void utfor(f, "slett")}
+              >
+                {slettArmet ? "Sikker? Sletter også i Fiken" : "Slett utkast"}
+              </button>
+            ) : null}
           </div>
         ) : null}
         {/* Armeringen flipper teksten på den fokuserte knappen — speil den
             i en live region så skiftet annonseres pålitelig. */}
         <p className="vk-sr" role="status">
-          {opprettArmet || sendArmet ? "Sikker? Trykk igjen" : ""}
+          {opprettArmet || sendArmet || slettArmet ? "Sikker? Trykk igjen" : ""}
         </p>
       </li>
     );

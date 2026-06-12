@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   createDraftInvoice,
+  deleteDraftInvoice,
   ensureContact,
   FikenApiError,
   FikenConfigError,
@@ -32,6 +33,7 @@ import { forbidden, portalAuth, unauthorized } from "@/lib/portalAuth";
 import {
   mockFakturaUtkast,
   mockFakturaer,
+  mockFakturaSlett,
   portalMockEnabled,
 } from "@/lib/portalMock";
 import { ADMIN_EMAIL } from "@/lib/portalTypes";
@@ -547,4 +549,88 @@ export async function POST(req: Request) {
     // neste forsøk gjenbruker den (steg 1) i stedet for å duplisere.
     return fikenFeilTilSvar(err);
   }
+}
+
+/* ── DELETE — slett et fakturaUTKAST (nettsiden → Fiken) ──
+   KUN utkast: en rad som har blitt en ekte faktura (fiken_invoice_id satt)
+   nektes (409). Sletter utkastet i Fiken (hvis det finnes der) og fjerner
+   raden. Idempotent: et utkast som alt er borte i Fiken (404) håndteres
+   som vellykket av deleteDraftInvoice. */
+export async function DELETE(req: Request) {
+  let raw: unknown;
+  try {
+    raw = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Ugyldig JSON" }, { status: 400 });
+  }
+  const body = (typeof raw === "object" && raw !== null ? raw : {}) as { fakturaId?: unknown };
+  const fakturaId = typeof body.fakturaId === "string" && body.fakturaId.trim() ? body.fakturaId.trim() : null;
+  if (!fakturaId || !UUID_RE.test(fakturaId)) {
+    return NextResponse.json({ error: "Ugyldig fakturaId" }, { status: 400 });
+  }
+
+  // DEV MOCK.
+  if (portalMockEnabled()) {
+    const ok = await mockFakturaSlett(fakturaId);
+    return ok
+      ? NextResponse.json({ ok: true })
+      : NextResponse.json({ error: "Bare utkast kan slettes." }, { status: 409 });
+  }
+
+  let auth;
+  try {
+    auth = await portalAuth(req);
+  } catch (err) {
+    console.error("[portal/admin/fiken/faktura] auth setup failed", err);
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+  if (!auth) return unauthorized();
+  if (auth.user.email !== ADMIN_EMAIL) return forbidden();
+  const { supabase, user } = auth;
+
+  const rl = rateLimit({
+    key: "portal:admin:fiken:faktura:delete",
+    identifier: user.id,
+    max: RL_POST_MAX,
+    windowMs: RL_WINDOW_MS,
+  });
+  if (!rl.ok) return tooManyRequests(rl, RL_POST_MAX);
+
+  const { data, error } = await supabase
+    .from("fakturaer")
+    .select(FAKTURA_SELECT)
+    .eq("id", fakturaId)
+    .maybeSingle();
+  if (error) {
+    console.error("[portal/admin/fiken/faktura] DELETE select feilet", error);
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+  if (!data) {
+    return NextResponse.json({ error: "Fant ikke fakturaen" }, { status: 404 });
+  }
+  const rad = data as unknown as FakturaDbRow;
+
+  // Hard grense: en ekte/sendt faktura kan ALDRI slettes (verken her eller
+  // i Fiken) — kun rene utkast.
+  if (rad.fiken_invoice_id !== null || rad.status !== "utkast") {
+    return NextResponse.json(
+      { error: "Bare utkast kan slettes. En opprettet faktura må eventuelt krediteres i Fiken." },
+      { status: 409 }
+    );
+  }
+
+  // Slett i Fiken først (hvis utkastet faktisk ble lagt der), så raden.
+  if (rad.fiken_draft_id !== null) {
+    try {
+      await deleteDraftInvoice(rad.fiken_draft_id);
+    } catch (err) {
+      return fikenFeilTilSvar(err);
+    }
+  }
+  const { error: slettFeil } = await supabase.from("fakturaer").delete().eq("id", rad.id);
+  if (slettFeil) {
+    console.error("[portal/admin/fiken/faktura] rad-sletting feilet", slettFeil);
+    return NextResponse.json({ error: "Utkastet ble slettet i Fiken, men raden lot seg ikke fjerne." }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true });
 }

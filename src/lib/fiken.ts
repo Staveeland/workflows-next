@@ -133,13 +133,22 @@ const POST_ALLOWLIST: readonly RegExp[] = [
   /^\/companies\/[^/]+\/invoices\/send$/,
 ];
 
+// DELETE er tillatt KUN mot et fakturaUTKAST (drafts/{id}) — aldri mot en
+// ekte/sendt faktura (de finnes ikke på denne stien og kan uansett ikke
+// slettes i Fiken). Utkast er ikke et regnskapsbilag, så dette bryter ikke
+// «aldri slett ekte data»-regelen.
+const DELETE_ALLOWLIST: readonly RegExp[] = [
+  /^\/companies\/[^/]+\/invoices\/drafts\/\d+$/,
+];
+
 function kontrollerMetode(metode: string, sti: string): void {
   if (metode === "GET") return;
   if (metode === "POST" && POST_ALLOWLIST.some((re) => re.test(sti))) return;
+  if (metode === "DELETE" && DELETE_ALLOWLIST.some((re) => re.test(sti))) return;
   // Strukturell håndheving av eierens regel — når hit er det en kodefeil.
   throw new Error(
     `[fiken] BLOKKERT: ${metode} ${sti} er ikke på allowlista. ` +
-      "Integrasjonen skal aldri endre/slette eksisterende Fiken-data."
+      "Integrasjonen skal aldri endre/slette ekte Fiken-data (kun utkast)."
   );
 }
 
@@ -460,7 +469,7 @@ type FikenSvar = {
 };
 
 async function fikenFetch(
-  metode: "GET" | "POST",
+  metode: "GET" | "POST" | "DELETE",
   sti: string,
   body?: unknown
 ): Promise<FikenSvar> {
@@ -741,6 +750,36 @@ export async function createDraftInvoice(opts: {
 }
 
 /**
+ * Slett et fakturaUTKAST i Fiken (DELETE /drafts/{id}). KUN utkast —
+ * metodevernet (DELETE_ALLOWLIST) tillater ingen annen sti. Idempotent:
+ * et utkast som alt er borte (404) regnes som vellykket slettet.
+ */
+export async function deleteDraftInvoice(draftId: number): Promise<void> {
+  const slug = await hentCompanySlug();
+  try {
+    await fikenFetch("DELETE", `/companies/${slug}/invoices/drafts/${draftId}`);
+  } catch (err) {
+    if (err instanceof FikenApiError && err.status === 404) return; // alt borte
+    throw err;
+  }
+}
+
+/**
+ * Finnes utkastet fortsatt i Fiken? Brukes av synken til å fjerne rader for
+ * utkast Petter har slettet i Fiken-UI. 404 → false (borte), ellers true.
+ */
+export async function draftEksisterer(draftId: number): Promise<boolean> {
+  const slug = await hentCompanySlug();
+  try {
+    await fikenFetch("GET", `/companies/${slug}/invoices/drafts/${draftId}`);
+    return true;
+  } catch (err) {
+    if (err instanceof FikenApiError && err.status === 404) return false;
+    throw err;
+  }
+}
+
+/**
  * Finn et eksisterende UTKAST med vår uuid (idempotenssjekk før nytt POST).
  * Leser én side à 100 — flere utkast enn det gir i verste fall et duplikat-
  * UTKAST (aldri datatap; Petter rydder i Fiken-UI).
@@ -894,6 +933,7 @@ export type FikenSyncResultat = {
   totalt: number;
   oppdatert: number;
   nyBetalte: number;
+  fjernet: number;
   feil: string[];
 };
 
@@ -911,6 +951,7 @@ export async function syncAlleFakturaer(): Promise<FikenSyncResultat> {
     totalt: 0,
     oppdatert: 0,
     nyBetalte: 0,
+    fjernet: 0,
     feil: [],
   };
 
@@ -986,6 +1027,32 @@ export async function syncAlleFakturaer(): Promise<FikenSyncResultat> {
       const melding = err instanceof Error ? err.message : String(err);
       console.error(`[fiken/sync] faktura ${rad.id} feilet: ${melding}`);
       resultat.feil.push(`faktura ${rad.id}: ${melding.slice(0, 200)}`);
+    }
+  }
+
+  // ── Utkast-avstemming: fjern rader for utkast Petter har slettet i Fiken.
+  // Kun rene utkast (fiken_draft_id satt, ingen faktura ennå). Sekvensielt.
+  const { data: utkastData, error: utkastFeil } = await db
+    .from("fakturaer")
+    .select("id, fiken_draft_id")
+    .eq("status", "utkast")
+    .not("fiken_draft_id", "is", null)
+    .is("fiken_invoice_id", null);
+  if (utkastFeil) {
+    console.error("[fiken/sync] utkast select feilet", utkastFeil);
+  } else {
+    for (const u of (utkastData ?? []) as Array<{ id: string; fiken_draft_id: number }>) {
+      try {
+        if (await draftEksisterer(u.fiken_draft_id)) continue; // finnes ennå
+        const { error: slettFeil } = await db.from("fakturaer").delete().eq("id", u.id);
+        if (slettFeil) throw slettFeil;
+        resultat.fjernet += 1;
+        console.log(`[fiken/sync] utkast ${u.id} fjernet — slettet i Fiken`);
+      } catch (err) {
+        const melding = err instanceof Error ? err.message : String(err);
+        console.error(`[fiken/sync] utkast ${u.id} avstemming feilet: ${melding}`);
+        resultat.feil.push(`utkast ${u.id}: ${melding.slice(0, 200)}`);
+      }
     }
   }
 

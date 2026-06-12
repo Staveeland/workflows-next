@@ -204,6 +204,21 @@
   background: rgba(255, 180, 84, 0.07);
 }
 
+/* Slett-utkast: dempet til den armeres, så stempelrødt varsel. */
+.vk-fak-knapp--slett {
+  color: var(--stov);
+}
+
+.vk-fak-knapp--slett:hover {
+  color: var(--kritt);
+}
+
+.vk-fak-knapp--slett[data-armed="true"] {
+  color: var(--stempel);
+  border-color: var(--stempel);
+  background: color-mix(in srgb, var(--stempel) 8%, transparent);
+}
+
 /* ── Skjemaet for nye utkast ── */
 
 .vk-fak-skjema {
