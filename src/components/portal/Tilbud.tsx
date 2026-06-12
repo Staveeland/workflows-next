@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/components/LanguageProvider";
 import { portalContent } from "@/lib/portalContent";
 import type { PortalKartlegging } from "@/lib/portalTypes";
@@ -25,6 +25,11 @@ export const TILBUD_HEADING_ID = "vk-portal-ttittel";
 /** The collapsed assessment <details> — rail-back to level 2 opens it. */
 export const TILBUD_VURDERING_ID = "vk-portal-tvurdering";
 
+/** The binding terms checkbox + its text — the text is the checkbox's
+    <label> AND the aria-describedby target of the approve button. */
+const VILKAR_BOKS_ID = "vk-portal-vilkar-boks";
+const VILKAR_TEKST_ID = "vk-portal-vilkar-tekst";
+
 interface TilbudProps {
   kartlegging: PortalKartlegging;
   godkjenner: boolean;
@@ -44,6 +49,8 @@ export default function Tilbud({
   const { lang } = useLang();
   const t = portalContent[lang];
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // The binding step — the approve button stays muted until this is ticked.
+  const [vilkarGodtatt, setVilkarGodtatt] = useState(false);
 
   useEffect(() => {
     if (autoFocus) headingRef.current?.focus();
@@ -121,13 +128,45 @@ export default function Tilbud({
           {tilbud.leveranse}
         </p>
 
+        {/* The binding line — a real checkbox whose <label> IS the locked
+            vilkår text (44px touch area via label padding; the sheet's
+            ink-on-cream focus ring covers the box). */}
+        <div
+          className="vk-portal-vilkar"
+          role="group"
+          aria-label={t.tilbud.vilkarLabel}
+        >
+          <input
+            id={VILKAR_BOKS_ID}
+            type="checkbox"
+            className="vk-portal-vilkar-boks"
+            checked={vilkarGodtatt}
+            onChange={(e) => setVilkarGodtatt(e.target.checked)}
+          />
+          <label
+            id={VILKAR_TEKST_ID}
+            htmlFor={VILKAR_BOKS_ID}
+            className="vk-portal-vilkar-tekst"
+          >
+            {t.tilbud.vilkar}
+          </label>
+        </div>
+
         <div className="vk-portal-tactions">
+          {/* aria-disabled (not display:none, not disabled-attr) while the
+              terms are unticked — focusable and discoverable, click guarded;
+              the describedby points at the vilkår text so the WHY is read. */}
           <button
             type="button"
             className="vk-btn vk-btn--cta"
             disabled={godkjenner}
+            aria-disabled={!vilkarGodtatt || godkjenner || undefined}
             aria-busy={godkjenner || undefined}
-            onClick={onGodkjenn}
+            aria-describedby={VILKAR_TEKST_ID}
+            onClick={() => {
+              if (!vilkarGodtatt || godkjenner) return;
+              onGodkjenn();
+            }}
           >
             {t.tilbud.godkjennKnapp}
           </button>

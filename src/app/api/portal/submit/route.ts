@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { epostForslagKlart, sendPortalEpost } from "@/lib/epost";
 import { generateAssessment, generateMockup } from "@/lib/portalAi";
 import { portalAuth, unauthorized } from "@/lib/portalAuth";
 import { mockSubmit, portalMockEnabled } from "@/lib/portalMock";
@@ -124,6 +125,7 @@ export async function POST(req: Request) {
       user_id: user.id,
       email: user.email ?? "",
       answers: body.answers,
+      lang: body.lang,
       status: "genererer",
     })
     .select("id")
@@ -172,6 +174,18 @@ export async function POST(req: Request) {
       .eq("id", rowId);
     if (updateError) {
       throw new Error(`row update failed: ${updateError.message}`);
+    }
+
+    // 5) Tell the customer the drawing is up. sendPortalEpost is fail-silent
+    //    by contract — a mail hiccup never fails a finished generation.
+    if (user.email) {
+      const ep = await sendPortalEpost({
+        to: user.email,
+        ...epostForslagKlart(body.lang),
+      });
+      if (!ep.ok) {
+        console.log(`[portal/submit] e-post (forslag klart) ikke sendt: ${ep.error}`);
+      }
     }
 
     return NextResponse.json<PortalSubmitResponse>({ id: rowId });

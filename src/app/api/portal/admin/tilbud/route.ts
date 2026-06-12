@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { epostTilbudSendt, sendPortalEpost } from "@/lib/epost";
 import { forbidden, portalAuth, unauthorized } from "@/lib/portalAuth";
 import { mockAdminTilbud, portalMockEnabled } from "@/lib/portalMock";
 import type { AdminTilbudBody, AdminTilbudResponse, PortalTilbud } from "@/lib/portalTypes";
@@ -19,6 +20,8 @@ export const runtime = "nodejs";
  * updates the quote in place (the form says «Oppdater tilbud»).
  *
  * No Telegram here — Petter is the actor, pinging himself would be noise.
+ * The CUSTOMER gets an e-post (their quote just landed) — fail-silent,
+ * a mail hiccup never fails the save.
  * Auth: user-token pattern + explicit ADMIN_EMAIL check; the admin RLS
  * update policy is what actually lets the write touch other users' rows.
  */
@@ -85,13 +88,27 @@ export async function POST(req: Request) {
       updated_at: now,
     })
     .eq("id", id)
-    .select("id");
+    .select("id, email, lang");
   if (error) {
     console.error("[portal/admin/tilbud] update failed", error);
     return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
   }
   if (!updated || updated.length === 0) {
     return NextResponse.json({ error: "Fant ikke kartleggingen" }, { status: 404 });
+  }
+
+  // Tell the customer the quote is on the bench — in THEIR language (the
+  // row's lang, stamped at submit). Fail-silent: never fails the save.
+  const row = updated[0] as { email: string | null; lang: string | null };
+  if (row.email) {
+    const lang = row.lang === "en" ? "en" : "no";
+    const ep = await sendPortalEpost({
+      to: row.email,
+      ...epostTilbudSendt(lang, { pris: tilbud.pris }),
+    });
+    if (!ep.ok) {
+      console.log(`[portal/admin/tilbud] e-post (tilbud sendt) ikke sendt: ${ep.error}`);
+    }
   }
 
   return NextResponse.json<AdminTilbudResponse>({ ok: true });

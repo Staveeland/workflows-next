@@ -19,6 +19,7 @@ import type {
   AdminDetaljResponse,
   AdminKartlegging,
   AdminListeResponse,
+  AdminSlettResponse,
   AdminTilbudResponse,
   PortalAssessment,
   PortalGodkjennResponse,
@@ -123,6 +124,8 @@ export async function mockSubmit(
     assessment: MOCK_ASSESSMENT,
     mockupUrl: MOCK_MOCKUP_URL,
   };
+  // Mock mode sends no real mail — log what production would have sent.
+  console.log("[portalMock] e-post (forslag klart) ville gått til kunden — logget i stedet for sendt");
   return { id };
 }
 
@@ -170,14 +173,27 @@ function seedTilbudSendt(): PortalKartlegging {
   };
 }
 
-/** POST /api/portal/godkjenn — idempotent flip, no Telegram in mock mode. */
-export async function mockGodkjenn(id: string): Promise<PortalGodkjennResponse> {
-  if (state.row && state.row.id === id && state.row.status === "tilbud_sendt") {
+/**
+ * POST /api/portal/godkjenn — idempotent flip; no Telegram/e-post in mock.
+ * Validates the vilkår flag like production (the route 400s first, but the
+ * mock never flips on a missing consent either — belt and suspenders).
+ */
+export async function mockGodkjenn(
+  id: string,
+  vilkarGodtatt: boolean
+): Promise<PortalGodkjennResponse> {
+  if (
+    vilkarGodtatt === true &&
+    state.row &&
+    state.row.id === id &&
+    state.row.status === "tilbud_sendt"
+  ) {
     state.row = {
       ...state.row,
       status: "videre",
       godkjentAt: new Date().toISOString(),
     };
+    console.log("[portalMock] e-post (godkjent-kvittering) ville gått til kunden — logget i stedet for sendt");
   }
   return { ok: true };
 }
@@ -185,7 +201,7 @@ export async function mockGodkjenn(id: string): Promise<PortalGodkjennResponse> 
 /* ════════════════════════════════════════════
    ADMIN MOCK — verkstedkontoret (/start/admin).
    Auto-admin: the routes short-circuit before any auth, so the office
-   opens with three canned kartlegginger in different statuses.
+   opens with four canned kartlegginger in different statuses.
    ════════════════════════════════════════════ */
 
 const MOCK_ADMIN_DELAY_MS = 400;
@@ -209,7 +225,7 @@ const MOCK_ASSESSMENT_CHATBOT: PortalAssessment = {
 
 const HOUR_MS = 60 * 60_000;
 
-/** Three canned rows in different statuses — seeded once per process. */
+/** Four canned rows in different statuses — seeded once per process. */
 function seedAdminRows(): AdminKartlegging[] {
   const now = Date.now();
   return [
@@ -232,6 +248,7 @@ function seedAdminRows(): AdminKartlegging[] {
       mockupUrl: MOCK_MOCKUP_URL,
       tilbud: null,
       tilbudSendtAt: null,
+      godkjentAt: null,
       createdAt: new Date(now - 2 * HOUR_MS).toISOString(),
     },
     {
@@ -254,6 +271,7 @@ function seedAdminRows(): AdminKartlegging[] {
       mockupUrl: MOCK_MOCKUP_URL,
       tilbud: null,
       tilbudSendtAt: null,
+      godkjentAt: null,
       createdAt: new Date(now - 26 * HOUR_MS).toISOString(),
     },
     {
@@ -275,7 +293,30 @@ function seedAdminRows(): AdminKartlegging[] {
       mockupUrl: MOCK_MOCKUP_URL,
       tilbud: MOCK_TILBUD,
       tilbudSendtAt: new Date(now - 70 * HOUR_MS).toISOString(),
+      godkjentAt: null,
       createdAt: new Date(now - 96 * HOUR_MS).toISOString(),
+    },
+    {
+      id: "adm-mock-4",
+      status: "videre",
+      email: "post@bryggekaia.no",
+      answers: {
+        bedrift: { navn: "Bryggekaia Drift AS" },
+        research: null,
+        bransje: "tjenester",
+        storrelse: "6_20",
+        tidstyver: ["epost", "vaktplaner"],
+        systemer: ["google", "excel_sheets"],
+        kundehenvendelser: "ja_mye",
+        dromen: "At vaktplanen la seg selv og svarte på bytteforespørslene.",
+        tempo: "fort",
+      },
+      assessment: MOCK_ASSESSMENT,
+      mockupUrl: MOCK_MOCKUP_URL,
+      tilbud: MOCK_TILBUD,
+      tilbudSendtAt: new Date(now - 120 * HOUR_MS).toISOString(),
+      godkjentAt: new Date(now - 30 * HOUR_MS).toISOString(),
+      createdAt: new Date(now - 140 * HOUR_MS).toISOString(),
     },
   ];
 }
@@ -310,6 +351,17 @@ export async function mockAdminDetalj(id: string): Promise<AdminDetaljResponse> 
   return { kartlegging: adminRows.find((row) => row.id === id) ?? null };
 }
 
+/** DELETE /api/portal/admin/liste?id= — row out; no real storage in mock. */
+export async function mockAdminSlett(
+  id: string
+): Promise<AdminSlettResponse | null> {
+  await delay(MOCK_ADMIN_DELAY_MS);
+  const idx = adminRows.findIndex((row) => row.id === id);
+  if (idx === -1) return null;
+  adminRows.splice(idx, 1);
+  return { ok: true };
+}
+
 /** POST /api/portal/admin/tilbud — row update, no Telegram (Petter acts). */
 export async function mockAdminTilbud(
   id: string,
@@ -324,5 +376,6 @@ export async function mockAdminTilbud(
     tilbudSendtAt: new Date().toISOString(),
     status: "tilbud_sendt",
   };
+  console.log("[portalMock] e-post (tilbud sendt) ville gått til kunden — logget i stedet for sendt");
   return { ok: true };
 }

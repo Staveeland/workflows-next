@@ -23,6 +23,8 @@
  *   GET  /api/portal/admin/liste          — response: AdminListeResponse
  *   GET  /api/portal/admin/liste?id=<id>  — response: AdminDetaljResponse
  *     (one full row + 1h signed mockup URL — no separate detail route)
+ *   DELETE /api/portal/admin/liste?id=<id> — response: AdminSlettResponse
+ *     (removes the mockup storage object when set, then the row)
  *   POST /api/portal/admin/tilbud — body: AdminTilbudBody
  *     response: AdminTilbudResponse (row → tilbud, tilbud_sendt_at,
  *     status='tilbud_sendt')
@@ -152,11 +154,23 @@ export interface PortalBedriftAnswer {
 export const PORTAL_DRAFT_KEY = "vk-portal-draft";
 
 /**
+ * localStorage flag stamped when a returning-user login link is sent
+ * (AuthGate in loginOnly mode) — consumed by the draft-less boot after the
+ * magic-link reload, so an address without rows lands on wizard step 1 with
+ * the «benken er ledig»-notice instead of a silent intro. Value: Date.now().
+ */
+export const PORTAL_LOGIN_INTENT_KEY = "vk-portal-login";
+
+/**
  * POST /api/portal/godkjenn — same auth header as /like. Idempotent: only a
- * row sitting in «tilbud_sendt» transitions to «videre» (+ godkjent_at).
+ * row sitting in «tilbud_sendt» transitions to «videre» (+ godkjent_at +
+ * godkjent_vilkar). vilkarGodtatt must be literally true — the terms
+ * checkbox is a binding step; the server stores its OWN canonical vilkår
+ * text (portalContent[row.lang].tilbud.vilkar), never a client string.
  */
 export interface PortalGodkjennBody {
   id: string;
+  vilkarGodtatt: true;
 }
 
 export interface PortalGodkjennResponse {
@@ -199,6 +213,7 @@ export interface AdminKartlegging {
   mockupUrl: string | null;
   tilbud: PortalTilbud | null;
   tilbudSendtAt: string | null;
+  godkjentAt: string | null;
   createdAt: string;
 }
 
@@ -212,5 +227,10 @@ export interface AdminTilbudBody {
 }
 
 export interface AdminTilbudResponse {
+  ok: true;
+}
+
+/** DELETE /api/portal/admin/liste?id= — mockup object + row removed. */
+export interface AdminSlettResponse {
   ok: true;
 }

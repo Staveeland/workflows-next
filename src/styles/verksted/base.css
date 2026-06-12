@@ -27,6 +27,7 @@ html:has(.vk) {
   --cta: #ffa02e;       /* CTA fill; ink #171310 on top */
   --kritt: #8fb8de;     /* chalk annotations — the one cool counterpoint */
   --stempel: #e2593d;   /* ink strikes (manifest jargon) — decorative only, NEVER body text */
+  --drift-green: #7ed29a; /* delivered/agreed ONLY (godkjent-chip) — the one green in the shop, ≈10:1 on bek */
 
   /* ── Motion (one hand, one family) ── */
   --ease-work: cubic-bezier(0.22, 1, 0.36, 1);

@@ -6,6 +6,7 @@ import "@/styles/verksted/admin.css";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Lang } from "@/lib/translations";
 import { fraunces, schibsted, spline } from "@/components/verksted/fonts";
 import { WorkflowsLogo } from "@/components/verksted/WorkflowsLogo";
 import { useLang } from "@/components/LanguageProvider";
@@ -16,11 +17,12 @@ import {
   type AdminKartlegging,
   type AdminListItem,
   type AdminListeResponse,
+  type AdminSlettResponse,
   type PortalTilbud,
 } from "@/lib/portalTypes";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 import { consumeAuthErrorFromUrl } from "@/components/portal/AuthGate";
-import AdminDetalj, { formatDato } from "@/components/portal/AdminDetalj";
+import AdminDetalj, { adminChipClass, formatDato } from "@/components/portal/AdminDetalj";
 
 /**
  * Verkstedkontoret (/start/admin) — Petters bakrom. Same bare chrome and
@@ -45,6 +47,13 @@ class AdminApiError extends Error {
     super(`${path} → ${status}`);
     this.status = status;
   }
+}
+
+/** «14:32» — clock for the sist hentet-line. */
+function formatTid(d: Date, lang: Lang): string {
+  return new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "nb-NO", {
+    timeStyle: "short",
+  }).format(d);
 }
 
 /* ── Slim admin gate — AuthGate's pattern, /start/admin's redirect ── */
@@ -213,9 +222,13 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
   const [listeState, setListeState] = useState<Lasting>("laster");
   const [valgt, setValgt] = useState<AdminKartlegging | null>(null);
   const [detaljState, setDetaljState] = useState<Lasting>("laster");
+  const [sistHentet, setSistHentet] = useState<Date | null>(null);
   const sisteIdRef = useRef<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const firstRender = useRef(true);
+  // Guards against overlapping quiet refreshes (focus + visibilitychange
+  // both fire when a tab returns).
+  const oppdatererRef = useRef(false);
 
   // Phase changes unmount whatever held focus — land on the new heading.
   // (Not on first render: page load must not steal focus from the URL bar.)
@@ -253,6 +266,21 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
     []
   );
 
+  /** Clear the session and reopen the gate — the way out of a cached
+      wrong-address session (and the polite exit for the right one). */
+  const byttKonto = useCallback(async () => {
+    if (!devMock) {
+      try {
+        await supabaseBrowser().auth.signOut();
+      } catch (err) {
+        console.error("[portal/admin] signOut failed", err);
+      }
+    }
+    setRows([]);
+    setValgt(null);
+    setPhase("auth");
+  }, [devMock]);
+
   /** 401 → back through the gate; 403 → ikke din dør. Else: local feil. */
   const handleApiError = useCallback((err: unknown, setState: (s: Lasting) => void) => {
     if (err instanceof AdminApiError && err.status === 401) {
@@ -279,10 +307,88 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
       const json = await apiFetch<AdminListeResponse>("/api/portal/admin/liste", token);
       setRows(json.kartlegginger);
       setListeState("klar");
+      setSistHentet(new Date());
     } catch (err) {
       handleApiError(err, setListeState);
     }
   }, [getToken, apiFetch, handleApiError]);
+
+  /**
+   * Quiet list refresh — keeps the rows on screen while fetching (no
+   * «henter …» blank). A transient failure keeps the stale list; 401/403
+   * still route through handleApiError.
+   */
+  const oppdaterListe = useCallback(async () => {
+    if (oppdatererRef.current) return;
+    oppdatererRef.current = true;
+    try {
+      const token = await getToken();
+      if (!token) {
+        setPhase("auth");
+        return;
+      }
+      const json = await apiFetch<AdminListeResponse>("/api/portal/admin/liste", token);
+      setRows(json.kartlegginger);
+      setListeState("klar");
+      setSistHentet(new Date());
+    } catch (err) {
+      // Stale-but-visible beats blanked — only auth errors change phase.
+      handleApiError(err, () => {});
+    } finally {
+      oppdatererRef.current = false;
+    }
+  }, [getToken, apiFetch, handleApiError]);
+
+  /**
+   * Quiet detail refresh — updates the open kartlegging in place WITHOUT
+   * unmounting AdminDetalj (form drafts and focus stay put).
+   */
+  const oppdaterDetalj = useCallback(
+    async (id: string) => {
+      if (oppdatererRef.current) return;
+      oppdatererRef.current = true;
+      try {
+        const token = await getToken();
+        if (!token) {
+          setPhase("auth");
+          return;
+        }
+        const json = await apiFetch<AdminDetaljResponse>(
+          `/api/portal/admin/liste?id=${encodeURIComponent(id)}`,
+          token
+        );
+        if (json.kartlegging) {
+          setValgt(json.kartlegging);
+          setDetaljState("klar");
+        }
+      } catch (err) {
+        handleApiError(err, () => {});
+      } finally {
+        oppdatererRef.current = false;
+      }
+    },
+    [getToken, apiFetch, handleApiError]
+  );
+
+  // The admin tab stays open for days — refetch when it comes back into
+  // view (focus/visibilitychange) instead of polling. Customers approving
+  // quotes show up without Petter touching anything.
+  useEffect(() => {
+    function onTilbake() {
+      if (document.visibilityState === "hidden") return;
+      if (phase === "liste") {
+        void oppdaterListe();
+      } else if (phase === "detalj" && sisteIdRef.current) {
+        void oppdaterDetalj(sisteIdRef.current);
+      }
+    }
+    window.addEventListener("focus", onTilbake);
+    document.addEventListener("visibilitychange", onTilbake);
+    return () => {
+      window.removeEventListener("focus", onTilbake);
+      document.removeEventListener("visibilitychange", onTilbake);
+    };
+  }, [phase, oppdaterListe, oppdaterDetalj]);
 
   const onAuthed = useCallback(
     (token: string, email: string | null) => {
@@ -325,7 +431,10 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
   const tilListe = useCallback(() => {
     setValgt(null);
     setPhase("liste");
-  }, []);
+    // Coming back from a detail where the status may just have changed —
+    // quiet refetch keeps the rows visible while the fresh ones land.
+    void oppdaterListe();
+  }, [oppdaterListe]);
 
   /** POST the quote; flip status optimistically, revert on failure. */
   const sendTilbud = useCallback(
@@ -364,6 +473,35 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
     [valgt, rows, getToken, apiFetch]
   );
 
+  /** DELETE the open kartlegging; on success → back to the list (refetch). */
+  const slettKartlegging = useCallback(async (): Promise<boolean> => {
+    const k = valgt;
+    if (!k) return false;
+    const token = await getToken();
+    if (!token) {
+      setPhase("auth");
+      return false;
+    }
+    try {
+      await apiFetch<AdminSlettResponse>(
+        `/api/portal/admin/liste?id=${encodeURIComponent(k.id)}`,
+        token,
+        { method: "DELETE" }
+      );
+      // Drop the row locally right away — a deleted kartlegging must not
+      // linger in the list while the quiet refetch is in flight.
+      setRows((rs) => rs.filter((r) => r.id !== k.id));
+      sisteIdRef.current = null;
+      tilListe();
+      return true;
+    } catch (err) {
+      console.error("[portal/admin] slett failed", err);
+      // 401/403 still route through the gate/denied screens.
+      handleApiError(err, () => {});
+      return false;
+    }
+  }, [valgt, getToken, apiFetch, tilListe, handleApiError]);
+
   return (
     <div
       className={`vk vk-portal-root ${fraunces.variable} ${schibsted.variable} ${spline.variable}`}
@@ -376,7 +514,18 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
         {devMock ? (
           <span className="vk-mono vk-portal-mockbadge">dev-mock</span>
         ) : null}
-        <span className="vk-mono vk-adm-merke">{t.admin.kicker}</span>
+        <span className="vk-portal-topplenker">
+          {phase !== "auth" ? (
+            <button
+              type="button"
+              className="vk-portal-avbryt vk-mono"
+              onClick={byttKonto}
+            >
+              {t.header.loggUt}
+            </button>
+          ) : null}
+          <span className="vk-mono vk-adm-merke">{t.admin.kicker}</span>
+        </span>
       </header>
 
       <main id="main" className="vk-adm-stage">
@@ -391,6 +540,11 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
             </h1>
             <p className="vk-portal-lead">{t.admin.ikkeDinDor.tekst}</p>
             <div className="vk-portal-introrow">
+              {/* The cached-wrong-address dead end: clear the session and
+                  reopen the gate so the right address can knock. */}
+              <button type="button" className="vk-btn vk-btn--cta" onClick={byttKonto}>
+                {t.admin.ikkeDinDor.byttKonto}
+              </button>
               <Link href="/" className="vk-btn">
                 {t.admin.ikkeDinDor.hjem}
               </Link>
@@ -425,38 +579,59 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
             ) : null}
 
             {listeState === "klar" ? (
-              rows.length === 0 ? (
-                <p className="vk-adm-tomt">{t.admin.liste.tom}</p>
-              ) : (
-                <>
-                  <p className="vk-mono vk-adm-antall">
-                    {t.admin.liste.antallTemplate.replace("{n}", String(rows.length))}
-                  </p>
-                  <ol className="vk-adm-liste">
-                    {rows.map((row) => (
-                      <li key={row.id}>
-                        <button
-                          type="button"
-                          className="vk-adm-rad"
-                          onClick={() => void apneDetalj(row.id)}
-                        >
-                          <span className="vk-mono vk-adm-dato">
-                            {formatDato(row.createdAt, lang)}
-                          </span>
-                          <span className="vk-adm-bedrift">
-                            {row.bedriftNavn ?? t.admin.liste.ukjentBedrift}
-                          </span>
-                          <span className="vk-adm-epost">{row.email}</span>
-                          <span className="vk-mono vk-adm-anbefaling">
-                            {row.anbefaling ? t.admin.anbefaling[row.anbefaling] : "—"}
-                          </span>
-                          <span className="vk-adm-chip">{t.admin.status[row.status]}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ol>
-                </>
-              )
+              <>
+                <div className="vk-adm-oppdaterrad">
+                  <button
+                    type="button"
+                    className="vk-mono vk-adm-oppdater"
+                    onClick={() => void oppdaterListe()}
+                  >
+                    {t.admin.liste.oppdater}
+                  </button>
+                  {sistHentet ? (
+                    <span className="vk-mono vk-adm-sisthentet" role="status">
+                      {t.admin.liste.sistHentetTemplate.replace(
+                        "{tid}",
+                        formatTid(sistHentet, lang)
+                      )}
+                    </span>
+                  ) : null}
+                </div>
+                {rows.length === 0 ? (
+                  <p className="vk-adm-tomt">{t.admin.liste.tom}</p>
+                ) : (
+                  <>
+                    <p className="vk-mono vk-adm-antall">
+                      {t.admin.liste.antallTemplate.replace("{n}", String(rows.length))}
+                    </p>
+                    <ol className="vk-adm-liste">
+                      {rows.map((row) => (
+                        <li key={row.id}>
+                          <button
+                            type="button"
+                            className="vk-adm-rad"
+                            onClick={() => void apneDetalj(row.id)}
+                          >
+                            <span className="vk-mono vk-adm-dato">
+                              {formatDato(row.createdAt, lang)}
+                            </span>
+                            <span className="vk-adm-bedrift">
+                              {row.bedriftNavn ?? t.admin.liste.ukjentBedrift}
+                            </span>
+                            <span className="vk-adm-epost">{row.email}</span>
+                            <span className="vk-mono vk-adm-anbefaling">
+                              {row.anbefaling ? t.admin.anbefaling[row.anbefaling] : "—"}
+                            </span>
+                            <span className={adminChipClass(row.status)}>
+                              {t.admin.status[row.status]}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ol>
+                  </>
+                )}
+              </>
             ) : null}
           </section>
         ) : null}
@@ -487,7 +662,12 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
               </div>
             </section>
           ) : valgt ? (
-            <AdminDetalj kartlegging={valgt} onBack={tilListe} onSendTilbud={sendTilbud} />
+            <AdminDetalj
+              kartlegging={valgt}
+              onBack={tilListe}
+              onSendTilbud={sendTilbud}
+              onSlett={slettKartlegging}
+            />
           ) : null
         ) : null}
       </main>

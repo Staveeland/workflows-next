@@ -143,6 +143,53 @@
   border-radius: 999px;
 }
 
+/* «Godkjent» (status videre) — delivered/agreed, the ONE green in the shop. */
+.vk-adm-chip--godkjent {
+  color: var(--drift-green);
+  background: rgba(126, 210, 154, 0.07);
+  border-color: rgba(126, 210, 154, 0.28);
+}
+
+/* ── Quiet manual refresh: mono button (≥44px) + sist hentet-line ── */
+
+.vk-adm-oppdaterrad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.vk-adm-oppdater {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 18px;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--stov);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color var(--dur-2) var(--ease-work),
+    background-color var(--dur-2) var(--ease-work);
+}
+
+.vk-adm-oppdater:hover {
+  color: var(--papir);
+  background: var(--benk);
+}
+
+.vk-adm-sisthentet {
+  color: var(--stov);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
 /* ── Mobile: two-line rows — who/when on top, what/where underneath ── */
 @media (max-width: 720px) {
   .vk-adm-rad {
@@ -192,7 +239,8 @@
   gap: 8px;
 }
 
-/* Meta line under the company name: email · date · status chip. */
+/* Meta line under the company name: email · date · status chip ·
+   tilbud sendt {dato} · godkjent {dato}. */
 .vk-adm-dmeta {
   display: flex;
   flex-wrap: wrap;
@@ -200,6 +248,11 @@
   gap: 6px;
   margin: 0;
   color: var(--stov);
+}
+
+/* «godkjent {dato}» — same green semantics as the godkjent-chip. */
+.vk-adm-godkjentdato {
+  color: var(--drift-green);
 }
 
 .vk-adm-seksjon {
@@ -292,4 +345,41 @@
 .vk-adm-bekreftelse {
   margin: 0;
   color: var(--glod);
+}
+
+/* ── Slett — destructive, two-stage. The stamp red carries the border
+      ONLY; the text stays --papir (stempel is decorative, never text
+      below 24px). Armed state warms the plate, second press deletes. ── */
+
+.vk-adm-slett {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid var(--stempel);
+  border-radius: 0;
+  color: var(--papir);
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--dur-2) var(--ease-work);
+}
+
+.vk-adm-slett:hover {
+  background: rgba(226, 89, 61, 0.1);
+}
+
+.vk-adm-slett[data-armed="true"] {
+  background: rgba(226, 89, 61, 0.14);
+}
+
+.vk-adm-slett[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

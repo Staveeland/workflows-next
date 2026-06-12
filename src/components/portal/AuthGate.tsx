@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useLang } from "@/components/LanguageProvider";
 import { portalContent } from "@/lib/portalContent";
 import { MOCK_SESSION_LABEL } from "@/lib/portalMock";
+import { PORTAL_LOGIN_INTENT_KEY } from "@/lib/portalTypes";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 
 /**
@@ -15,6 +16,11 @@ import { supabaseBrowser } from "@/lib/supabaseBrowser";
  * back on /start, supabaseBrowser() picks the session out of the URL, and
  * onAuthed fires exactly once (the parent auto-submits the stored draft).
  *
+ * LOGIN ONLY: the returning-user mode — different copy («skriv e-posten du
+ * brukte sist»), and the parent wires onAuthed to a /me boot instead of a
+ * submit. Sending the link also stamps the one-shot vk-portal-login flag so
+ * the draft-less boot after the magic-link reload knows it was a login.
+ *
  * DEV MOCK: auto-passes with the fake session label after a short beat —
  * no Supabase call ever happens.
  */
@@ -22,9 +28,12 @@ interface AuthGateProps {
   devMock: boolean;
   /** Focus the heading on mount (arriving via interaction). */
   autoFocus?: boolean;
-  /** Fires once with a usable access token — parent submits the draft. */
+  /** Returning-user mode — login copy; the parent never auto-submits. */
+  loginOnly?: boolean;
+  /** Fires once with a usable access token — parent submits the draft
+      (or, in loginOnly, boots via /me). */
   onAuthed: (accessToken: string) => void;
-  /** Back to the last wizard step to adjust answers. */
+  /** Back to the last wizard step (or, in loginOnly, to the intro). */
   onBack: () => void;
 }
 
@@ -60,6 +69,7 @@ export function consumeAuthErrorFromUrl(): boolean {
 export default function AuthGate({
   devMock,
   autoFocus = false,
+  loginOnly = false,
   onAuthed,
   onBack,
 }: AuthGateProps) {
@@ -159,6 +169,16 @@ export default function AuthGate({
         options: { emailRedirectTo: window.location.origin + "/start" },
       });
       if (otpError) throw otpError;
+      // Returning user: stamp the one-shot login flag — the magic-link
+      // reload boots draft-less, and this is how it knows to land row-less
+      // addresses on the wizard with the «benken er ledig»-notice.
+      if (loginOnly) {
+        try {
+          window.localStorage.setItem(PORTAL_LOGIN_INTENT_KEY, String(Date.now()));
+        } catch {
+          // localStorage unavailable — the in-tab path still works.
+        }
+      }
       setSent(true);
       setCooldown(RESEND_COOLDOWN_S);
     } catch (err) {
@@ -177,9 +197,11 @@ export default function AuthGate({
   return (
     <section className="vk-portal-auth">
       <h1 ref={headingRef} tabIndex={-1} className="vk-display vk-portal-h1">
-        {t.authgate.tittel}
+        {loginOnly ? t.authgate.loginTittel : t.authgate.tittel}
       </h1>
-      <p className="vk-portal-lead">{t.authgate.forklaring}</p>
+      <p className="vk-portal-lead">
+        {loginOnly ? t.authgate.loginForklaring : t.authgate.forklaring}
+      </p>
 
       {devMock ? (
         <p className="vk-mono vk-portal-mocksession" role="status">

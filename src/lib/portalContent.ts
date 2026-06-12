@@ -55,6 +55,8 @@ export interface PortalContent {
     hjemLabel: string;
     /** The escape hatch — link to /#kontakt. */
     avbryt: string;
+    /** Quiet session escape — clears the Supabase session. */
+    loggUt: string;
   };
   /** The five levels on the rail: 1 KARTLEGGING → 5 SKJØTET. */
   levels: [PortalLevel, PortalLevel, PortalLevel, PortalLevel, PortalLevel];
@@ -63,6 +65,8 @@ export interface PortalContent {
     undertekst: string;
     startKnapp: string;
     taPratHeller: string;
+    /** Quiet returning-user link below the start button → loginOnly gate. */
+    loggInnLenke: string;
   };
   /** Exactly 8 steps, in order. The "bransje" step is auto-skipped when
    *  the company research already found their line of business. */
@@ -113,6 +117,12 @@ export interface PortalContent {
     lenkeUtlopt: string;
     /** Supabase email rate limit hit — our ceiling, not their typo. */
     forMangeLenker: string;
+    /** loginOnly mode (returning user) — heading. */
+    loginTittel: string;
+    /** loginOnly mode — explanation (no draft, no generation pending). */
+    loginForklaring: string;
+    /** After loginOnly auth when /me has no rows — wizard step 1 notice. */
+    ingenKartlegging: string;
   };
   generating: {
     tittel: string;
@@ -171,6 +181,14 @@ export interface PortalContent {
     sendtTemplate: string;
     prisLabel: string;
     leveranseLabel: string;
+    /**
+     * Binding terms — LOCKED text (Petter approved, verbatim). The server
+     * stores THIS string as godkjent_vilkar on approval; never reword
+     * without a new approval.
+     */
+    vilkar: string;
+    /** Short a11y group label for the vilkår checkbox row. */
+    vilkarLabel: string;
     godkjennKnapp: string;
     /** Quiet mailto link beside the CTA. */
     sporsmalLenke: string;
@@ -191,6 +209,7 @@ export interface PortalContent {
       tittel: string;
       tekst: string;
       hjem: string;
+      byttKonto: string;
     };
     felles: {
       /** Mono line while a fetch runs. */
@@ -205,6 +224,10 @@ export interface PortalContent {
       tom: string;
       /** Row fallback when answers carry no company name. */
       ukjentBedrift: string;
+      /** Quiet manual refresh button (mono, ≥44px target). */
+      oppdater: string;
+      /** «sist hentet {tid}» — quiet mono line beside the refresh button. */
+      sistHentetTemplate: string;
     };
     /** Chip text per status — short, lowercase, mono. */
     status: Record<PortalStatus, string>;
@@ -223,6 +246,10 @@ export interface PortalContent {
       mockupAlt: string;
       /** Mono labels for the research-funn fields. */
       researchFelter: Record<keyof ResearchFunn, string>;
+      /** «tilbud sendt {dato}» — meta line in the detail header. */
+      tilbudSendtTemplate: string;
+      /** «godkjent {dato}» — meta line when the customer has approved. */
+      godkjentTemplate: string;
     };
     tilbudForm: {
       tittel: string;
@@ -242,6 +269,13 @@ export interface PortalContent {
       mangler: string;
       feil: string;
     };
+    /** Delete — two-stage confirm at the bottom of the detail view. */
+    slett: {
+      knapp: string;
+      /** Armed state — second press within 5s deletes for good. */
+      bekreft: string;
+      feil: string;
+    };
   };
 }
 
@@ -250,6 +284,7 @@ export const portalContent: Record<Lang, PortalContent> = {
     header: {
       hjemLabel: "Workflows — til forsiden",
       avbryt: "avbryt — ta en prat heller",
+      loggUt: "logg ut",
     },
     levels: [
       { n: 1, navn: "Kartlegging" },
@@ -264,6 +299,7 @@ export const portalContent: Record<Lang, PortalContent> = {
         "Svar på åtte spørsmål. Få en ærlig vurdering — også hvis svaret er at dere ikke trenger AI.",
       startKnapp: "Start kartleggingen",
       taPratHeller: "heller ta en prat med et menneske?",
+      loggInnLenke: "Har du vært her før? Logg inn",
     },
     steps: [
       {
@@ -393,6 +429,11 @@ export const portalContent: Record<Lang, PortalContent> = {
         "Lenken er utløpt eller allerede brukt — send en ny, så ligger svarene dine fortsatt trygt her.",
       forMangeLenker:
         "Vi har sendt mange lenker på kort tid og må vente litt — det er vår grense, ikke skrivefeil hos deg. Prøv igjen om en times tid, eller ta en prat med oss i mellomtiden.",
+      loginTittel: "Velkommen tilbake.",
+      loginForklaring:
+        "Skriv e-posten du brukte sist, så sender vi en fersk lenke.",
+      ingenKartlegging:
+        "Fant ingen kartlegging på denne adressen — men benken er ledig.",
     },
     generating: {
       tittel: "Verkstedet tegner.",
@@ -445,6 +486,9 @@ export const portalContent: Record<Lang, PortalContent> = {
       sendtTemplate: "sendt {dato}",
       prisLabel: "Pris",
       leveranseLabel: "Leveranse",
+      vilkar:
+        "Jeg godkjenner tilbudet som en bindende bestilling av arbeidet, prisen og leveransen slik de er beskrevet over. Oppstart og detaljer avtales direkte med Workflows AS.",
+      vilkarLabel: "Vilkår for bestillingen",
       godkjennKnapp: "Godkjenn tilbudet",
       sporsmalLenke: "har du spørsmål? ta en prat",
       godkjentTittel: "Da setter vi i gang.",
@@ -463,6 +507,7 @@ export const portalContent: Record<Lang, PortalContent> = {
         tekst:
           "Dette er bakrommet — bare Petter har nøkkel hit. Leter du etter din egen kartlegging, ligger den trygt bak /start.",
         hjem: "Til forsiden",
+        byttKonto: "Logg ut og bytt adresse",
       },
       felles: {
         henter: "henter …",
@@ -474,6 +519,8 @@ export const portalContent: Record<Lang, PortalContent> = {
         antallTemplate: "{n} på benken",
         tom: "Ingen kartlegginger ennå. Benken er ryddet.",
         ukjentBedrift: "(uten bedriftsnavn)",
+        oppdater: "Oppdater",
+        sistHentetTemplate: "sist hentet {tid}",
       },
       status: {
         innsendt: "innsendt",
@@ -481,7 +528,7 @@ export const portalContent: Record<Lang, PortalContent> = {
         forslag_klart: "forslag klart",
         likt: "likt",
         tilbud_sendt: "tilbud sendt",
-        videre: "videre",
+        videre: "godkjent",
         feilet: "feilet",
       },
       anbefaling: {
@@ -511,6 +558,8 @@ export const portalContent: Record<Lang, PortalContent> = {
           sideTittel: "Sidetittel",
           sideBeskrivelse: "Beskrivelse",
         },
+        tilbudSendtTemplate: "tilbud sendt {dato}",
+        godkjentTemplate: "godkjent {dato}",
       },
       tilbudForm: {
         tittel: "Tilbudet",
@@ -528,6 +577,11 @@ export const portalContent: Record<Lang, PortalContent> = {
         mangler: "Alle tre feltene må fylles ut: tekst, pris og leveranse.",
         feil: "Det gikk ikke å lagre tilbudet. Prøv igjen.",
       },
+      slett: {
+        knapp: "Slett kartleggingen",
+        bekreft: "Sikker? Slett for godt",
+        feil: "Det gikk ikke å slette. Prøv igjen.",
+      },
     },
   },
 
@@ -535,6 +589,7 @@ export const portalContent: Record<Lang, PortalContent> = {
     header: {
       hjemLabel: "Workflows — back to the front page",
       avbryt: "cancel — let's talk instead",
+      loggUt: "sign out",
     },
     levels: [
       { n: 1, navn: "Mapping" },
@@ -549,6 +604,7 @@ export const portalContent: Record<Lang, PortalContent> = {
         "Answer eight questions. Get an honest assessment — even if the answer is that you don't need AI.",
       startKnapp: "Start the mapping",
       taPratHeller: "rather talk to a human?",
+      loggInnLenke: "Been here before? Sign in",
     },
     steps: [
       {
@@ -678,6 +734,11 @@ export const portalContent: Record<Lang, PortalContent> = {
         "That link has expired or was already used — send a new one, your answers are still safe here.",
       forMangeLenker:
         "We've sent a lot of links in a short time and need a breather — our ceiling, not your typo. Try again in an hour or so, or just talk to us in the meantime.",
+      loginTittel: "Welcome back.",
+      loginForklaring:
+        "Enter the email you used last time, and we'll send you a fresh link.",
+      ingenKartlegging:
+        "Found no mapping for this address — but the bench is open.",
     },
     generating: {
       tittel: "The workshop is drawing.",
@@ -730,6 +791,9 @@ export const portalContent: Record<Lang, PortalContent> = {
       sendtTemplate: "sent {dato}",
       prisLabel: "Price",
       leveranseLabel: "Delivery",
+      vilkar:
+        "I approve the quote as a binding order for the work, price and delivery as described above. Start-up and details are agreed directly with Workflows AS.",
+      vilkarLabel: "Terms of the order",
       godkjennKnapp: "Approve the quote",
       sporsmalLenke: "questions? let's talk",
       godkjentTittel: "Then we get to work.",
@@ -748,6 +812,7 @@ export const portalContent: Record<Lang, PortalContent> = {
         tekst:
           "This is the back room — only Petter has a key. If you're after your own mapping, it lives safely behind /start.",
         hjem: "To the front page",
+        byttKonto: "Sign out and switch address",
       },
       felles: {
         henter: "fetching …",
@@ -759,6 +824,8 @@ export const portalContent: Record<Lang, PortalContent> = {
         antallTemplate: "{n} on the bench",
         tom: "No mappings yet. The bench is clear.",
         ukjentBedrift: "(no company name)",
+        oppdater: "Refresh",
+        sistHentetTemplate: "last fetched {tid}",
       },
       status: {
         innsendt: "submitted",
@@ -766,7 +833,7 @@ export const portalContent: Record<Lang, PortalContent> = {
         forslag_klart: "proposal ready",
         likt: "liked",
         tilbud_sendt: "quote sent",
-        videre: "under way",
+        videre: "approved",
         feilet: "failed",
       },
       anbefaling: {
@@ -796,6 +863,8 @@ export const portalContent: Record<Lang, PortalContent> = {
           sideTittel: "Page title",
           sideBeskrivelse: "Description",
         },
+        tilbudSendtTemplate: "quote sent {dato}",
+        godkjentTemplate: "approved {dato}",
       },
       tilbudForm: {
         tittel: "The quote",
@@ -812,6 +881,11 @@ export const portalContent: Record<Lang, PortalContent> = {
         bekreftelse: "The quote is on the bench — the customer sees it on /start.",
         mangler: "All three fields are needed: text, price and delivery.",
         feil: "Saving the quote failed. Try again.",
+      },
+      slett: {
+        knapp: "Delete the mapping",
+        bekreft: "Sure? Delete for good",
+        feil: "Deleting failed. Try again.",
       },
     },
   },

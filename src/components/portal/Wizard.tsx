@@ -38,6 +38,9 @@ interface WizardProps {
   initialStep: number;
   /** Focus the question heading on mount (arriving via interaction). */
   autoFocus?: boolean;
+  /** Quiet mono note over step 1 (e.g. «fant ingen kartlegging …» after a
+      returning-user login that found no rows). Same voice as the skipnote. */
+  notice?: string | null;
   onPersist: (answers: PortalAnswers, step: number) => void;
   onComplete: (answers: PortalAnswers) => void;
 }
@@ -120,6 +123,7 @@ export default function Wizard({
   initialAnswers,
   initialStep,
   autoFocus = false,
+  notice = null,
   onPersist,
   onComplete,
 }: WizardProps) {
@@ -335,6 +339,14 @@ export default function Wizard({
   return (
     <section className="vk-portal-wiz">
       <p className="vk-mono vk-portal-stepcount">{stegLabel}</p>
+      {/* The returning-user notice — only over the first question, where
+          the loginOnly boot lands. Same margin-annotation voice as the
+          skipnote below. */}
+      {lookup.phase === "idle" && notice && safeIdx === 0 ? (
+        <p className="vk-mono vk-portal-skipnote" role="status">
+          {notice}
+        </p>
+      ) : null}
       {lookup.phase === "idle" && bransjeSkipped && safeIdx === 1 ? (
         <p className="vk-mono vk-portal-skipnote">{t.research.fantBransjen}</p>
       ) : null}

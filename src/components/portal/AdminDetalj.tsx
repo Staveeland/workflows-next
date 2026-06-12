@@ -28,6 +28,16 @@ interface AdminDetaljProps {
   onBack: () => void;
   /** POSTs admin/tilbud — resolves true on success. */
   onSendTilbud: (tilbud: PortalTilbud) => Promise<boolean>;
+  /** DELETEs the row — resolves true on success (parent leaves the view). */
+  onSlett: () => Promise<boolean>;
+}
+
+/**
+ * Status chip class — «videre» means delivered/agreed and earns the ONE
+ * green in the shop (--drift-green); every other status stays amber.
+ */
+export function adminChipClass(status: AdminKartlegging["status"]): string {
+  return status === "videre" ? "vk-adm-chip vk-adm-chip--godkjent" : "vk-adm-chip";
 }
 
 /** Quiet office date — «12.06.2026», optionally with the clock. */
@@ -143,6 +153,7 @@ export default function AdminDetalj({
   kartlegging,
   onBack,
   onSendTilbud,
+  onSlett,
 }: AdminDetaljProps) {
   const { lang } = useLang();
   const t = portalContent[lang];
@@ -154,11 +165,22 @@ export default function AdminDetalj({
   const [sender, setSender] = useState(false);
   const [feil, setFeil] = useState<string | null>(null);
   const [bekreftet, setBekreftet] = useState(false);
+  // Two-stage delete: first press arms (5s window), second press deletes.
+  const [slettArmed, setSlettArmed] = useState(false);
+  const [sletter, setSletter] = useState(false);
+  const [slettFeil, setSlettFeil] = useState(false);
+  const disarmTimer = useRef<number | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // The list row that was pressed just unmounted — land focus here.
   useEffect(() => {
     headingRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (disarmTimer.current !== null) window.clearTimeout(disarmTimer.current);
+    };
   }, []);
 
   const linjer = svarLinjer(k.answers, t);
@@ -192,6 +214,33 @@ export default function AdminDetalj({
     else setFeil(t.admin.tilbudForm.feil);
   }
 
+  /** First press arms; a second press inside 5s deletes for good. */
+  async function slett() {
+    if (sletter) return;
+    if (!slettArmed) {
+      setSlettArmed(true);
+      setSlettFeil(false);
+      disarmTimer.current = window.setTimeout(() => {
+        setSlettArmed(false);
+        disarmTimer.current = null;
+      }, 5000);
+      return;
+    }
+    if (disarmTimer.current !== null) {
+      window.clearTimeout(disarmTimer.current);
+      disarmTimer.current = null;
+    }
+    setSletter(true);
+    const ok = await onSlett();
+    // On success the parent navigates back to the list and unmounts us —
+    // only the failure path needs local state.
+    if (!ok) {
+      setSletter(false);
+      setSlettArmed(false);
+      setSlettFeil(true);
+    }
+  }
+
   return (
     <section className="vk-adm-detalj">
       <button type="button" className="vk-portal-back" onClick={onBack}>
@@ -207,7 +256,29 @@ export default function AdminDetalj({
           <span aria-hidden="true"> · </span>
           <span>{formatDato(k.createdAt, lang, true)}</span>
           <span aria-hidden="true"> · </span>
-          <span className="vk-adm-chip">{t.admin.status[k.status]}</span>
+          <span className={adminChipClass(k.status)}>{t.admin.status[k.status]}</span>
+          {k.tilbudSendtAt ? (
+            <>
+              <span aria-hidden="true"> · </span>
+              <span>
+                {t.admin.detalj.tilbudSendtTemplate.replace(
+                  "{dato}",
+                  formatDato(k.tilbudSendtAt, lang, true)
+                )}
+              </span>
+            </>
+          ) : null}
+          {k.godkjentAt ? (
+            <>
+              <span aria-hidden="true"> · </span>
+              <span className="vk-adm-godkjentdato">
+                {t.admin.detalj.godkjentTemplate.replace(
+                  "{dato}",
+                  formatDato(k.godkjentAt, lang, true)
+                )}
+              </span>
+            </>
+          ) : null}
         </p>
       </header>
 
@@ -381,6 +452,30 @@ export default function AdminDetalj({
             </p>
           ) : null}
         </form>
+      </section>
+
+      {/* ── Slett — destructive, two-stage, at the very bottom ── */}
+      <section className="vk-adm-seksjon">
+        <button
+          type="button"
+          className="vk-adm-slett"
+          data-armed={slettArmed ? "true" : undefined}
+          disabled={sletter}
+          aria-busy={sletter || undefined}
+          onClick={() => void slett()}
+        >
+          {slettArmed ? t.admin.slett.bekreft : t.admin.slett.knapp}
+        </button>
+        {/* The label flip happens on the focused button — mirror it in a
+            live region so the armed state is announced reliably. */}
+        <p className="vk-sr" role="status">
+          {slettArmed ? t.admin.slett.bekreft : ""}
+        </p>
+        {slettFeil ? (
+          <p className="vk-portal-feilmelding" role="alert">
+            {t.admin.slett.feil}
+          </p>
+        ) : null}
       </section>
     </section>
   );

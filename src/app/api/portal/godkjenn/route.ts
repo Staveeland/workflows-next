@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
+import { epostGodkjent, sendPortalEpost } from "@/lib/epost";
 import { portalAuth, unauthorized } from "@/lib/portalAuth";
+// Plain data — the locked vilkår text the customer ticked. The SERVER picks
+// the canonical string by the row's language; a client string is never trusted.
+import { portalContent } from "@/lib/portalContent";
 import { mockGodkjenn, portalMockEnabled } from "@/lib/portalMock";
 import type {
   PortalGodkjennBody,
@@ -23,17 +27,24 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Ugyldig JSON" }, { status: 400 });
   }
-  const id =
+  const body =
     typeof raw === "object" && raw !== null
-      ? (raw as Partial<PortalGodkjennBody>).id
-      : undefined;
+      ? (raw as Partial<PortalGodkjennBody>)
+      : {};
+  const id = body.id;
   if (typeof id !== "string" || !id.trim()) {
     return NextResponse.json({ error: "Mangler id" }, { status: 400 });
+  }
+  // The terms checkbox is a binding step — no consent, no transition.
+  if (body.vilkarGodtatt !== true) {
+    return NextResponse.json({ error: "Vilkårene må godtas" }, { status: 400 });
   }
 
   // DEV MOCK — everything fake lives in portalMock.ts.
   if (portalMockEnabled()) {
-    return NextResponse.json<PortalGodkjennResponse>(await mockGodkjenn(id));
+    return NextResponse.json<PortalGodkjennResponse>(
+      await mockGodkjenn(id, body.vilkarGodtatt === true)
+    );
   }
 
   let auth;
@@ -55,10 +66,11 @@ export async function POST(req: Request) {
   if (!rl.ok) return tooManyRequests(rl, RL_MAX);
 
   // Fetch the row first (RLS hides other users' rows → acts as the
-  // ownership check) so the Telegram message can quote the price.
+  // ownership check) so the Telegram message and the receipt e-post can
+  // quote the price — and the e-post can speak the row's language.
   const { data: row, error: selectError } = await supabase
     .from("kartlegginger")
-    .select("id, tilbud")
+    .select("id, tilbud, email, lang")
     .eq("id", id)
     .maybeSingle();
   if (selectError) {
@@ -73,10 +85,18 @@ export async function POST(req: Request) {
   // Re-approvals (already videre) and premature calls (no quote sent yet)
   // change nothing and send no Telegram — a loop can't flood Petter, and a
   // row can't be approved before the quote exists.
+  // The transition also stamps godkjent_vilkar with the SERVER's canonical
+  // vilkår text in the row's language — the exact wording the customer saw.
+  const lang = row.lang === "en" ? "en" : "no";
   const now = new Date().toISOString();
   const { data: updated, error: updateError } = await supabase
     .from("kartlegginger")
-    .update({ status: "videre", godkjent_at: now, updated_at: now })
+    .update({
+      status: "videre",
+      godkjent_at: now,
+      godkjent_vilkar: portalContent[lang].tilbud.vilkar,
+      updated_at: now,
+    })
     .eq("id", id)
     .eq("status", "tilbud_sendt")
     .select("id");
@@ -98,6 +118,18 @@ export async function POST(req: Request) {
   const tg = await sendTelegramToPetter({ text });
   if (!tg.ok) {
     console.log(`[portal/godkjenn] Telegram not sent (${tg.error}): ${text}`);
+  }
+
+  // Receipt to the customer — same fail-silent posture as the Telegram ping.
+  const kundeEpost = (row.email as string | null) || user.email || null;
+  if (kundeEpost) {
+    const ep = await sendPortalEpost({
+      to: kundeEpost,
+      ...epostGodkjent(lang, { pris: tilbud?.pris ?? null }),
+    });
+    if (!ep.ok) {
+      console.log(`[portal/godkjenn] e-post (godkjent) ikke sendt: ${ep.error}`);
+    }
   }
 
   return NextResponse.json<PortalGodkjennResponse>({ ok: true });

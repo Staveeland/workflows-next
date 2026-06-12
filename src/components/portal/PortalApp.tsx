@@ -11,6 +11,7 @@ import type { Lang } from "@/lib/translations";
 import { portalContent, type PortalContent } from "@/lib/portalContent";
 import {
   PORTAL_DRAFT_KEY,
+  PORTAL_LOGIN_INTENT_KEY,
   type PortalGodkjennResponse,
   type PortalKartlegging,
   type PortalLikeResponse,
@@ -36,6 +37,14 @@ import Wizard, { type PortalAnswers } from "@/components/portal/Wizard";
  * they survive the magic-link round trip; AuthGate auto-submits when a
  * session and a completed draft meet. Generating polls GET /api/portal/me
  * every 5s until forslag_klart. All strings come from portalContent[lang].
+ *
+ * THE RETURNING-USER DOOR: the intro carries a quiet «Logg inn»-link →
+ * authgate in loginOnly mode. That path NEVER auto-submits: after auth it
+ * boots via GET /me (rows → landingPhase as on normal boot; no rows →
+ * wizard step 1 with the «benken er ledig»-notice). An already-active
+ * session skips the gate entirely — no email-form flash. The magic-link
+ * round trip is bridged by a one-shot localStorage flag (vk-portal-login),
+ * consumed only by the draft-less boot while a session exists.
  */
 
 type Phase =
@@ -106,6 +115,22 @@ function clearDraft() {
     window.localStorage.removeItem(PORTAL_DRAFT_KEY);
   } catch {
     // ignore
+  }
+}
+
+// The login-intent flag lives as long as the magic link it belongs to.
+const LOGIN_INTENT_TTL_MS = 60 * 60_000;
+
+/** One-shot: read AND remove the returning-user flag (see AuthGate.send). */
+function consumeLoginIntent(): boolean {
+  try {
+    const raw = window.localStorage.getItem(PORTAL_LOGIN_INTENT_KEY);
+    if (!raw) return false;
+    window.localStorage.removeItem(PORTAL_LOGIN_INTENT_KEY);
+    const at = Number(raw);
+    return Number.isFinite(at) && Date.now() - at < LOGIN_INTENT_TTL_MS;
+  } catch {
+    return false;
   }
 }
 
@@ -276,12 +301,28 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
   const [godkjenner, setGodkjenner] = useState(false);
   const [godkjennError, setGodkjennError] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
+  // Which job the authgate is doing: submit the draft, or just let a
+  // returning user back in (loginOnly — never auto-submits anything).
+  const [authMode, setAuthMode] = useState<"submit" | "login">("submit");
+  // «Fant ingen kartlegging …» — shown on wizard step 1 after a loginOnly
+  // boot that found no rows.
+  const [loginNotice, setLoginNotice] = useState(false);
 
   const draftRef = useRef(draft);
   const langRef = useRef(lang);
   const prevPhaseRef = useRef<Phase>("intro");
   const interactedRef = useRef(false);
   const submittingRef = useRef(false);
+  const introHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  // Returning TO the intro (loginOnly «← Tilbake») unmounts whatever held
+  // focus — same heading-focus pattern as every other phase. Never on page
+  // load (interactedRef is still false there).
+  useEffect(() => {
+    if (phase === "intro" && interactedRef.current) {
+      introHeadingRef.current?.focus();
+    }
+  }, [phase]);
 
   useEffect(() => {
     draftRef.current = draft;
@@ -311,6 +352,7 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
   const land = useCallback((k: PortalKartlegging) => {
     setKart(k);
     clearDraft();
+    setLoginNotice(false);
     setPhase(landingPhase(k));
   }, []);
 
@@ -333,11 +375,23 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     (async () => {
       const token = await getToken();
       if (!token || cancelled) return;
+      // A session exists — if it came from a loginOnly magic link, consume
+      // the one-shot flag now (rows land as usual; NO rows must not strand
+      // the returning visitor on a silent intro).
+      const loginIntent = consumeLoginIntent();
       try {
         const me = await apiFetch<PortalMeResponse>("/api/portal/me", token);
         if (cancelled || interactedRef.current) return;
         const k = me.kartlegging;
-        if (!k) return;
+        if (!k) {
+          if (loginIntent) {
+            // They logged in to come back — but the bench is empty. Land on
+            // wizard step 1 with the quiet notice instead of dead silence.
+            setLoginNotice(true);
+            setPhase("wizard");
+          }
+          return;
+        }
         if (isWorking(k)) {
           setKart(k);
           setPhase("generating");
@@ -422,6 +476,66 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     [submit]
   );
 
+  /* ── The returning-user path (loginOnly) — boots via /me, NEVER submits ── */
+  const loginBoot = useCallback(async (token: string) => {
+    try {
+      const me = await apiFetch<PortalMeResponse>("/api/portal/me", token);
+      const k = me.kartlegging;
+      if (k && isWorking(k)) {
+        setKart(k);
+        setPhase("generating");
+        return;
+      }
+      if (k && isReady(k)) {
+        setKart(k);
+        setPhase(landingPhase(k));
+        return;
+      }
+      // No rows on this address — the bench is empty, say so and offer it.
+      setLoginNotice(true);
+      setPhase("wizard");
+    } catch (err) {
+      if (err instanceof PortalApiError && err.status === 401) {
+        // The session was stale after all — show the login gate proper.
+        setPhase("authgate");
+        return;
+      }
+      // /me hiccuped — we don't KNOW the bench is empty, so no notice;
+      // the wizard is still a safe place to land.
+      setPhase("wizard");
+    }
+  }, []);
+
+  const onAuthedLogin = useCallback(
+    (token: string) => {
+      void loginBoot(token);
+    },
+    [loginBoot]
+  );
+
+  const startLogin = useCallback(async () => {
+    interactedRef.current = true;
+    setAuthMode("login");
+    // Session already active? Straight to the /me boot — the visitor must
+    // never see an email form flash past for a login they already have.
+    // (Dev-mock always «has» a token — let the gate render its mock-session
+    //  label and auto-pass instead, so the loginOnly copy is reachable in
+    //  dev. No email form exists in mock mode, so nothing flashes.)
+    if (!devMock) {
+      const token = await getToken();
+      if (token) {
+        await loginBoot(token);
+        return;
+      }
+    }
+    setPhase("authgate");
+  }, [devMock, getToken, loginBoot]);
+
+  const backToIntro = useCallback(() => {
+    interactedRef.current = true;
+    setPhase("intro");
+  }, []);
+
   /* ── Generating: poll /me every 5s until forslag_klart (or feilet) ── */
   useEffect(() => {
     if (phase !== "generating") return;
@@ -470,6 +584,7 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     const next: Draft = { answers, step: lastStep, done: true, lang: langRef.current };
     setDraft(next);
     writeDraft(next);
+    setAuthMode("submit");
     setPhase("authgate");
   }, []);
 
@@ -490,6 +605,7 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     writeDraft(next);
     setKart(null);
     setLikeError(false);
+    setLoginNotice(false);
     setPhase("wizard");
   }, []);
 
@@ -497,8 +613,29 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     interactedRef.current = true;
     // The draft is still here (cleared only on success) — back through the
     // gate, which auto-submits against the existing session.
+    setAuthMode("submit");
     setPhase("authgate");
   };
+
+  /** Session escape — clears the Supabase session and lands on the intro,
+      so testing with several addresses (or shared machines) never requires
+      DevTools archaeology. */
+  const loggUt = useCallback(async () => {
+    interactedRef.current = true;
+    if (!devMock) {
+      try {
+        await supabaseBrowser().auth.signOut();
+      } catch (err) {
+        console.error("[portal] signOut failed", err);
+      }
+    }
+    clearDraft();
+    setKart(null);
+    setLikeError(false);
+    setLoginNotice(false);
+    setRateLimited(false);
+    setPhase("intro");
+  }, [devMock]);
 
   const onLike = async () => {
     if (!kart || liking) return;
@@ -531,7 +668,10 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
       if (!token) throw new Error("no session");
       await apiFetch<PortalGodkjennResponse>("/api/portal/godkjenn", token, {
         method: "POST",
-        body: JSON.stringify({ id: kart.id }),
+        // The button can only fire once the vilkår checkbox is ticked
+        // (Tilbud guards the click) — the flag mirrors that consent. The
+        // canonical vilkår TEXT is the server's own; we never send it.
+        body: JSON.stringify({ id: kart.id, vilkarGodtatt: true }),
       });
       setKart({ ...kart, status: "videre", godkjentAt: new Date().toISOString() });
       setPhase("videre");
@@ -589,9 +729,22 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
         {devMock ? (
           <span className="vk-mono vk-portal-mockbadge">dev-mock</span>
         ) : null}
-        <Link href="/#kontakt" className="vk-portal-avbryt vk-mono">
-          {t.header.avbryt}
-        </Link>
+        <span className="vk-portal-topplenker">
+          {/* Session escape — only once the visitor IS someone (post-auth
+              phases). Mid-generation logout would orphan a paid drawing. */}
+          {phase === "forslag" || phase === "tilbud" || phase === "videre" ? (
+            <button
+              type="button"
+              className="vk-portal-avbryt vk-mono"
+              onClick={loggUt}
+            >
+              {t.header.loggUt}
+            </button>
+          ) : null}
+          <Link href="/#kontakt" className="vk-portal-avbryt vk-mono">
+            {t.header.avbryt}
+          </Link>
+        </span>
       </header>
 
       <LevelRail
@@ -613,7 +766,13 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
         {phase === "intro" ? (
           <section className="vk-portal-intro">
             <p className="vk-kicker">{t.levels[0].navn}</p>
-            <h1 className="vk-display vk-portal-h1">{t.intro.tittel}</h1>
+            <h1
+              ref={introHeadingRef}
+              tabIndex={-1}
+              className="vk-display vk-portal-h1"
+            >
+              {t.intro.tittel}
+            </h1>
             <p className="vk-portal-lead">{t.intro.undertekst}</p>
             <div className="vk-portal-introrow">
               <button type="button" className="vk-btn vk-btn--cta" onClick={startWizard}>
@@ -623,6 +782,14 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
                 {t.intro.taPratHeller}
               </Link>
             </div>
+            {/* The returning-user door — quiet, below the start button. */}
+            <button
+              type="button"
+              className="vk-portal-quietlink vk-portal-loginlenke vk-mono"
+              onClick={() => void startLogin()}
+            >
+              {t.intro.loggInnLenke}
+            </button>
           </section>
         ) : null}
 
@@ -631,6 +798,7 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
             initialAnswers={draft.answers}
             initialStep={draft.step}
             autoFocus={interactedRef.current}
+            notice={loginNotice ? t.authgate.ingenKartlegging : null}
             onPersist={persistDraft}
             onComplete={completeWizard}
           />
@@ -640,8 +808,9 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
           <AuthGate
             devMock={devMock}
             autoFocus={interactedRef.current}
-            onAuthed={onAuthed}
-            onBack={backToWizard}
+            loginOnly={authMode === "login"}
+            onAuthed={authMode === "login" ? onAuthedLogin : onAuthed}
+            onBack={authMode === "login" ? backToIntro : backToWizard}
           />
         ) : null}
 

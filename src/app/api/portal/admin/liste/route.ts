@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { forbidden, portalAuth, unauthorized } from "@/lib/portalAuth";
-import { mockAdminDetalj, mockAdminListe, portalMockEnabled } from "@/lib/portalMock";
+import {
+  mockAdminDetalj,
+  mockAdminListe,
+  mockAdminSlett,
+  portalMockEnabled,
+} from "@/lib/portalMock";
 import type {
   AdminDetaljResponse,
   AdminListeResponse,
+  AdminSlettResponse,
   PortalAnbefaling,
   PortalAssessment,
   PortalStatus,
@@ -14,19 +20,26 @@ import { ADMIN_EMAIL } from "@/lib/portalTypes";
 export const runtime = "nodejs";
 
 /**
- * Verkstedkontoret — GET /api/portal/admin/liste.
+ * Verkstedkontoret — GET + DELETE /api/portal/admin/liste.
  *
- * Without ?id: ALL kartlegginger, trimmed for the list, created_at desc.
- * With ?id=<uuid>: ONE full row + a 1h signed mockup URL — the detail view
- * reuses this route instead of a separate admin/kartlegging endpoint (one
- * door into the same RLS-guarded table is enough).
+ * GET without ?id: ALL kartlegginger, trimmed for the list, created_at desc.
+ * GET with ?id=<uuid>: ONE full row + a 1h signed mockup URL — the detail
+ * view reuses this route instead of a separate admin/kartlegging endpoint
+ * (one door into the same RLS-guarded table is enough).
+ * DELETE with ?id=<uuid>: removes the mockup storage object (when set),
+ * then the row — same one door.
  *
  * Auth: the user-token pattern (portalAuth) + an explicit ADMIN_EMAIL check.
- * The admin RLS policies (is_portal_admin()) carry the cross-user select;
- * a non-admin token would see zero rows even if this check were bypassed.
+ * The admin RLS policies (is_portal_admin()) carry the cross-user select
+ * and delete; a non-admin token would see zero rows even if this check
+ * were bypassed.
  */
 
 const SIGNED_URL_TTL_SECONDS = 3600;
+
+/** Malformed ids would be uuid cast errors (22P02 → 500) — answer honestly. */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function bedriftNavnOf(answers: unknown): string | null {
   if (typeof answers !== "object" || answers === null) return null;
@@ -63,15 +76,13 @@ export async function GET(req: Request) {
 
   /* ── ?id= — one full row + signed mockup URL ── */
   if (id) {
-    // A malformed id would be a uuid cast error (22P02 → 500) — answer the
-    // honest «finnes ikke» instead.
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    if (!UUID_RE.test(id)) {
       return NextResponse.json<AdminDetaljResponse>({ kartlegging: null });
     }
     const { data: row, error } = await supabase
       .from("kartlegginger")
       .select(
-        "id, status, email, answers, assessment, mockup_path, tilbud, tilbud_sendt_at, created_at"
+        "id, status, email, answers, assessment, mockup_path, tilbud, tilbud_sendt_at, godkjent_at, created_at"
       )
       .eq("id", id)
       .maybeSingle();
@@ -105,6 +116,7 @@ export async function GET(req: Request) {
         mockupUrl,
         tilbud: (row.tilbud ?? null) as PortalTilbud | null,
         tilbudSendtAt: (row.tilbud_sendt_at ?? null) as string | null,
+        godkjentAt: (row.godkjent_at ?? null) as string | null,
         createdAt: row.created_at as string,
       },
     });
@@ -133,4 +145,81 @@ export async function GET(req: Request) {
       };
     }),
   });
+}
+
+/* ── DELETE ?id= — mockup object first, then the row ── */
+
+export async function DELETE(req: Request) {
+  const id = new URL(req.url).searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "Mangler id" }, { status: 400 });
+  }
+
+  // DEV MOCK — everything fake lives in portalMock.ts (auto-admin).
+  if (portalMockEnabled()) {
+    const mocked = await mockAdminSlett(id);
+    if (!mocked) {
+      return NextResponse.json({ error: "Fant ikke kartleggingen" }, { status: 404 });
+    }
+    return NextResponse.json<AdminSlettResponse>(mocked);
+  }
+
+  let auth;
+  try {
+    auth = await portalAuth(req);
+  } catch (err) {
+    console.error("[portal/admin/liste] auth setup failed", err);
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+  if (!auth) return unauthorized();
+  if (auth.user.email !== ADMIN_EMAIL) return forbidden();
+  const { supabase } = auth;
+
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Fant ikke kartleggingen" }, { status: 404 });
+  }
+
+  // Fetch the row first for its mockup_path — the storage object must not
+  // be orphaned behind a deleted row.
+  const { data: row, error: selectError } = await supabase
+    .from("kartlegginger")
+    .select("id, mockup_path")
+    .eq("id", id)
+    .maybeSingle();
+  if (selectError) {
+    console.error("[portal/admin/liste] delete select failed", selectError);
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+  if (!row) {
+    return NextResponse.json({ error: "Fant ikke kartleggingen" }, { status: 404 });
+  }
+
+  // Storage first; a storage hiccup must not block the row delete — a
+  // stray object is cheaper than a row Petter can't get rid of.
+  if (row.mockup_path) {
+    const { error: removeError } = await supabase.storage
+      .from("mockups")
+      .remove([row.mockup_path as string]);
+    if (removeError) {
+      console.error("[portal/admin/liste] mockup remove failed", removeError);
+    }
+  }
+
+  const { data: deleted, error: deleteError } = await supabase
+    .from("kartlegginger")
+    .delete()
+    .eq("id", id)
+    .select("id");
+  if (deleteError) {
+    console.error("[portal/admin/liste] delete failed", deleteError);
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+  if (!deleted || deleted.length === 0) {
+    // The select saw the row but the delete touched nothing — RLS swallowed
+    // it (missing admin delete policy). A server problem, not a 404.
+    console.error("[portal/admin/liste] delete affected 0 rows", { id });
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+
+  return NextResponse.json<AdminSlettResponse>({ ok: true });
 }
