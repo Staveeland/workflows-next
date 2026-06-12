@@ -275,12 +275,14 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Fant ikke prosjektet" }, { status: 404 });
   }
 
-  // The kartlegging row doubles as the ownership check (RLS hides other
-  // users' rows) and carries uke + the customer's read marker.
+  // Ownership is checked EXPLICITLY (user_id), not via RLS alone: the
+  // admin's RLS policies see every row, so without this filter the admin
+  // logged into the customer portal could read other customers' rooms.
   const { data: row, error: rowError } = await supabase
     .from("kartlegginger")
     .select("id, uke, godkjent_at, status, kunde_sett_at")
     .eq("id", id)
+    .eq("user_id", user.id)
     .maybeSingle();
   if (rowError) {
     console.error("[portal/prosjekt] row select failed", rowError);
@@ -475,12 +477,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Fant ikke prosjektet" }, { status: 404 });
   }
 
-  // Ownership (RLS) + the gate: only a project that went «videre» has a
-  // bench. The RLS insert policy enforces the same — this answers honestly.
+  // Ownership EXPLICITLY on user_id (admin-RLS ser alle rader — uten dette
+  // postet admin-i-kundeportalen inn i andre kunders rom) + the gate: only
+  // a project that went «videre» has a bench.
   const { data: row, error: rowError } = await supabase
     .from("kartlegginger")
     .select("id, status, email, answers")
     .eq("id", id)
+    .eq("user_id", user.id)
     .maybeSingle();
   if (rowError) {
     console.error("[portal/prosjekt] row select failed", rowError);

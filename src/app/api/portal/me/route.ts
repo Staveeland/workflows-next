@@ -33,14 +33,19 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
   }
   if (!auth) return unauthorized();
-  const { supabase } = auth;
+  const { supabase, user } = auth;
 
-  // Latest row for this user — RLS scopes the select to the owner.
+  // Latest row for this user. RLS scopes customers to their own rows, but
+  // the ADMIN's RLS policies see EVERY row — without the explicit user_id
+  // filter, the admin logged into the CUSTOMER portal got the latest
+  // customer's journey served as their own (and could post into it).
+  // Customer routes therefore always filter on user_id themselves.
   const { data: row, error } = await supabase
     .from("kartlegginger")
     .select(
       "id, status, answers, assessment, mockup_path, created_at, tilbud, tilbud_sendt_at, godkjent_at, godkjent_vilkar, uke, levert_at, sluttrapport"
     )
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

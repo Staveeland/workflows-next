@@ -49,12 +49,14 @@ export async function POST(req: Request) {
   });
   if (!rl.ok) return tooManyRequests(rl, RL_MAX);
 
-  // Fetch the row first (RLS hides other users' rows → acts as the
-  // ownership check) so the Telegram message can name the proposal.
+  // Ownership EXPLICITLY on user_id (the admin's RLS sees every row — the
+  // filter keeps an admin-in-the-customer-portal out of other journeys),
+  // and the row names the proposal for the Telegram ping.
   const { data: row, error: selectError } = await supabase
     .from("kartlegginger")
     .select("id, assessment, answers")
     .eq("id", id)
+    .eq("user_id", user.id)
     .maybeSingle();
   if (selectError) {
     console.error("[portal/like] select failed", selectError);
@@ -73,6 +75,7 @@ export async function POST(req: Request) {
     .from("kartlegginger")
     .update({ status: "likt", liked_at: now, updated_at: now })
     .eq("id", id)
+    .eq("user_id", user.id)
     .eq("status", "forslag_klart")
     .select("id");
   if (updateError) {

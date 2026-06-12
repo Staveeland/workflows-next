@@ -155,12 +155,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Fant ikke prosjektet" }, { status: 404 });
   }
 
-  // RLS doubles as the ownership check: the owner sees their own row, the
-  // admin (admin policies) sees every row — anyone else gets a 404. Only a
-  // project that went «videre» has a bench to put files on.
+  // This route is SHARED with AdminBenken (admin uploads ride the same safe
+  // path), so the gate is explicit owner-OR-admin — never RLS alone (the
+  // admin's RLS sees every row, which is wanted here but must be deliberate).
   const { data: row, error: rowError } = await supabase
     .from("kartlegginger")
-    .select("id, status")
+    .select("id, status, user_id")
     .eq("id", id)
     .maybeSingle();
   if (rowError) {
@@ -168,6 +168,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
   }
   if (!row) {
+    return NextResponse.json({ error: "Fant ikke prosjektet" }, { status: 404 });
+  }
+  // Owner or admin — an admin identity never counts as the room's customer.
+  if (row.user_id !== user.id && user.email !== ADMIN_EMAIL) {
     return NextResponse.json({ error: "Fant ikke prosjektet" }, { status: 404 });
   }
   if (row.status !== "videre" && user.email !== ADMIN_EMAIL) {

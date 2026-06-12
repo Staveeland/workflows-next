@@ -65,13 +65,14 @@ export async function POST(req: Request) {
   });
   if (!rl.ok) return tooManyRequests(rl, RL_MAX);
 
-  // Fetch the row first (RLS hides other users' rows → acts as the
-  // ownership check) so the Telegram message and the receipt e-post can
-  // quote the price — and the e-post can speak the row's language.
+  // Ownership EXPLICITLY on user_id (the admin's RLS sees every row — the
+  // filter keeps an admin-in-the-customer-portal from approving another
+  // customer's quote). The row carries price + language for the e-post.
   const { data: row, error: selectError } = await supabase
     .from("kartlegginger")
     .select("id, tilbud, email, lang, answers")
     .eq("id", id)
+    .eq("user_id", user.id)
     .maybeSingle();
   if (selectError) {
     console.error("[portal/godkjenn] select failed", selectError);
@@ -98,6 +99,7 @@ export async function POST(req: Request) {
       updated_at: now,
     })
     .eq("id", id)
+    .eq("user_id", user.id)
     .eq("status", "tilbud_sendt")
     .select("id");
   if (updateError) {
