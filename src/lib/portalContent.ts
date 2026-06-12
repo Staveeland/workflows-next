@@ -1039,6 +1039,7 @@ export const portalContent: Record<Lang, PortalContent> = {
         delbetalt: "delbetalt",
         betalt: "betalt",
         forfalt: "forfalt",
+        kreditert: "kreditert",
         kansellert: "kansellert",
       },
       levertMelding:
@@ -1684,6 +1685,7 @@ export const portalContent: Record<Lang, PortalContent> = {
         delbetalt: "partly paid",
         betalt: "paid",
         forfalt: "overdue",
+        kreditert: "credited",
         kansellert: "cancelled",
       },
       levertMelding:

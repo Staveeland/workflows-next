@@ -83,6 +83,7 @@ const FAKTURA_STATUSER: readonly string[] = [
   "delbetalt",
   "betalt",
   "forfalt",
+  "kreditert",
   "kansellert",
 ];
 

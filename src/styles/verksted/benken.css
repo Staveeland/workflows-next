@@ -261,7 +261,8 @@
   border-color: rgba(255, 180, 84, 0.5);
 }
 
-.vk-benk-faktura-status[data-status="kansellert"] {
+.vk-benk-faktura-status[data-status="kansellert"],
+.vk-benk-faktura-status[data-status="kreditert"] {
   opacity: 0.7;
 }
 

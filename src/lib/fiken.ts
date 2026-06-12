@@ -965,6 +965,14 @@ export function avledFakturaStatus(
   navarende: FakturaStatus
 ): FakturaStatus {
   if (navarende === "kansellert") return "kansellert";
+  // Kreditert tar høyest presedens — en kreditnota er det mest informative
+  // sluttsignalet (faktura helt/delvis reversert).
+  if (
+    Array.isArray(faktura.associatedCreditNotes) &&
+    faktura.associatedCreditNotes.length > 0
+  ) {
+    return "kreditert";
+  }
   if (faktura.sale?.settled === true) return "betalt";
   const forfalt =
     typeof faktura.dueDate === "string" && faktura.dueDate < isoIdag();
@@ -972,6 +980,7 @@ export function avledFakturaStatus(
   if ((faktura.sale?.totalPaid ?? 0) > 0) return "delbetalt";
   const sendt =
     (Array.isArray(faktura.dispatches) && faktura.dispatches.length > 0) ||
+    faktura.sentManually === true ||
     navarende === "sendt" ||
     navarende === "delbetalt" ||
     navarende === "forfalt";
@@ -1021,7 +1030,7 @@ export async function syncAlleFakturaer(): Promise<FikenSyncResultat> {
     .from("fakturaer")
     .select("id, kartlegging_id, fiken_invoice_id, invoice_number, status")
     .not("fiken_invoice_id", "is", null)
-    .not("status", "in", "(betalt,kansellert)")
+    .not("status", "in", "(betalt,kreditert,kansellert)")
     .order("created_at", { ascending: true });
   if (error) {
     console.error("[fiken/sync] fakturaer select feilet", error);

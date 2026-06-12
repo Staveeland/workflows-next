@@ -67,12 +67,16 @@ const STATUS_TEKST: Record<FakturaStatus, string> = {
   delbetalt: "Delbetalt",
   betalt: "Betalt",
   forfalt: "Forfalt",
+  kreditert: "Kreditert",
   kansellert: "Kansellert",
 };
 
 function chipClass(status: FakturaStatus): string {
   if (status === "betalt") return "vk-fak-chip vk-fak-chip--betalt";
   if (status === "forfalt") return "vk-fak-chip vk-fak-chip--forfalt";
+  if (status === "kreditert" || status === "kansellert") {
+    return "vk-fak-chip vk-fak-chip--kreditert";
+  }
   return "vk-fak-chip";
 }
 

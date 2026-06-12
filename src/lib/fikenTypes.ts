@@ -141,6 +141,10 @@ export interface FikenInvoice {
   sale?: FikenSale | null;
   /** Sendingsforsøk — minst ett element betyr at fakturaen er sendt. */
   dispatches?: unknown[];
+  /** Manuelt markert sendt (uten dispatch via Fiken). */
+  sentManually?: boolean;
+  /** Kreditnota-id(er) — ikke tom = fakturaen er (helt/delvis) kreditert. */
+  associatedCreditNotes?: unknown[];
 }
 
 /** POST /companies/{slug}/invoices/send. */
@@ -211,6 +215,7 @@ export type FakturaStatus =
   | "delbetalt"
   | "betalt"
   | "forfalt"
+  | "kreditert"
   | "kansellert";
 
 export const FAKTURA_STATUSER: readonly FakturaStatus[] = [
@@ -219,6 +224,7 @@ export const FAKTURA_STATUSER: readonly FakturaStatus[] = [
   "delbetalt",
   "betalt",
   "forfalt",
+  "kreditert",
   "kansellert",
 ];
 

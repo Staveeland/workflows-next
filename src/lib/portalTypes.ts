@@ -432,6 +432,7 @@ export type ProsjektFakturaStatus =
   | "delbetalt"
   | "betalt"
   | "forfalt"
+  | "kreditert"
   | "kansellert";
 
 /**
