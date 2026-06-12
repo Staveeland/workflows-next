@@ -1,14 +1,19 @@
-import { NextResponse } from "next/server";
-import { bedriftFraAnswers, epostAdminVarsel, epostForslagKlart, sendPortalEpost } from "@/lib/epost";
+import { NextResponse, after } from "next/server";
+import { bedriftFraAnswers, epostAdminVarsel, epostForslagKlart, lagPortalLenke, sendPortalEpost } from "@/lib/epost";
 import { generateAssessment, generateMockup } from "@/lib/portalAi";
 import { portalAuth, unauthorized } from "@/lib/portalAuth";
 import { mockSubmit, portalMockEnabled } from "@/lib/portalMock";
 import type { PortalSubmitBody, PortalSubmitResponse } from "@/lib/portalTypes";
 import { getClientIp, rateLimit, tooManyRequests } from "@/lib/rateLimit";
+import { sendTelegramToPetter } from "@/lib/telegram";
 
 export const runtime = "nodejs";
-// Text assessment + image generation in one request — needs headroom.
-export const maxDuration = 60;
+// The route itself answers fast (validate + INSERT). The generation (text +
+// image) runs via after() in the SAME invocation, so maxDuration must cover
+// it: probe 6s + chat 20s (+ one HTTP retry 20s) + image 40s + storage/
+// e-post overhead ≈ 90s worst case — 120 gives honest headroom. The client
+// polls GET /me, whose 3-minute staleness backstop still outlives this.
+export const maxDuration = 120;
 
 // Pre-auth junk filter ONLY — generous, so an unauthenticated griefer on a
 // shared IP (CGNAT) can't burn the real budget for legitimate neighbours.
@@ -22,8 +27,9 @@ const RL_WINDOW_MS = 10 * 60_000;
 const DB_HOURLY_MAX = 3;
 const IN_FLIGHT_FRESH_MS = 2 * 60_000;
 
-// Defensive cap — seven wizard steps never come near this.
-const MAX_ANSWERS_JSON = 20_000;
+// Defensive cap — the wizard steps never come near this, even with the
+// 2000-char drømmen, the follow-up answer and research incl. subpages.
+const MAX_ANSWERS_JSON = 30_000;
 
 const GENERATION_FAILED =
   "Genereringen feilet. Prøv igjen om litt — eller ta en prat med et menneske i stedet.";
@@ -136,79 +142,105 @@ export async function POST(req: Request) {
   }
   const rowId = row.id as string;
 
-  try {
-    // 2) Assessment first (text — cheap, and the image prompt needs it) …
-    const assessment = await generateAssessment(body.answers, body.lang);
+  // 2) The expensive work runs AFTER the response (next/server after(), same
+  //    invocation — maxDuration covers it). The user-scoped supabase client
+  //    lives on in this closure, so every update still runs AS the user and
+  //    the DB status machine (genererer → forslag_klart/feilet with the
+  //    customer token) authorizes exactly what happens here. The client gets
+  //    {id} immediately and the GET /me poll lands the result.
+  after(async () => {
+    try {
+      // 2a) Assessment first (text — cheap, and the image prompt needs it) …
+      const assessment = await generateAssessment(body.answers, body.lang);
 
-    // 3) … then the mockup image, uploaded with the user's own token so
-    //    the owner-scoped storage policy (<uid>/ prefix) applies.
-    //    NON-FATAL: the assessment is the product — if the drawing times
-    //    out or fails, the forslag ships without it (the UI handles a
-    //    missing mockupUrl) instead of burning the whole generation.
-    let mockupPath: string | null = null;
-    if (assessment.anbefaling !== "ikke_ai") {
-      try {
-        const webp = await generateMockup(body.answers, assessment);
-        const candidatePath = `${user.id}/${rowId}.webp`;
-        const { error: uploadError } = await supabase.storage
-          .from("mockups")
-          .upload(candidatePath, webp, { contentType: "image/webp" });
-        if (uploadError) {
-          throw new Error(`mockup upload failed: ${uploadError.message}`);
+      // 2b) … then the mockup image, uploaded with the user's own token so
+      //     the owner-scoped storage policy (<uid>/ prefix) applies.
+      //     NON-FATAL: the assessment is the product — if the drawing times
+      //     out or fails, the forslag ships without it (the UI handles a
+      //     missing mockupUrl) instead of burning the whole generation.
+      let mockupPath: string | null = null;
+      if (assessment.anbefaling !== "ikke_ai") {
+        try {
+          const webp = await generateMockup(body.answers, assessment);
+          const candidatePath = `${user.id}/${rowId}.webp`;
+          const { error: uploadError } = await supabase.storage
+            .from("mockups")
+            .upload(candidatePath, webp, { contentType: "image/webp" });
+          if (uploadError) {
+            throw new Error(`mockup upload failed: ${uploadError.message}`);
+          }
+          mockupPath = candidatePath;
+        } catch (mockupErr) {
+          console.error("[portal/submit] mockup skipped (non-fatal)", mockupErr);
         }
-        mockupPath = candidatePath;
-      } catch (mockupErr) {
-        console.error("[portal/submit] mockup skipped (non-fatal)", mockupErr);
       }
-    }
 
-    // 4) Done — forslag_klart.
-    const { error: updateError } = await supabase
-      .from("kartlegginger")
-      .update({
-        assessment,
-        mockup_path: mockupPath,
-        status: "forslag_klart",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", rowId);
-    if (updateError) {
-      throw new Error(`row update failed: ${updateError.message}`);
-    }
+      // 2c) Done — forslag_klart.
+      const { error: updateError } = await supabase
+        .from("kartlegginger")
+        .update({
+          assessment,
+          mockup_path: mockupPath,
+          status: "forslag_klart",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", rowId);
+      if (updateError) {
+        throw new Error(`row update failed: ${updateError.message}`);
+      }
 
-    // 5) Tell the customer the drawing is up. sendPortalEpost is fail-silent
-    //    by contract — a mail hiccup never fails a finished generation.
-    if (user.email) {
-      const ep = await sendPortalEpost({
-        to: user.email,
-        ...epostForslagKlart(body.lang),
+      // 2d) Tell the customer the drawing is up. sendPortalEpost is fail-
+      //     silent by contract — a mail hiccup never fails a generation.
+      if (user.email) {
+        const ep = await sendPortalEpost({
+          to: user.email,
+          // One-time login deep link — falls back to the plain gate link
+          // inside lagPortalLenke (fail-graceful by contract).
+          ...epostForslagKlart(body.lang, { lenke: await lagPortalLenke(user.email) }),
+        });
+        if (!ep.ok) {
+          console.log(`[portal/submit] e-post (forslag klart) ikke sendt: ${ep.error}`);
+        }
+      }
+
+      // …and tell Petter a new kartlegging landed (inbox is enough here;
+      // Telegram pings on likes/approvals/failures to keep the noise down).
+      const adminEp = await sendPortalEpost({
+        to: "petter@workflows.no",
+        ...epostAdminVarsel("ny", {
+          email: user.email ?? "ukjent e-post",
+          bedrift: bedriftFraAnswers(body.answers),
+          lenke: await lagPortalLenke("petter@workflows.no", "admin"),
+        }),
       });
-      if (!ep.ok) {
-        console.log(`[portal/submit] e-post (forslag klart) ikke sendt: ${ep.error}`);
+      if (!adminEp.ok) {
+        console.log(`[portal/submit] admin-e-post ikke sendt: ${adminEp.error}`);
+      }
+    } catch (err) {
+      console.error("[portal/submit] generation failed", err);
+      // Best effort — mark the row feilet so /me reflects reality.
+      const { error: feiletError } = await supabase
+        .from("kartlegginger")
+        .update({ status: "feilet", updated_at: new Date().toISOString() })
+        .eq("id", rowId);
+      if (feiletError) {
+        console.error("[portal/submit] feilet-markering feilet også", feiletError);
+      }
+      // A failed generation is a lead about to walk — ping Petter so it
+      // never dies silently. Plain text by telegram.ts contract.
+      const tg = await sendTelegramToPetter({
+        text:
+          `Verkstedet: generering FEILET for ` +
+          `${bedriftFraAnswers(body.answers) ?? "ukjent bedrift"} ` +
+          `(${user.email ?? "ukjent e-post"}). ` +
+          `Kartlegging ${rowId}. Svarene ligger trygt — kunden ser feilskjermen med prøv igjen-knapp.`,
+      });
+      if (!tg.ok) {
+        console.error(`[portal/submit] telegram-varsel ikke sendt: ${tg.error}`);
       }
     }
+  });
 
-    // …and tell Petter a new kartlegging landed (inbox + nothing else needed;
-    // Telegram pings only on likes/approvals to keep the noise down there).
-    const adminEp = await sendPortalEpost({
-      to: "petter@workflows.no",
-      ...epostAdminVarsel("ny", {
-        email: user.email ?? "ukjent e-post",
-        bedrift: bedriftFraAnswers(body.answers),
-      }),
-    });
-    if (!adminEp.ok) {
-      console.log(`[portal/submit] admin-e-post ikke sendt: ${adminEp.error}`);
-    }
-
-    return NextResponse.json<PortalSubmitResponse>({ id: rowId });
-  } catch (err) {
-    console.error("[portal/submit] generation failed", err);
-    // Best effort — mark the row feilet so /me reflects reality.
-    await supabase
-      .from("kartlegginger")
-      .update({ status: "feilet", updated_at: new Date().toISOString() })
-      .eq("id", rowId);
-    return NextResponse.json({ error: GENERATION_FAILED }, { status: 500 });
-  }
+  // 3) Answer fast — status «genererer» is already visible via GET /me.
+  return NextResponse.json<PortalSubmitResponse>({ id: rowId });
 }

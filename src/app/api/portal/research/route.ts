@@ -7,6 +7,7 @@ import type {
   PortalResearchBody,
   PortalResearchResponse,
   ResearchFunn,
+  ResearchUnderside,
 } from "@/lib/portalTypes";
 import { getClientIp, rateLimit, tooManyRequests } from "@/lib/rateLimit";
 
@@ -14,17 +15,24 @@ import { getClientIp, rateLimit, tooManyRequests } from "@/lib/rateLimit";
  * POST /api/portal/research — UNAUTHENTICATED company lookup.
  *
  * Public data only, near-zero cost: Brønnøysundregistrene (free public API,
- * no key) + a capped fetch of the company's own website for <title> and
- * meta description. The client calls this the moment the visitor names
- * their company, so the workshop never has to ask the obvious questions.
+ * no key) + the company's own website — the landing page for <title>/meta
+ * description, then up to 4 subpages (om/tjenester/priser-ish, found in the
+ * landing HTML) crawled in parallel inside a hard ~4.5s budget with
+ * graceful partial results. Each crawled URL passes EXACTLY the same SSRF
+ * discipline as the landing page (URL guard → DNS resolve+reject →
+ * pinned-address fetch → per-hop redirect re-validation). Alongside the
+ * website work, the open Regnskapsregisteret API supplies last filed-year
+ * revenue/result — a price signal for the back office, never shown in the
+ * wizard.
  *
- * Contract: lookup failures NEVER error to the client — funn: null and a
- * server-side log. Only bad input (400) and rate limiting (429) are errors.
+ * Contract: lookup failures NEVER error to the client — funn: null (or a
+ * partial funn) and a server-side log. Only bad input (400) and rate
+ * limiting (429) are errors.
  */
 
 export const runtime = "nodejs";
-// BRREG (5s) + website (5s) + headroom.
-export const maxDuration = 15;
+// BRREG (5s) + landing page (5s) + subpages∥regnskap (4.5s) + headroom.
+export const maxDuration = 20;
 
 // Cheap public-data endpoint, but still not a free proxy: 10 / 10 min / IP.
 const RL_IP_MAX = 10;
@@ -41,6 +49,14 @@ const WEB_MAX_BYTES = 200 * 1024;
 
 const TITLE_MAX = 120;
 const DESCRIPTION_MAX = 300;
+
+// The subpage crawl — parallel fetches, hard total budget, partials kept.
+const CRAWL_BUDGET_MS = 4_500;
+const CRAWL_MAX_PAGES = 4;
+const UNDERSIDE_URL_MAX = 200;
+const UNDERSIDE_TEKST_MAX = 400;
+
+const REGNSKAP_TIMEOUT_MS = 4_000;
 
 function parseBody(raw: unknown): { navn: string; nettside?: string } | null {
   if (typeof raw !== "object" || raw === null) return null;
@@ -122,6 +138,76 @@ async function brregLookup(navn: string): Promise<BrregEnhet | null> {
   const enheter = json._embedded?.enheter ?? [];
   if (!Array.isArray(enheter) || enheter.length === 0) return null;
   return pickBestMatch(navn, enheter);
+}
+
+/* ------------------------------------------------------------------ */
+/* Regnskapsregisteret — last filed-year key figures (open API)        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Verified response shape (2026-06): a JSON ARRAY of filings; 404 when the
+ * company has nothing filed (common — e.g. group-only filers). Revenue at
+ * resultatregnskapResultat.driftsresultat.driftsinntekter.sumDriftsinntekter,
+ * bottom line at resultatregnskapResultat.aarsresultat. NOTE the valuta
+ * field — some filers report in USD/EUR.
+ */
+interface RegnskapEntry {
+  regnskapsperiode?: { tilDato?: string };
+  valuta?: string;
+  resultatregnskapResultat?: {
+    aarsresultat?: number;
+    driftsresultat?: {
+      driftsinntekter?: { sumDriftsinntekter?: number };
+    };
+  };
+}
+
+type RegnskapTall = Pick<ResearchFunn, "omsetning" | "resultat" | "regnskapsAar" | "valuta">;
+
+async function regnskapLookup(orgnr: string): Promise<RegnskapTall | null> {
+  const res = await fetch(`https://data.brreg.no/regnskapsregisteret/regnskap/${orgnr}`, {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(REGNSKAP_TIMEOUT_MS),
+  });
+  // 404 = nothing filed — a normal answer, not an error.
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    console.error(`[portal/research] regnskapsregisteret responded ${res.status}`);
+    return null;
+  }
+  const json = (await res.json()) as unknown;
+  if (!Array.isArray(json) || json.length === 0) return null;
+  // Newest filing wins (the API has returned single-element arrays so far,
+  // but the period field is there — don't assume).
+  let best: RegnskapEntry | null = null;
+  let bestTid = -Infinity;
+  for (const raw of json as RegnskapEntry[]) {
+    const tid = Date.parse(raw?.regnskapsperiode?.tilDato ?? "");
+    if (Number.isFinite(tid) && tid > bestTid) {
+      bestTid = tid;
+      best = raw;
+    }
+  }
+  if (!best) best = (json as RegnskapEntry[])[0];
+  const rr = best.resultatregnskapResultat;
+  const tall: RegnskapTall = {};
+  const omsetning = rr?.driftsresultat?.driftsinntekter?.sumDriftsinntekter;
+  if (typeof omsetning === "number" && Number.isFinite(omsetning)) {
+    tall.omsetning = Math.round(omsetning);
+  }
+  const resultat = rr?.aarsresultat;
+  if (typeof resultat === "number" && Number.isFinite(resultat)) {
+    tall.resultat = Math.round(resultat);
+  }
+  const tilDato = best.regnskapsperiode?.tilDato;
+  if (typeof tilDato === "string" && /^\d{4}/.test(tilDato)) {
+    tall.regnskapsAar = Number(tilDato.slice(0, 4));
+  }
+  // Currency only when it matters — NOK is the assumption.
+  if (typeof best.valuta === "string" && best.valuta && best.valuta !== "NOK") {
+    tall.valuta = best.valuta.slice(0, 10);
+  }
+  return tall.omsetning !== undefined || tall.resultat !== undefined ? tall : null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -335,56 +421,170 @@ function fetchHtmlPinned(
 }
 
 /**
- * Fetch the company website (text/html only, ≤200KB, ≤5s shared across
- * redirect hops — each hop re-validated: URL guard + DNS resolution check,
- * with the vetted address pinned into the connection).
+ * Fetch ONE page (text/html only, ≤200KB, timeout shared across redirect
+ * hops — each hop re-validated: URL guard + DNS resolution check, with the
+ * vetted address pinned into the connection). This is the ONE entry point
+ * for every outbound page fetch — landing page and crawled subpages alike —
+ * so the SSRF discipline cannot drift between them. Returns the final URL
+ * (post-redirect) + the HTML, or null on any miss.
  */
-async function fetchSiteMeta(
-  rawUrl: string
-): Promise<{ nettside?: string; sideTittel?: string; sideBeskrivelse?: string }> {
+async function fetchPageHtml(
+  rawUrl: string,
+  timeoutMs: number
+): Promise<{ url: URL; html: string } | null> {
   let url = toPublicHttpUrl(rawUrl);
-  if (!url) return {};
-  const deadline = Date.now() + WEB_TIMEOUT_MS;
+  if (!url) return null;
+  const deadline = Date.now() + timeoutMs;
 
   for (let hop = 0; hop <= WEB_MAX_REDIRECTS; hop++) {
     const budget = deadline - Date.now();
-    if (budget <= 0) return {};
+    if (budget <= 0) return null;
     const addrs = await resolvePublicAddrs(url.hostname);
-    if (!addrs) return {};
+    if (!addrs) return null;
 
     let res: PinnedResponse;
     try {
       res = await fetchHtmlPinned(url, addrs, budget);
     } catch {
-      return {};
+      return null;
     }
 
     if (res.status >= 300 && res.status < 400) {
-      if (!res.location) return {};
+      if (!res.location) return null;
       let next: URL;
       try {
         next = new URL(res.location, url);
       } catch {
-        return {};
+        return null;
       }
       url = toPublicHttpUrl(next.toString());
-      if (!url) return {};
+      if (!url) return null;
       continue;
     }
 
-    if (res.status < 200 || res.status >= 300 || !res.body) return {};
-
-    const html = res.body;
-    const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-    const sideTittel = titleMatch ? cleanText(titleMatch[1], TITLE_MAX) : "";
-    const sideBeskrivelse = extractDescription(html);
-    return {
-      nettside: url.toString(),
-      ...(sideTittel ? { sideTittel } : {}),
-      ...(sideBeskrivelse ? { sideBeskrivelse } : {}),
-    };
+    if (res.status < 200 || res.status >= 300 || !res.body) return null;
+    return { url, html: res.body };
   }
-  return {};
+  return null;
+}
+
+function extractTitle(html: string): string {
+  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  return titleMatch ? cleanText(titleMatch[1], TITLE_MAX) : "";
+}
+
+/**
+ * A short tag-stripped excerpt of the page body — chrome (script/style/
+ * nav/header/footer) removed best-effort first, so the model reads what
+ * the page actually says rather than its menu.
+ */
+function extractExcerpt(html: string): string {
+  const body = html
+    .replace(/<script[\s\S]*?<\/script\s*>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style\s*>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript\s*>/gi, " ")
+    .replace(/<nav[\s\S]*?<\/nav\s*>/gi, " ")
+    .replace(/<header[\s\S]*?<\/header\s*>/gi, " ")
+    .replace(/<footer[\s\S]*?<\/footer\s*>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ");
+  return cleanText(body, UNDERSIDE_TEKST_MAX);
+}
+
+/* ------------------------------------------------------------------ */
+/* Subpage crawl — the pages a consultant would actually skim           */
+/* ------------------------------------------------------------------ */
+
+/** Path words worth reading, best first. Matched per path segment. */
+const CRAWL_PATH_HINTS = [
+  "tjenester", "services", "hva-vi-gjor", "losninger", "solutions",
+  "produkter", "products", "produkt", "product",
+  "om", "om-oss", "about", "about-us", "omoss",
+  "priser", "pris", "pricing", "prices",
+  "kontakt", "contact",
+];
+
+/** File-ish or pointless targets — never crawl these. */
+const CRAWL_SKIP_RE =
+  /\.(?:pdf|jpe?g|png|gif|webp|svg|ico|css|js|json|xml|zip|docx?|xlsx?|pptx?|mp[34]|webm|woff2?)$/i;
+
+function crawlScore(pathname: string): number {
+  const segments = pathname.toLowerCase().split("/").filter(Boolean);
+  for (let i = 0; i < CRAWL_PATH_HINTS.length; i++) {
+    if (segments.some((s) => s === CRAWL_PATH_HINTS[i] || s.startsWith(`${CRAWL_PATH_HINTS[i]}-`))) {
+      return i;
+    }
+  }
+  return Infinity;
+}
+
+/**
+ * Same-origin links from the landing HTML, deduped by pathname, hinted
+ * paths first (om/tjenester/priser…), then shallow other pages as filler —
+ * at most CRAWL_MAX_PAGES. Every candidate ALSO passes toPublicHttpUrl, and
+ * fetchPageHtml re-runs the full SSRF chain per URL at fetch time.
+ */
+function extractInternalLinks(html: string, base: URL): URL[] {
+  const seen = new Set<string>([base.pathname.replace(/\/+$/, "") || "/"]);
+  const scored: Array<{ url: URL; score: number }> = [];
+  const hrefRe = /href\s*=\s*("([^"]*)"|'([^']*)')/gi;
+  let match: RegExpExecArray | null;
+  while ((match = hrefRe.exec(html)) !== null) {
+    const raw = (match[2] ?? match[3] ?? "").trim();
+    if (!raw || raw.startsWith("#") || /^(?:mailto:|tel:|javascript:|data:)/i.test(raw)) continue;
+    let resolved: URL;
+    try {
+      resolved = new URL(raw, base);
+    } catch {
+      continue;
+    }
+    // Same guard as every other outbound URL — plus same-host only.
+    const vetted = toPublicHttpUrl(resolved.toString());
+    if (!vetted || vetted.hostname !== base.hostname) continue;
+    if (CRAWL_SKIP_RE.test(vetted.pathname)) continue;
+    const key = vetted.pathname.replace(/\/+$/, "") || "/";
+    if (seen.has(key)) continue;
+    seen.add(key);
+    vetted.hash = "";
+    scored.push({ url: vetted, score: crawlScore(vetted.pathname) });
+  }
+  scored.sort((a, b) => a.score - b.score);
+  const hinted = scored.filter((c) => c.score !== Infinity);
+  // Filler only when the hinted set is thin — prefer shallow paths.
+  const filler = scored
+    .filter((c) => c.score === Infinity && c.url.pathname.split("/").filter(Boolean).length <= 2)
+    .slice(0, Math.max(0, 3 - hinted.length));
+  return [...hinted, ...filler].slice(0, CRAWL_MAX_PAGES).map((c) => c.url);
+}
+
+/**
+ * Fetch the subpages in parallel inside ONE shared budget. Every page gets
+ * a timeout no longer than what remains of the budget, so allSettled
+ * resolves at ~CRAWL_BUDGET_MS worst case and slow pages simply drop out
+ * (graceful partial results).
+ */
+async function crawlUndersider(links: URL[]): Promise<ResearchUnderside[]> {
+  const deadline = Date.now() + CRAWL_BUDGET_MS;
+  const tasks = links.map(async (link): Promise<ResearchUnderside | null> => {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return null;
+    const page = await fetchPageHtml(link.toString(), remaining);
+    if (!page) return null;
+    const tittel = extractTitle(page.html);
+    const tekst = extractDescription(page.html) || extractExcerpt(page.html);
+    if (!tittel && !tekst) return null;
+    return {
+      url: page.url.toString().slice(0, UNDERSIDE_URL_MAX),
+      ...(tittel ? { tittel } : {}),
+      ...(tekst ? { tekst: tekst.slice(0, UNDERSIDE_TEKST_MAX) } : {}),
+    };
+  });
+  const settled = await Promise.allSettled(tasks);
+  return settled
+    .filter(
+      (r): r is PromiseFulfilledResult<ResearchUnderside> =>
+        r.status === "fulfilled" && r.value !== null
+    )
+    .map((r) => r.value);
 }
 
 /* ------------------------------------------------------------------ */
@@ -441,6 +641,16 @@ export async function POST(req: Request) {
         funn.sted = enhet.forretningsadresse.poststed.slice(0, 80);
       }
 
+      // Key figures from Regnskapsregisteret ride alongside the website
+      // work — a price signal for the back office, never shown in the
+      // wizard. Failures never cost the rest of the funn.
+      const regnskapPromise: Promise<RegnskapTall | null> = funn.orgnr
+        ? regnskapLookup(funn.orgnr).catch((err) => {
+            console.error("[portal/research] regnskap lookup failed", err);
+            return null;
+          })
+        : Promise.resolve(null);
+
       // Website: the visitor's own URL wins; BRREG's hjemmeside is plan B.
       const site =
         body.nettside ??
@@ -449,12 +659,29 @@ export async function POST(req: Request) {
           : undefined);
       if (site) {
         try {
-          Object.assign(funn, await fetchSiteMeta(site));
+          const landing = await fetchPageHtml(site, WEB_TIMEOUT_MS);
+          if (landing) {
+            funn.nettside = landing.url.toString();
+            const sideTittel = extractTitle(landing.html);
+            if (sideTittel) funn.sideTittel = sideTittel;
+            const sideBeskrivelse = extractDescription(landing.html);
+            if (sideBeskrivelse) funn.sideBeskrivelse = sideBeskrivelse;
+            // The pages a consultant would skim — parallel, hard budget,
+            // whatever landed in time is kept.
+            const links = extractInternalLinks(landing.html, landing.url);
+            if (links.length > 0) {
+              const undersider = await crawlUndersider(links);
+              if (undersider.length > 0) funn.undersider = undersider;
+            }
+          }
         } catch (err) {
           // Slow or broken website — the registry facts still stand.
           console.error("[portal/research] website fetch failed", err);
         }
       }
+
+      const regnskap = await regnskapPromise;
+      if (regnskap) Object.assign(funn, regnskap);
     }
   } catch (err) {
     // Lookup failure is never the visitor's problem — log it, return null.

@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
-import { epostTilbudSendt, sendPortalEpost } from "@/lib/epost";
+import { epostTilbudSendt, lagPortalLenke, sendPortalEpost } from "@/lib/epost";
 import { forbidden, portalAuth, unauthorized } from "@/lib/portalAuth";
 import { mockAdminTilbud, portalMockEnabled } from "@/lib/portalMock";
 import type { AdminTilbudBody, AdminTilbudResponse, PortalTilbud } from "@/lib/portalTypes";
 import {
   ADMIN_EMAIL,
+  TILBUD_BELOP_MAX_ORE,
   TILBUD_LEVERANSE_MAX,
+  TILBUD_MVA_SATSER,
   TILBUD_PRIS_MAX,
   TILBUD_TEKST_MAX,
 } from "@/lib/portalTypes";
@@ -26,7 +28,13 @@ export const runtime = "nodejs";
  * update policy is what actually lets the write touch other users' rows.
  */
 
-/** All three fields required (trimmed), hard caps mirror the form. */
+/**
+ * All three text fields required (trimmed), hard caps mirror the form.
+ * The STRUCTURED price (prisBelopOre/mvaSats) is additive and optional:
+ * old clients that never send it keep working, and rows without it keep
+ * rendering everywhere. When prisBelopOre is present it must be an integer
+ * amount in øre ≥ 0; mvaSats must be a legal rate (defaults to 25).
+ */
 function parseTilbud(raw: unknown): PortalTilbud | null {
   if (typeof raw !== "object" || raw === null) return null;
   const t = raw as Partial<PortalTilbud>;
@@ -41,7 +49,28 @@ function parseTilbud(raw: unknown): PortalTilbud | null {
   ) {
     return null;
   }
-  return { tekst, pris, leveranse };
+  const ut: PortalTilbud = { tekst, pris, leveranse };
+  if (t.prisBelopOre !== undefined && t.prisBelopOre !== null) {
+    if (
+      typeof t.prisBelopOre !== "number" ||
+      !Number.isInteger(t.prisBelopOre) ||
+      t.prisBelopOre < 0 ||
+      t.prisBelopOre > TILBUD_BELOP_MAX_ORE
+    ) {
+      return null;
+    }
+    ut.prisBelopOre = t.prisBelopOre;
+    const sats = t.mvaSats === undefined || t.mvaSats === null ? 25 : t.mvaSats;
+    if (typeof sats !== "number" || !TILBUD_MVA_SATSER.includes(sats)) {
+      return null;
+    }
+    ut.mvaSats = sats;
+  } else if (t.mvaSats !== undefined && t.mvaSats !== null) {
+    // A VAT rate without an amount is meaningless — reject loudly rather
+    // than store half a structured price.
+    return null;
+  }
+  return ut;
 }
 
 export async function POST(req: Request) {
@@ -78,6 +107,10 @@ export async function POST(req: Request) {
   if (auth.user.email !== ADMIN_EMAIL) return forbidden();
   const { supabase } = auth;
 
+  // Statusvakt: et godkjent løp (videre/levert) skal ALDRI regrederes til
+  // tilbud_sendt — det skjulte Benken for begge parter og endret et tilbud
+  // kunden juridisk har godkjent. DB-triggeren håndhever det samme; guarden
+  // her gir et forståelig svar i stedet for en 500.
   const now = new Date().toISOString();
   const { data: updated, error } = await supabase
     .from("kartlegginger")
@@ -88,13 +121,17 @@ export async function POST(req: Request) {
       updated_at: now,
     })
     .eq("id", id)
+    .in("status", ["forslag_klart", "likt", "tilbud_sendt"])
     .select("id, email, lang");
   if (error) {
     console.error("[portal/admin/tilbud] update failed", error);
     return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
   }
   if (!updated || updated.length === 0) {
-    return NextResponse.json({ error: "Fant ikke kartleggingen" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Tilbudet er låst — kartleggingen finnes ikke, eller kunden har allerede godkjent." },
+      { status: 409 }
+    );
   }
 
   // Tell the customer the quote is on the bench — in THEIR language (the
@@ -104,7 +141,12 @@ export async function POST(req: Request) {
     const lang = row.lang === "en" ? "en" : "no";
     const ep = await sendPortalEpost({
       to: row.email,
-      ...epostTilbudSendt(lang, { pris: tilbud.pris }),
+      // One-time login deep link — falls back to the plain gate link
+      // inside lagPortalLenke (fail-graceful by contract).
+      ...epostTilbudSendt(lang, {
+        pris: tilbud.pris,
+        lenke: await lagPortalLenke(row.email),
+      }),
     });
     if (!ep.ok) {
       console.log(`[portal/admin/tilbud] e-post (tilbud sendt) ikke sendt: ${ep.error}`);

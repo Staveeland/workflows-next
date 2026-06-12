@@ -131,6 +131,8 @@ export default function Forslag({
           <p className="vk-portal-videre-tekst" role="status">
             {t.forslag.videreTekst}
           </p>
+          {/* The release: they don't have to sit here — email will knock. */}
+          <p className="vk-mono vk-portal-videre-epost">{t.forslag.videreEpost}</p>
           <div className="vk-portal-kort">
             <div className="vk-portal-kort-item">
               <span className="vk-mono vk-portal-kort-label">{t.forslag.epostLabel}</span>
@@ -184,7 +186,7 @@ export default function Forslag({
           </button>
           {likeError ? (
             <p className="vk-portal-feilmelding" role="alert">
-              {t.feil.tekst}
+              {t.forslag.likFeil}
             </p>
           ) : null}
         </div>

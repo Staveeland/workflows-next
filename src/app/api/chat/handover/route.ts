@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendTelegramToPetter } from "@/lib/telegram";
+import { chatCookieOptions, signChatSession } from "@/lib/chatSession";
 import { getClientIp, rateLimit, tooManyRequests } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -104,10 +105,19 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({
+  const res = NextResponse.json({
     ok: true,
     email,
     name,
     telegramSent: tg.ok,
   });
+
+  // Issue the signed session cookie — from here on, history/poll identify
+  // the visitor via this cookie only (see src/lib/chatSession.ts).
+  const session = signChatSession(email);
+  if (session) {
+    const { name: cookieName, ...opts } = chatCookieOptions;
+    res.cookies.set(cookieName, session, opts);
+  }
+  return res;
 }

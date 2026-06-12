@@ -1732,3 +1732,179 @@ html:has(.vk-benk) {
 .vk-lys-lastned:hover {
   text-decoration-color: var(--glod);
 }
+
+/* ════════════════════════════════════════════
+   KVITTERING + SKJØTET (level 5) — the printable cream sheets.
+   The receipt reuses the .vk-portal-tark deed; these classes add the
+   terms block, the signature foot and the print affordances.
+   ════════════════════════════════════════════ */
+
+/* «eks. mva» under the structured price amount. */
+.vk-portal-tprismva {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(23, 19, 16, 0.75);
+}
+
+/* The terms the customer accepted — quiet block above the signature. */
+.vk-portal-kvittvilkar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(23, 19, 16, 0.12);
+}
+
+.vk-portal-kvittfot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(23, 19, 16, 0.12);
+}
+
+/* The signature — display voice, ink, like a signed deed. */
+.vk-portal-signatur {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 144;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--blekk);
+}
+
+/* The approved-quote block inside the skjøte sheet. */
+.vk-portal-kvittdel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(23, 19, 16, 0.2);
+}
+
+/* The folded-away receipt above Benken (phase «videre»). */
+.vk-portal-kvittdetails {
+  width: 100%;
+}
+
+/* Print button — ink-bordered, paper voice, ≥44px. */
+.vk-portal-printknapp {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(23, 19, 16, 0.35);
+  border-radius: 999px;
+  color: rgba(23, 19, 16, 0.85);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--dur-2) var(--ease-work);
+}
+
+.vk-portal-printknapp:hover {
+  background: rgba(23, 19, 16, 0.06);
+}
+
+/* ── Skjøtet — the level 5 handover screen ── */
+
+.vk-portal-skjotet {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding-bottom: 24px;
+}
+
+/* Quiet mono line introducing the archived Benken below the sheet. */
+.vk-portal-arkivlinje {
+  margin: 6px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+/* «vi sier ifra på e-post» — quiet release line in the waiting state. */
+.vk-portal-videre-epost {
+  margin: 0;
+  font-size: 13px;
+  color: var(--stov);
+}
+
+/* ════════════════════════════════════════════
+   PRINT — the deed on paper. The ark-only rules are SCOPED behind
+   body.vk-print-ark, armed by the «Skriv ut»-button and disarmed on
+   afterprint (see Tilbud.tsx) — a manual Cmd+P therefore never yields a
+   blank page; it prints the screen as usual. With the class armed, only
+   the .vk-portal-printark subtree prints: white ground, black ink, no
+   chrome. A receipt folded away in a CLOSED <details> is display:none
+   and never prints; the open sheet does.
+   ════════════════════════════════════════════ */
+
+@media print {
+  body.vk-print-ark {
+    background: #fff !important;
+    /* Hidden-but-laid-out content keeps its height and would yield N
+       blank pages behind the receipt — collapse the body; the absolutely
+       positioned printark below escapes the overflow clip. */
+    height: 0;
+    overflow: hidden;
+  }
+
+  body.vk-print-ark * {
+    visibility: hidden;
+  }
+
+  body.vk-print-ark .vk-portal-printark,
+  body.vk-print-ark .vk-portal-printark * {
+    visibility: visible;
+  }
+
+  body.vk-print-ark .vk-portal-printark {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 24px 8px;
+    background: #fff !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body.vk-print-ark .vk-portal-printark,
+  body.vk-print-ark .vk-portal-printark * {
+    color: #000 !important;
+  }
+
+  /* The stamp keeps its border but in ink. */
+  body.vk-print-ark .vk-portal-tstempel {
+    border-color: #000;
+    rotate: none;
+  }
+
+  /* Interactive affordances have no business on paper — ever. */
+  .vk-portal-printskjul {
+    display: none !important;
+  }
+
+  /* The grain overlay and the sticky composer would otherwise leave
+     phantom boxes in some engines. */
+  .vk-grain,
+  .vk-benk-komposer {
+    display: none !important;
+  }
+}

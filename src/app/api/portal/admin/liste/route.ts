@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { forbidden, portalAuth, unauthorized } from "@/lib/portalAuth";
 import {
   mockAdminDetalj,
@@ -12,6 +12,7 @@ import type {
   AdminSlettResponse,
   PortalAnbefaling,
   PortalAssessment,
+  PortalSluttrapport,
   PortalStatus,
   PortalTilbud,
 } from "@/lib/portalTypes";
@@ -26,8 +27,10 @@ export const runtime = "nodejs";
  * GET with ?id=<uuid>: ONE full row + a 1h signed mockup URL — the detail
  * view reuses this route instead of a separate admin/kartlegging endpoint
  * (one door into the same RLS-guarded table is enough).
- * DELETE with ?id=<uuid>: removes the mockup storage object (when set),
- * then the row — same one door.
+ * DELETE with ?id=<uuid>: SOFT delete — stamps slettet_at on the row
+ * (approved runs can never be hard-deleted; the DB trigger agrees). The
+ * customer select policy filters deleted rows automatically; the admin
+ * list hides them behind a «vis slettede»-toggle. Same one door.
  *
  * Auth: the user-token pattern (portalAuth) + an explicit ADMIN_EMAIL check.
  * The admin RLS policies (is_portal_admin()) carry the cross-user select
@@ -82,7 +85,7 @@ export async function GET(req: Request) {
     const { data: row, error } = await supabase
       .from("kartlegginger")
       .select(
-        "id, status, email, answers, assessment, mockup_path, tilbud, tilbud_sendt_at, godkjent_at, created_at"
+        "id, status, email, answers, assessment, mockup_path, tilbud, tilbud_sendt_at, godkjent_at, created_at, levert_at, sluttrapport, slettet_at"
       )
       .eq("id", id)
       .maybeSingle();
@@ -107,16 +110,18 @@ export async function GET(req: Request) {
     }
 
     // Opening the detail counts as «sett» — the list's NYTT-tag clears.
-    // Fire-and-forget: a failed stamp only means the tag lingers.
-    void supabase
-      .from("kartlegginger")
-      .update({ admin_sett_at: new Date().toISOString() })
-      .eq("id", id)
-      .then(({ error: settError }) => {
-        if (settError) {
-          console.error("[portal/admin/liste] admin_sett_at failed", settError);
-        }
-      });
+    // after() (next/server): runs after the response but INSIDE the same
+    // invocation, so the write lands on Vercel too. A failed stamp only
+    // means the tag lingers.
+    after(async () => {
+      const { error: settError } = await supabase
+        .from("kartlegginger")
+        .update({ admin_sett_at: new Date().toISOString() })
+        .eq("id", id);
+      if (settError) {
+        console.error("[portal/admin/liste] admin_sett_at failed", settError);
+      }
+    });
 
     return NextResponse.json<AdminDetaljResponse>({
       kartlegging: {
@@ -130,6 +135,9 @@ export async function GET(req: Request) {
         tilbudSendtAt: (row.tilbud_sendt_at ?? null) as string | null,
         godkjentAt: (row.godkjent_at ?? null) as string | null,
         createdAt: row.created_at as string,
+        levertAt: (row.levert_at ?? null) as string | null,
+        sluttrapport: (row.sluttrapport ?? null) as PortalSluttrapport | null,
+        slettetAt: (row.slettet_at ?? null) as string | null,
       },
     });
   }
@@ -137,16 +145,20 @@ export async function GET(req: Request) {
   /* ── The list — trimmed rows, no signed URLs (the list shows none) ── */
   const { data: rows, error } = await supabase
     .from("kartlegginger")
-    .select("id, status, email, answers, assessment, created_at, liked_at, godkjent_at, admin_sett_at")
+    .select(
+      "id, status, email, answers, assessment, tilbud, created_at, liked_at, tilbud_sendt_at, godkjent_at, levert_at, slettet_at, admin_sett_at"
+    )
     .order("created_at", { ascending: false });
   if (error) {
     console.error("[portal/admin/liste] list select failed", error);
     return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
   }
 
-  // Latest customer post per project — one aggregate query (admin RLS
-  // sees all rows). Used for the NYTT FRA KUNDE-tag.
+  // Customer posts per project — one aggregate query (admin RLS sees all
+  // rows). Feeds the NYTT FRA KUNDE-tag, the unread count AND the
+  // sist-aktivitet stamp.
   const sisteKunde = new Map<string, number>();
+  const alleKunde = new Map<string, number[]>();
   const { data: kundeInnlegg, error: innleggError } = await supabase
     .from("prosjekt_innlegg")
     .select("kartlegging_id, created_at")
@@ -158,20 +170,52 @@ export async function GET(req: Request) {
   }
   for (const r of kundeInnlegg ?? []) {
     const kid = r.kartlegging_id as string;
-    if (!sisteKunde.has(kid)) sisteKunde.set(kid, Date.parse(r.created_at as string));
+    const ts = Date.parse(r.created_at as string);
+    if (!sisteKunde.has(kid)) sisteKunde.set(kid, ts);
+    const liste = alleKunde.get(kid);
+    if (liste) liste.push(ts);
+    else alleKunde.set(kid, [ts]);
+  }
+
+  // Open workflows-forespørsler per project — the SLA pulse «venter på
+  // kunden, men trenger oppfølging fra deg». Same fail-soft contract.
+  const apneForesporsler = new Map<string, number>();
+  const { data: apne, error: apneError } = await supabase
+    .from("prosjekt_innlegg")
+    .select("kartlegging_id")
+    .eq("fra", "workflows")
+    .eq("type", "foresporsel")
+    .eq("foresporsel_status", "apen");
+  if (apneError) {
+    console.error("[portal/admin/liste] forespørsel select failed", apneError);
+  }
+  for (const r of apne ?? []) {
+    const kid = r.kartlegging_id as string;
+    apneForesporsler.set(kid, (apneForesporsler.get(kid) ?? 0) + 1);
   }
 
   return NextResponse.json<AdminListeResponse>({
     kartlegginger: (rows ?? []).map((row) => {
       const assessment = row.assessment as PortalAssessment | null;
+      const tilbud = (row.tilbud ?? null) as PortalTilbud | null;
+      const id = row.id as string;
+      const sett = row.admin_sett_at ? Date.parse(row.admin_sett_at as string) : 0;
       return {
-        id: row.id as string,
+        id,
         createdAt: row.created_at as string,
         email: (row.email ?? "") as string,
         bedriftNavn: bedriftNavnOf(row.answers),
         anbefaling: (assessment?.anbefaling ?? null) as PortalAnbefaling | null,
         status: row.status as PortalStatus,
         nyttFraKunde: harNyttFraKunde(row, sisteKunde),
+        nyttAntall: (alleKunde.get(id) ?? []).filter((ts) => ts > sett).length,
+        sistAktivitet: sistAktivitetOf(row, sisteKunde),
+        liktAt: (row.liked_at ?? null) as string | null,
+        apneForesporsler: apneForesporsler.get(id) ?? 0,
+        prisBelopOre:
+          typeof tilbud?.prisBelopOre === "number" ? tilbud.prisBelopOre : null,
+        mvaSats: typeof tilbud?.mvaSats === "number" ? tilbud.mvaSats : null,
+        slettetAt: (row.slettet_at ?? null) as string | null,
       };
     }),
   });
@@ -191,7 +235,29 @@ function harNyttFraKunde(
   return Math.max(...kandidater) > sett;
 }
 
-/* ── DELETE ?id= — mockup object first, then the row ── */
+/** The newest life sign on the row — created/liked/tilbud/godkjent/levert
+    or the latest customer post. ISO string for the «{t} siden»-line. */
+function sistAktivitetOf(
+  row: Record<string, unknown>,
+  sisteKunde: Map<string, number>
+): string {
+  const kandidater = [
+    Date.parse(row.created_at as string),
+    row.liked_at ? Date.parse(row.liked_at as string) : 0,
+    row.tilbud_sendt_at ? Date.parse(row.tilbud_sendt_at as string) : 0,
+    row.godkjent_at ? Date.parse(row.godkjent_at as string) : 0,
+    row.levert_at ? Date.parse(row.levert_at as string) : 0,
+    sisteKunde.get(row.id as string) ?? 0,
+  ].filter((n) => Number.isFinite(n));
+  return new Date(Math.max(...kandidater)).toISOString();
+}
+
+/* ── DELETE ?id= — SOFT delete: stamp slettet_at, keep everything.
+      Approved runs can never be hard-deleted (DB trigger) and the
+      godkjent_vilkar/tilbud pair is contract documentation — so the row,
+      the mockup and the project files all stay. The customer select
+      policy filters deleted rows automatically; the admin list hides
+      them behind a toggle. ── */
 
 export async function DELETE(req: Request) {
   const id = new URL(req.url).searchParams.get("id");
@@ -223,46 +289,23 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Fant ikke kartleggingen" }, { status: 404 });
   }
 
-  // Fetch the row first for its mockup_path — the storage object must not
-  // be orphaned behind a deleted row.
-  const { data: row, error: selectError } = await supabase
+  // Soft delete: one idempotent stamp. The mockup and project files stay —
+  // the row may hold approved-quote documentation and can be inspected via
+  // the «vis slettede»-toggle in the list.
+  const { data: stamped, error: deleteError } = await supabase
     .from("kartlegginger")
-    .select("id, mockup_path")
-    .eq("id", id)
-    .maybeSingle();
-  if (selectError) {
-    console.error("[portal/admin/liste] delete select failed", selectError);
-    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
-  }
-  if (!row) {
-    return NextResponse.json({ error: "Fant ikke kartleggingen" }, { status: 404 });
-  }
-
-  // Storage first; a storage hiccup must not block the row delete — a
-  // stray object is cheaper than a row Petter can't get rid of.
-  if (row.mockup_path) {
-    const { error: removeError } = await supabase.storage
-      .from("mockups")
-      .remove([row.mockup_path as string]);
-    if (removeError) {
-      console.error("[portal/admin/liste] mockup remove failed", removeError);
-    }
-  }
-
-  const { data: deleted, error: deleteError } = await supabase
-    .from("kartlegginger")
-    .delete()
+    .update({
+      slettet_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", id)
     .select("id");
   if (deleteError) {
-    console.error("[portal/admin/liste] delete failed", deleteError);
+    console.error("[portal/admin/liste] soft delete failed", deleteError);
     return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
   }
-  if (!deleted || deleted.length === 0) {
-    // The select saw the row but the delete touched nothing — RLS swallowed
-    // it (missing admin delete policy). A server problem, not a 404.
-    console.error("[portal/admin/liste] delete affected 0 rows", { id });
-    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  if (!stamped || stamped.length === 0) {
+    return NextResponse.json({ error: "Fant ikke kartleggingen" }, { status: 404 });
   }
 
   return NextResponse.json<AdminSlettResponse>({ ok: true });

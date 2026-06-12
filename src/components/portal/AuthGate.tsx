@@ -7,6 +7,7 @@ import { portalContent } from "@/lib/portalContent";
 import { MOCK_SESSION_LABEL } from "@/lib/portalMock";
 import { PORTAL_LOGIN_INTENT_KEY } from "@/lib/portalTypes";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
+import "@/styles/verksted/authgate.css";
 
 /**
  * The authgate — log in BEFORE the expensive generation. Honest copy from
@@ -16,10 +17,19 @@ import { supabaseBrowser } from "@/lib/supabaseBrowser";
  * back on /start, supabaseBrowser() picks the session out of the URL, and
  * onAuthed fires exactly once (the parent auto-submits the stored draft).
  *
+ * TWO DOORS, SAME EMAIL: the mail carries a 6-digit one-time code AND the
+ * magic link (the Supabase template must render {{ .Token }} — see
+ * docs/supabase-epostmaler.md). The code is the cross-browser fix: Gmail/
+ * Outlook open magic links in THEIR in-app browser, stranding the draft in
+ * the browser where the visitor typed it. Typing the code here
+ * (verifyOtp type "email") creates the session in THIS tab — the draft and
+ * the session finally meet. The link stays as the lazy path.
+ *
  * LOGIN ONLY: the returning-user mode — different copy («skriv e-posten du
  * brukte sist»), and the parent wires onAuthed to a /me boot instead of a
  * submit. Sending the link also stamps the one-shot vk-portal-login flag so
  * the draft-less boot after the magic-link reload knows it was a login.
+ * (The code path needs no flag — it never leaves this tab.)
  *
  * DEV MOCK: auto-passes with the fake session label after a short beat —
  * no Supabase call ever happens.
@@ -38,9 +48,14 @@ interface AuthGateProps {
 }
 
 const RESEND_COOLDOWN_S = 30;
+const OTP_LENGDE = 6;
 
 const ERROR_ID = "vk-portal-auth-feil";
 const COOLDOWN_ID = "vk-portal-auth-cooldown";
+const SENT_ID = "vk-portal-auth-sendt";
+
+/** Which field an error belongs to — drives aria-invalid/describedby. */
+type Feil = { tekst: string; felt: "epost" | "kode" };
 
 /**
  * An expired/used magic link sends the visitor back to /start with the
@@ -80,20 +95,23 @@ export default function AuthGate({
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [cooldown, setCooldown] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [kode, setKode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [error, setError] = useState<Feil | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const sentRef = useRef<HTMLParagraphElement>(null);
+  const kodeRef = useRef<HTMLInputElement>(null);
   const fired = useRef(false);
 
   useEffect(() => {
     if (autoFocus) headingRef.current?.focus();
   }, [autoFocus]);
 
-  // The confirmation carries the key information («sjekk innboksen») — move
-  // focus there so the label/disable swap on the submit button isn't the
-  // only signal. Fires once: sent never flips back to false.
+  // After send the action moves to the code field — focus it (the «sjekk
+  // e-posten»-confirmation is a role=status live region AND the field's
+  // aria-describedby, so the announcement isn't lost by the move). Fires
+  // once: sent never flips back to false.
   useEffect(() => {
-    if (sent) sentRef.current?.focus();
+    if (sent) kodeRef.current?.focus();
   }, [sent]);
 
   // Session detection — fires onAuthed exactly once.
@@ -111,7 +129,7 @@ export default function AuthGate({
     // Expired/used magic link? Say so — the visitor clicked the email link
     // and must not land on a silent, unexplained email form.
     if (consumeAuthErrorFromUrl()) {
-      setError(t.authgate.lenkeUtlopt);
+      setError({ tekst: t.authgate.lenkeUtlopt, felt: "epost" });
     }
 
     let supabase: SupabaseClient;
@@ -119,7 +137,7 @@ export default function AuthGate({
       supabase = supabaseBrowser();
     } catch (err) {
       console.error("[portal/authgate] supabase init failed", err);
-      setError(t.authgate.feil);
+      setError({ tekst: t.authgate.feil, felt: "epost" });
       return;
     }
 
@@ -157,7 +175,7 @@ export default function AuthGate({
     const address = email.trim();
     // noValidate kills the native required-bubble — never fail silently.
     if (!address || !address.includes("@")) {
-      setError(t.authgate.epostMangler);
+      setError({ tekst: t.authgate.epostMangler, felt: "epost" });
       return;
     }
     setError(null);
@@ -179,6 +197,8 @@ export default function AuthGate({
           // localStorage unavailable — the in-tab path still works.
         }
       }
+      // A resend mints a FRESH code — stale digits must not linger.
+      setKode("");
       setSent(true);
       setCooldown(RESEND_COOLDOWN_S);
     } catch (err) {
@@ -188,9 +208,62 @@ export default function AuthGate({
       const status = (err as { status?: number })?.status;
       const msg = err instanceof Error ? err.message : "";
       const rateLimited = status === 429 || /rate limit/i.test(msg);
-      setError(rateLimited ? t.authgate.forMangeLenker : t.authgate.feil);
+      setError({
+        tekst: rateLimited ? t.authgate.forMangeLenker : t.authgate.feil,
+        felt: "epost",
+      });
     } finally {
       setSending(false);
+    }
+  }
+
+  // The cross-browser door: the visitor types the 6-digit code from the
+  // email INTO THIS TAB — verifyOtp sets the session right here, where the
+  // draft lives. onAuthStateChange above fires onAuthed; the direct call is
+  // belt and braces (fired guards the double).
+  async function verifyKode(e: FormEvent) {
+    e.preventDefault();
+    if (verifying || devMock) return;
+    if (kode.length !== OTP_LENGDE) {
+      setError({ tekst: t.authgate.kodeMangler, felt: "kode" });
+      kodeRef.current?.focus();
+      return;
+    }
+    setError(null);
+    setVerifying(true);
+    try {
+      const supabase = supabaseBrowser();
+      const { data, error: otpError } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: kode,
+        type: "email",
+      });
+      if (otpError) throw otpError;
+      const token = data.session?.access_token;
+      if (token && !fired.current) {
+        fired.current = true;
+        onAuthed(token);
+      }
+    } catch (err) {
+      console.error("[portal/authgate] verifyOtp failed", err);
+      // GoTrue answers 400/401/403 («Token has expired or is invalid») for a
+      // wrong or stale code — that deserves the precise message, not the
+      // generic «sjekk adressen» one.
+      const status = (err as { status?: number })?.status;
+      const msg = err instanceof Error ? err.message : "";
+      const ugyldig =
+        status === 400 ||
+        status === 401 ||
+        status === 403 ||
+        /invalid|expired/i.test(msg);
+      setError({
+        tekst: ugyldig ? t.authgate.kodeUgyldig : t.authgate.feil,
+        felt: "kode",
+      });
+      kodeRef.current?.focus();
+      kodeRef.current?.select();
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -208,48 +281,89 @@ export default function AuthGate({
           {MOCK_SESSION_LABEL}
         </p>
       ) : (
-        <form className="vk-portal-auth-form" onSubmit={send} noValidate>
-          <label className="vk-portal-label" htmlFor="vk-portal-epost">
-            {t.authgate.epostLabel}
-          </label>
-          <div className="vk-portal-auth-row">
-            <input
-              id="vk-portal-epost"
-              type="email"
-              autoComplete="email"
-              required
-              className="vk-portal-input vk-portal-input--epost"
-              placeholder={t.authgate.epostPlassholder}
-              value={email}
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? ERROR_ID : undefined}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="vk-btn vk-btn--cta vk-portal-sendlenke"
-              disabled={sending || cooldown > 0}
-              aria-describedby={sent && cooldown > 0 ? COOLDOWN_ID : undefined}
-            >
-              {sent ? t.authgate.sendPaNytt : t.authgate.sendLenke}
-            </button>
-          </div>
+        <>
+          <form className="vk-portal-auth-form" onSubmit={send} noValidate>
+            <label className="vk-portal-label" htmlFor="vk-portal-epost">
+              {t.authgate.epostLabel}
+            </label>
+            <div className="vk-portal-auth-row">
+              <input
+                id="vk-portal-epost"
+                type="email"
+                autoComplete="email"
+                required
+                className="vk-portal-input vk-portal-input--epost"
+                placeholder={t.authgate.epostPlassholder}
+                value={email}
+                aria-invalid={error?.felt === "epost" ? true : undefined}
+                aria-describedby={error?.felt === "epost" ? ERROR_ID : undefined}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="vk-btn vk-btn--cta vk-portal-sendlenke"
+                disabled={sending || cooldown > 0}
+                aria-describedby={sent && cooldown > 0 ? COOLDOWN_ID : undefined}
+              >
+                {sent ? t.authgate.sendPaNytt : t.authgate.sendLenke}
+              </button>
+            </div>
+            {sent && cooldown > 0 ? (
+              <p className="vk-mono vk-portal-cooldown" id={COOLDOWN_ID}>
+                {t.authgate.sendPaNyttOm.replace("{s}", String(cooldown))}
+              </p>
+            ) : null}
+          </form>
+
           {sent ? (
-            <p className="vk-portal-sent" role="status" tabIndex={-1} ref={sentRef}>
-              {t.authgate.lenkeSendt}
-            </p>
+            // Its own <form>: Enter in the code field must verify, not
+            // re-send the email (forms can't nest — sibling it is).
+            <form className="vk-portal-kodeform" onSubmit={verifyKode} noValidate>
+              <p className="vk-portal-sent" role="status" id={SENT_ID}>
+                {t.authgate.lenkeSendt}
+              </p>
+              <label className="vk-portal-label" htmlFor="vk-portal-kode">
+                {t.authgate.kodeLabel}
+              </label>
+              <div className="vk-portal-kode-row">
+                {/* No maxLength — browsers truncate BEFORE onChange, which
+                    would mangle pasted «123 456». The digit-strip below is
+                    the real gate. */}
+                <input
+                  id="vk-portal-kode"
+                  ref={kodeRef}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  className="vk-portal-input vk-portal-input--kode"
+                  placeholder={t.authgate.kodePlassholder}
+                  value={kode}
+                  aria-invalid={error?.felt === "kode" ? true : undefined}
+                  aria-describedby={
+                    error?.felt === "kode" ? `${SENT_ID} ${ERROR_ID}` : SENT_ID
+                  }
+                  onChange={(e) =>
+                    setKode(e.target.value.replace(/\D/g, "").slice(0, OTP_LENGDE))
+                  }
+                />
+                <button
+                  type="submit"
+                  className="vk-btn vk-btn--cta vk-portal-kodeknapp"
+                  disabled={verifying}
+                >
+                  {t.authgate.loggInnMedKode}
+                </button>
+              </div>
+              <p className="vk-mono vk-portal-ellerlenke">{t.authgate.ellerLenke}</p>
+            </form>
           ) : null}
-          {sent && cooldown > 0 ? (
-            <p className="vk-mono vk-portal-cooldown" id={COOLDOWN_ID}>
-              {t.authgate.sendPaNyttOm.replace("{s}", String(cooldown))}
-            </p>
-          ) : null}
+
           {error ? (
             <p className="vk-portal-feilmelding" role="alert" id={ERROR_ID}>
-              {error}
+              {error.tekst}
             </p>
           ) : null}
-        </form>
+        </>
       )}
 
       <button type="button" className="vk-portal-back" onClick={onBack}>

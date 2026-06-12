@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendTelegramToPetter } from "@/lib/telegram";
+import { chatCookieOptions, signChatSession } from "@/lib/chatSession";
 import { getClientIp, rateLimit, tooManyRequests } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -62,10 +63,16 @@ export async function POST(req: Request) {
 
   const namePart = user.name || email;
   const tgText = `💬 ${namePart}:\n${text}`;
-  const tg = await sendTelegramToPetter({
+  let tg = await sendTelegramToPetter({
     text: tgText,
     replyToMessageId: anchor?.telegram_message_id ?? undefined,
   });
+  if (!tg.ok) {
+    // One quiet retry — Telegram hiccups are usually transient. If the
+    // anchor reply was the problem (deleted message etc.), drop the
+    // threading rather than the message.
+    tg = await sendTelegramToPetter({ text: tgText });
+  }
 
   const { data: inserted, error: insErr } = await sb
     .from("chat_messages")
@@ -87,9 +94,23 @@ export async function POST(req: Request) {
     .update({ last_seen: new Date().toISOString() })
     .eq("email", email);
 
-  return NextResponse.json({
+  // The client surfaces this as «Levert» / «kom ikke fram» on the note —
+  // the message IS stored either way, but Petter's Telegram ping may have
+  // failed and the visitor deserves to know.
+  const res = NextResponse.json({
     ok: true,
     id: inserted.id,
     created_at: inserted.created_at,
+    delivered: tg.ok,
   });
+
+  // (Re)issue the signed session cookie — this is also the backwards-compat
+  // path: existing localStorage-identity users get their cookie on the next
+  // send, and history/poll start working again.
+  const session = signChatSession(email);
+  if (session) {
+    const { name, ...opts } = chatCookieOptions;
+    res.cookies.set(name, session, opts);
+  }
+  return res;
 }

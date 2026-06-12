@@ -1,0 +1,352 @@
+/* ════════════════════════════════════════════════════════════════════
+   «Benken» — the LIVING project room (layer on top of portal.css).
+   Everything realtime/unread/clock/optimistic/invoice/milestone lives
+   here; portal.css keeps the room's base layer untouched. Tokens come
+   from base.css and resolve via the .vk page root (loaded on both
+   /start and /start/admin). Poster law holds: the resting state is the
+   composed state — entrances run FROM a from{} keyframe and are gated
+   behind prefers-reduced-motion.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Fremdrift — «uke n av 6» as six bench notches, not just a line ── */
+
+.vk-benk-fremdrift {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.vk-benk-fremdrift-spor {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.vk-benk-fremdrift-steg {
+  width: 26px;
+  height: 4px;
+  background: var(--hairline);
+}
+
+.vk-benk-fremdrift-steg[data-fylt] {
+  background: var(--glod);
+}
+
+/* Delivered earns the ONE green in the shop (same law as levert-chip). */
+.vk-benk-fremdrift[data-levert] .vk-benk-fremdrift-steg[data-fylt] {
+  background: var(--drift-green);
+}
+
+.vk-benk-fremdrift[data-levert] .vk-benk-uke {
+  color: var(--drift-green);
+}
+
+/* ── Klokkeslett — quiet HH:mm beside bylines and status lines ── */
+
+.vk-benk-tid {
+  margin-left: 10px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--stov);
+}
+
+.vk-benk-statuslinje .vk-benk-tid {
+  margin-left: 8px;
+}
+
+/* ── «── nytt ──» — the since-last-visit divider (amber hairlines) ── */
+
+.vk-benk-nytt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.vk-benk-nytt::before,
+.vk-benk-nytt::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 180, 84, 0.45);
+}
+
+.vk-benk-nytt .vk-mono {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--glod);
+}
+
+/* ── New innlegg glide in (realtime arrivals + own posts) ── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .vk-benk-glir {
+    animation: vk-benk-inn var(--dur-3) var(--ease-work);
+  }
+
+  @keyframes vk-benk-inn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+}
+
+/* ── The optimistic note — visible the instant Send is pressed ── */
+
+.vk-benk-venter {
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+.vk-benk-venter-chip {
+  color: var(--glod);
+}
+
+.vk-benk-venter-fil {
+  margin: 0;
+  font-size: 12px;
+  color: var(--stov);
+  overflow-wrap: anywhere;
+}
+
+/* Upload progress — per-file steps; the bar fills as files land. */
+.vk-benk-opplast {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--stov);
+}
+
+.vk-benk-opplast-spor {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  height: 3px;
+  background: var(--hairline);
+}
+
+.vk-benk-opplast-fyll {
+  display: block;
+  height: 100%;
+  background: var(--glod);
+  transition: width var(--dur-2) var(--ease-work);
+}
+
+/* ── Faktura panel — under the room header, papers on the bench ── */
+
+.vk-benk-fakturaer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 56ch;
+  padding: 16px 18px;
+  background: var(--benk);
+  border: 1px solid var(--hairline);
+}
+
+.vk-benk-fakturatittel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-benk-fakturatomt {
+  margin: 0;
+  font-size: 15px;
+  color: var(--stov);
+}
+
+.vk-benk-fakturaliste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.vk-benk-faktura {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-block: 12px;
+}
+
+.vk-benk-faktura + .vk-benk-faktura {
+  border-top: 1px solid var(--hairline);
+}
+
+.vk-benk-faktura:first-child {
+  padding-top: 0;
+}
+
+.vk-benk-faktura:last-child {
+  padding-bottom: 0;
+}
+
+/* Overdue: a clear but dignified amber edge — red stays decorative. */
+.vk-benk-faktura[data-status="forfalt"] {
+  border-left: 2px solid rgba(255, 180, 84, 0.6);
+  padding-left: 12px;
+}
+
+.vk-benk-faktura-rad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.vk-benk-faktura-nr {
+  font-weight: 500;
+  color: var(--papir);
+}
+
+.vk-benk-faktura-belop {
+  color: var(--papir);
+}
+
+.vk-benk-faktura-besk {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 15px;
+  color: var(--stov);
+}
+
+.vk-benk-faktura-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--stov);
+}
+
+.vk-benk-faktura-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-benk-faktura-status[data-status="betalt"] {
+  color: var(--drift-green);
+  background: rgba(126, 210, 154, 0.08);
+  border-color: rgba(126, 210, 154, 0.4);
+}
+
+.vk-benk-faktura-status[data-status="delbetalt"] {
+  color: var(--papir);
+}
+
+.vk-benk-faktura-status[data-status="forfalt"] {
+  color: var(--glod);
+  background: rgba(255, 180, 84, 0.08);
+  border-color: rgba(255, 180, 84, 0.5);
+}
+
+.vk-benk-faktura-status[data-status="kansellert"] {
+  opacity: 0.7;
+}
+
+.vk-benk-faktura-purr {
+  color: var(--glod);
+}
+
+/* ── Feed: faktura note + milepæl ── */
+
+.vk-benk-kort--faktura {
+  border-color: rgba(255, 180, 84, 0.28);
+}
+
+/* Milepæl — festive but composed: centered, amber star, no confetti. */
+.vk-benk-milepael {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 52ch;
+  padding: 14px 18px;
+  text-align: center;
+  background: rgba(255, 180, 84, 0.05);
+  border: 1px solid rgba(255, 180, 84, 0.35);
+}
+
+.vk-benk-milepael-stjerne {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--glod);
+}
+
+.vk-benk-milepael-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--glod);
+}
+
+.vk-benk-milepael-tekst {
+  margin: 0;
+  max-width: 48ch;
+  color: var(--papir);
+}
+
+/* ── Levert — the room as a readable log (composer retired) ── */
+
+.vk-benk-levertboks {
+  margin-top: 6px;
+  padding: 16px 0 calc(18px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--hairline);
+}
+
+.vk-benk-levertlinje {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--stov);
+}
+
+/* ── Bottom sentinel — scroll target + read-marker trigger ── */
+
+.vk-benk-bunn {
+  height: 1px;
+}
+
+/* ════════════════════════════════════════════
+   Verkstedkontoret — admin-side additions (AdminBenken)
+   ════════════════════════════════════════════ */
+
+/* Day divider in the office feed — denser than the customer's. */
+.vk-adm-benk-dag {
+  margin-top: 4px;
+}
+
+.vk-adm-benk-dag .vk-mono {
+  font-size: 11px;
+}
+
+/* «sett av kunden · {tid}» — the read receipt under the last seen post. */
+.vk-adm-sett {
+  margin: 8px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--drift-green);
+}

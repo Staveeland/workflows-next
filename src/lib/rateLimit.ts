@@ -80,20 +80,24 @@ export function rateLimit(opts: RateLimitOptions): RateLimitResult {
 }
 
 /**
- * Best-effort client IP extraction from common proxy headers.
- * Vercel sets `x-forwarded-for` and `x-real-ip`.
+ * Best-effort client IP extraction. ORDER MATTERS: the leftmost
+ * `x-forwarded-for` entry is CLIENT-CONTROLLED (an attacker can send the
+ * header and rotate it per request to dodge every per-IP bucket), so the
+ * platform-controlled headers must win. On Vercel, `x-vercel-forwarded-for`
+ * and `x-real-ip` are set by the edge and cannot be spoofed from outside.
  */
 export function getClientIp(req: Request): string {
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) {
-    const first = xff.split(",")[0]?.trim();
+  const vercelIp = req.headers.get("x-vercel-forwarded-for");
+  if (vercelIp) {
+    const first = vercelIp.split(",")[0]?.trim();
     if (first) return first;
   }
   const real = req.headers.get("x-real-ip");
   if (real) return real.trim();
-  const vercelIp = req.headers.get("x-vercel-forwarded-for");
-  if (vercelIp) {
-    const first = vercelIp.split(",")[0]?.trim();
+  // Last resort only (non-Vercel/dev) — spoofable, never preferred.
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) {
+    const first = xff.split(",")[0]?.trim();
     if (first) return first;
   }
   return "unknown";

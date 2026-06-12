@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { bedriftFraAnswers, epostAdminVarsel, epostGodkjent, sendPortalEpost } from "@/lib/epost";
+import { bedriftFraAnswers, epostAdminVarsel, epostGodkjent, lagPortalLenke, sendPortalEpost } from "@/lib/epost";
 import { portalAuth, unauthorized } from "@/lib/portalAuth";
 // Plain data — the locked vilkår text the customer ticked. The SERVER picks
 // the canonical string by the row's language; a client string is never trusted.
@@ -125,7 +125,12 @@ export async function POST(req: Request) {
   if (kundeEpost) {
     const ep = await sendPortalEpost({
       to: kundeEpost,
-      ...epostGodkjent(lang, { pris: tilbud?.pris ?? null }),
+      // One-time login deep link — falls back to the plain gate link
+      // inside lagPortalLenke (fail-graceful by contract).
+      ...epostGodkjent(lang, {
+        pris: tilbud?.pris ?? null,
+        lenke: await lagPortalLenke(kundeEpost),
+      }),
     });
     if (!ep.ok) {
       console.log(`[portal/godkjenn] e-post (godkjent) ikke sendt: ${ep.error}`);
@@ -139,6 +144,7 @@ export async function POST(req: Request) {
       email: kundeEpost ?? "ukjent e-post",
       bedrift: bedriftFraAnswers(row.answers),
       pris: tilbud?.pris ?? null,
+      lenke: await lagPortalLenke("petter@workflows.no", "admin"),
     }),
   });
   if (!adminEp.ok) {

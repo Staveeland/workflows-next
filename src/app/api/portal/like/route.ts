@@ -3,7 +3,7 @@ import { portalAuth, unauthorized } from "@/lib/portalAuth";
 import { mockLike, portalMockEnabled } from "@/lib/portalMock";
 import type { PortalAssessment, PortalLikeBody, PortalLikeResponse } from "@/lib/portalTypes";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
-import { bedriftFraAnswers, epostAdminVarsel, sendPortalEpost } from "@/lib/epost";
+import { bedriftFraAnswers, epostAdminVarsel, lagPortalLenke, sendPortalEpost } from "@/lib/epost";
 import { sendTelegramToPetter } from "@/lib/telegram";
 
 export const runtime = "nodejs";
@@ -100,6 +100,7 @@ export async function POST(req: Request) {
     ...epostAdminVarsel("likt", {
       email: user.email ?? "ukjent e-post",
       bedrift: bedriftFraAnswers(row.answers),
+      lenke: await lagPortalLenke("petter@workflows.no", "admin"),
     }),
   });
   if (!adminEp.ok) {

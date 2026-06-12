@@ -577,3 +577,273 @@
   border-color: var(--glod);
   font-weight: 600;
 }
+
+/* ════════════════════════════════════════════
+   DASHBOARD — the list as a working pipeline.
+   Toolbar (search + filter chips), SLA pulse, two-line row cards and the
+   soft-deleted toggle. Same office voice: mono, dense, no ceremony.
+   ════════════════════════════════════════════ */
+
+.vk-adm-verktoy {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vk-adm-sokfelt {
+  max-width: 420px;
+}
+
+/* Filter chips — the portal stamp-chips, slightly compacted for density. */
+.vk-adm-filterchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vk-adm-filterchip {
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+
+/* The «Venter på deg»-chip carries the stamp red as a border accent
+   (decorative only — the text stays readable stov/amber). */
+.vk-adm-filterchip--sla {
+  border-color: rgba(226, 89, 61, 0.55);
+}
+
+.vk-adm-filterchip--sla[aria-pressed="true"] {
+  border-color: var(--stempel);
+}
+
+/* «{n} venter på deg» — the pulse line over the list. */
+.vk-adm-slapuls {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--stempel);
+  color: var(--papir);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+
+/* Count + the deleted toggle on one quiet line. */
+.vk-adm-antallrad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.vk-adm-vissslettede {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+  background: transparent;
+  border: 0;
+  color: var(--stov);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-decoration: underline;
+  text-decoration-color: var(--hairline);
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-work);
+}
+
+.vk-adm-vissslettede:hover {
+  color: var(--papir);
+}
+
+/* ── The row as a two-line card: who/chips on top, signals below ── */
+
+.vk-adm-rad--kort {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.vk-adm-radtopp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.vk-adm-radtopp .vk-adm-epost {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.vk-adm-radchips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.vk-adm-radbunn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--stov);
+}
+
+.vk-adm-aktivitet {
+  color: var(--kritt);
+}
+
+.vk-adm-radpris {
+  color: var(--glod);
+}
+
+/* The one-line WHY on a venter-på-deg row. */
+.vk-adm-slalinje {
+  color: var(--papir);
+}
+
+/* A row that waits on Petter — stamp-red left edge, never red text. */
+.vk-adm-rad--kort[data-sla="true"] {
+  border-left: 3px solid var(--stempel);
+  padding-left: 9px;
+}
+
+/* Soft-deleted rows are visible only behind the toggle — dimmed. */
+.vk-adm-rad--kort[data-slettet="true"] {
+  opacity: 0.55;
+}
+
+.vk-adm-chip--slettet {
+  color: var(--stov);
+  background: transparent;
+  border-color: var(--hairline);
+}
+
+/* «slettet {dato}» in the detail meta line. */
+.vk-adm-slettetdato {
+  color: var(--stov);
+}
+
+/* ════════════════════════════════════════════
+   DETAIL — price signals, locked quote, lever-flow, research extras
+   ════════════════════════════════════════════ */
+
+/* The prislapp — a small amber-edged plate up top; these are the numbers
+   Petter prices against (budget answer + Regnskapsregisteret figures). */
+.vk-adm-prislapp {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 560px;
+  padding: 16px 18px;
+  background: rgba(255, 180, 84, 0.05);
+  border: 1px solid rgba(255, 180, 84, 0.28);
+}
+
+.vk-adm-prislapp-tittel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--glod);
+}
+
+.vk-adm-prislapp-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.vk-adm-prislapp-rad {
+  display: grid;
+  grid-template-columns: minmax(130px, 200px) 1fr;
+  gap: 4px 16px;
+}
+
+.vk-adm-prislapp-rad dt {
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stov);
+}
+
+.vk-adm-prislapp-rad dd {
+  margin: 0;
+  font-weight: 500;
+  color: var(--papir);
+}
+
+@media (max-width: 560px) {
+  .vk-adm-prislapp-rad {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+/* Crawled subpages in the research section — quiet stacked list. */
+.vk-adm-undersider {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vk-adm-underside-url {
+  font-size: 12px;
+  color: var(--glod);
+  overflow-wrap: anywhere;
+}
+
+.vk-adm-underside-tittel {
+  color: var(--papir);
+}
+
+.vk-adm-underside-tekst {
+  color: var(--stov);
+}
+
+/* The locked quote (status videre/levert) — read-only with the why. */
+.vk-adm-tilbudlaast {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 640px;
+}
+
+.vk-adm-laastlinje {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--hairline);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--stov);
+}
+
+/* The mva <select> — same paper-line voice as the inputs. */
+.vk-adm-mvavelger {
+  max-width: 160px;
+  background: var(--bek);
+  cursor: pointer;
+}
+
+/* The lever-flow textarea block. */
+.vk-adm-leverfelt {
+  max-width: 640px;
+}
+
+/* Armed lever button — the same warm warning as the armed delete. */
+.vk-adm-detalj .vk-btn--cta[data-armed="true"] {
+  box-shadow: 0 0 0 2px rgba(226, 89, 61, 0.45);
+}

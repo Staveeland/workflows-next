@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -19,8 +20,11 @@ import { fraunces, schibsted, spline } from "@/components/verksted/fonts";
 
 // ════════════════════════════════════════════════════════════════════
 // «Nattevakten» — the workshop night-watch chat.
-// Logic ported 1:1 from src/components/ChatWidget.tsx (storage keys,
-// webhook payloads, polling, handover) — presentation all new.
+// Storage keys, webhook payloads, polling and handover survive from the
+// original ChatWidget (now deleted) — presentation and session model are
+// all new. Identity for reads lives in the signed vk-chat cookie issued
+// by /api/chat/handover and /api/chat/send; localStorage only remembers
+// who to *claim* to be on the next send.
 // ════════════════════════════════════════════════════════════════════
 
 // Strict sanitization schema: only the inline + block elements we actually
@@ -56,7 +60,18 @@ const sanitizeSchema = {
 
 type Role = "user" | "assistant" | "petter";
 // `fail` marks a local-only delivery-failure card (never sent anywhere).
-type Msg = { role: Role; text: string; createdAt?: string; fail?: boolean };
+// `status` tracks delivery of the visitor's OWN notes sent this session
+// («Levert»-hake); restored history carries none. `localId` lets the
+// send handlers update exactly their note after the async round-trip.
+type MsgStatus = "sending" | "sent" | "failed";
+type Msg = {
+  role: Role;
+  text: string;
+  createdAt?: string;
+  fail?: boolean;
+  localId?: number;
+  status?: MsgStatus;
+};
 type Mode = "ai" | "form" | "direct";
 type WoState = "idle" | "busy" | "stamped" | "failed";
 
@@ -73,6 +88,65 @@ const PHONE_DISPLAY = "+47 930 77 915";
 const PHONE_HREF = "tel:+4793077915";
 
 type VC = (typeof verkstedContent)["no"];
+
+// New chat-chrome copy (sender labels, clock, delivery). Lives HERE and
+// not in verkstedContent.ts because that file is owned by the content
+// layer in a parallel workstream — both languages are covered all the
+// same, matching the rest of the chat copy.
+const uiCopy = {
+  no: {
+    you: "Du",
+    petter: "Petter",
+    delivered: "Levert",
+    sending: "sender …",
+    notDelivered: "kom ikke fram til Petter — prøv igjen om litt",
+    today: "I dag",
+    yesterday: "I går",
+  },
+  en: {
+    you: "You",
+    petter: "Petter",
+    delivered: "Delivered",
+    sending: "sending …",
+    notDelivered: "didn't reach Petter — try again shortly",
+    today: "Today",
+    yesterday: "Yesterday",
+  },
+} as const;
+type UI = { [K in keyof (typeof uiCopy)["no"]]: string };
+
+/* ── Clock helpers for timestamps + day dividers (local time) ── */
+
+function dayKeyOf(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function dayLabelOf(iso: string, lang: "no" | "en", ui: UI): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const now = new Date();
+  const key = dayKeyOf(iso);
+  if (key === dayKeyOf(now.toISOString())) return ui.today;
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (key === dayKeyOf(yesterday.toISOString())) return ui.yesterday;
+  return new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "nb-NO", {
+    day: "numeric",
+    month: "long",
+    ...(d.getFullYear() !== now.getFullYear() ? { year: "numeric" as const } : {}),
+  }).format(d);
+}
+
+function timeLabelOf(iso: string, lang: "no" | "en"): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "nb-NO", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
+}
 
 // Buckets for the time-aware welcome. The clock is read in the hatch click
 // handler / effects (never during render — render stays pure).
@@ -157,6 +231,7 @@ function FailCard({ t, style }: { t: VC; style?: CSSProperties }) {
 export default function VerkstedChat() {
   const { lang } = useLang();
   const t = verkstedContent[lang];
+  const ui = uiCopy[lang];
   const reduced = useReducedPref();
 
   const [open, setOpen] = useState(false);
@@ -184,6 +259,11 @@ export default function VerkstedChat() {
   const sessionIdRef = useRef<string>("");
   const lastPollRef = useRef<string>(new Date(0).toISOString());
   const historyLoadingRef = useRef(false); // gates polling during restore
+  // Whether a history restore has SUCCEEDED. Legacy localStorage users
+  // without the vk-chat cookie 401 on history/poll until their next send
+  // re-issues the cookie — then we retry the restore once.
+  const historyRestoredRef = useRef(false);
+  const localIdRef = useRef(0); // ids for this session's own notes
   const woRunRef = useRef(0); // invalidates pending stamped→finish choreography
   const prevBusyRef = useRef(false);
   const justOpenedRef = useRef(true);
@@ -223,12 +303,15 @@ export default function VerkstedChat() {
     setLiveMsg((prev) => (prev === text ? `${text} ` : text));
   }, []);
 
-  const loadHistory = useCallback(async (e: string) => {
+  const loadHistory = useCallback(async () => {
     // Gate the poller while the restore is in flight — otherwise a first
     // tick with since=epoch can re-append Petter's whole history.
     historyLoadingRef.current = true;
     try {
-      const res = await fetch(`/api/chat/history?email=${encodeURIComponent(e)}`);
+      // Identity travels in the signed HttpOnly cookie — nothing in the URL.
+      const res = await fetch("/api/chat/history");
+      if (!res.ok) return; // 401 = no cookie yet (legacy user) — quiet
+      historyRestoredRef.current = true;
       const data = await res.json();
       if (Array.isArray(data.messages) && data.messages.length) {
         const restored: Msg[] = data.messages
@@ -264,7 +347,14 @@ export default function VerkstedChat() {
       setEmail(savedEmail);
       setName(savedName);
       setMode("direct");
-      void loadHistory(savedEmail);
+      void loadHistory();
+    }
+    // Deep link from the «Petter har svart deg»-e-post: /?chat=1 opens
+    // the panel as if the visitor knocked on the hatch.
+    if (new URLSearchParams(window.location.search).get("chat") === "1") {
+      openCountRef.current = 0;
+      setHourBucket(bucketForHour(new Date().getHours()));
+      setOpen(true);
     }
   }, [loadHistory]);
 
@@ -394,10 +484,10 @@ export default function VerkstedChat() {
     const tick = async () => {
       if (document.hidden || historyLoadingRef.current) return;
       try {
+        // Identity = the signed cookie; only the cursor goes in the URL.
+        // 401 (legacy user without cookie) falls through silently below.
         const res = await fetch(
-          `/api/chat/poll?email=${encodeURIComponent(email)}&since=${encodeURIComponent(
-            lastPollRef.current
-          )}`
+          `/api/chat/poll?since=${encodeURIComponent(lastPollRef.current)}`
         );
         const data = await res.json();
         if (Array.isArray(data.messages) && data.messages.length) {
@@ -453,8 +543,31 @@ export default function VerkstedChat() {
     el.style.height = `${Math.min(el.scrollHeight, 108)}px`;
   }, [input, open, mode]);
 
+  // Append the visitor's own note and return its localId so the async
+  // handlers can settle its delivery status afterwards.
+  function appendOwnNote(text: string): number {
+    const localId = ++localIdRef.current;
+    setMsgs((m) => [
+      ...m,
+      {
+        role: "user",
+        text,
+        createdAt: new Date().toISOString(),
+        localId,
+        status: "sending",
+      },
+    ]);
+    return localId;
+  }
+
+  function settleOwnNote(localId: number, status: MsgStatus) {
+    setMsgs((m) =>
+      m.map((x) => (x.localId === localId ? { ...x, status } : x))
+    );
+  }
+
   async function sendAi(text: string) {
-    setMsgs((m) => [...m, { role: "user", text }]);
+    const localId = appendOwnNote(text);
     setBusy(true);
     try {
       const res = await fetch(WEBHOOK_URL, {
@@ -468,10 +581,15 @@ export default function VerkstedChat() {
       const data = await res.json().catch(() => ({}));
       const reply: string = data.reply || data.output || data.message || "";
       if (!reply) throw new Error("empty reply");
-      setMsgs((m) => [...m, { role: "assistant", text: reply }]);
+      settleOwnNote(localId, "sent");
+      setMsgs((m) => [
+        ...m,
+        { role: "assistant", text: reply, createdAt: new Date().toISOString() },
+      ]);
       announce(`${t.chat.modeAi}: ${reply}`);
       if (!open) setUnread(true);
     } catch {
+      settleOwnNote(localId, "failed");
       setMsgs((m) => [...m, { role: "assistant", text: "", fail: true }]);
       announce(`${t.chat.workorder.failTitle}. ${t.chat.workorder.failBody}`);
     } finally {
@@ -480,7 +598,7 @@ export default function VerkstedChat() {
   }
 
   async function sendDirect(text: string) {
-    setMsgs((m) => [...m, { role: "user", text }]);
+    const localId = appendOwnNote(text);
     setBusy(true);
     try {
       const res = await fetch("/api/chat/send", {
@@ -489,7 +607,20 @@ export default function VerkstedChat() {
         body: JSON.stringify({ email, text }),
       });
       if (!res.ok) throw new Error("send failed");
+      const data = await res.json().catch(() => ({}));
+      // `delivered` = did Petter's Telegram ping go through (the message
+      // itself is stored either way). Older responses lack the field —
+      // treat missing as delivered.
+      const delivered = data.delivered !== false;
+      settleOwnNote(localId, delivered ? "sent" : "failed");
+      if (!delivered) announce(ui.notDelivered);
+      // Legacy-identity recovery: the send just (re)issued the session
+      // cookie — if the original restore 401-ed, fetch the history now.
+      // (Replaces the list wholesale; this one note's «Levert» meta is
+      // traded for the visitor's full thread.)
+      if (!historyRestoredRef.current) void loadHistory();
     } catch {
+      settleOwnNote(localId, "failed");
       setMsgs((m) => [...m, { role: "assistant", text: "", fail: true }]);
       announce(`${t.chat.workorder.failTitle}. ${t.chat.workorder.failBody}`);
     } finally {
@@ -543,6 +674,10 @@ export default function VerkstedChat() {
         }),
       });
       if (!res.ok) throw new Error("handover failed");
+      // The handover issued a fresh session cookie and the board already
+      // holds this conversation — nothing older to restore this session
+      // (otherwise the first send would clobber the confirmation note).
+      historyRestoredRef.current = true;
       localStorage.setItem("wf_chat_email", cleanEmail);
       localStorage.setItem("wf_chat_name", cleanName);
       setEmail(cleanEmail);
@@ -554,7 +689,14 @@ export default function VerkstedChat() {
         setWoState("idle");
         setWoRequest("");
         setMode("direct");
-        setMsgs((prev) => [...prev, { role: "assistant", text: sentNote }]);
+        setMsgs((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            text: sentNote,
+            createdAt: new Date().toISOString(),
+          },
+        ]);
         announce(sentNote);
       };
       if (reduced) {
@@ -568,11 +710,12 @@ export default function VerkstedChat() {
     }
   }
 
+  // Mode switches change the RECIPIENT, not the conversation — the notes
+  // stay on the board (clearing them made the chat look like it crashed).
   function switchToAi() {
     woRunRef.current += 1; // cancel any pending work-order choreography
     setMode("ai");
     setWoState("idle");
-    setMsgs([]);
   }
 
   async function switchToDirect() {
@@ -589,11 +732,14 @@ export default function VerkstedChat() {
     setEmail(savedEmail);
     setName(localStorage.getItem("wf_chat_name") || "");
     setMode("direct");
-    setMsgs([]);
-    lastPollRef.current = new Date(0).toISOString();
     // The recipient changed — say so (the footer line alone is silent).
     announce(t.chat.directInfo);
-    await loadHistory(savedEmail);
+    // Restore the thread only when the board is empty and no restore has
+    // succeeded yet — never clobber a conversation already on the wall.
+    if (!historyRestoredRef.current && msgs.length === 0) {
+      lastPollRef.current = new Date(0).toISOString();
+      await loadHistory();
+    }
   }
 
   function onInputKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -648,6 +794,16 @@ export default function VerkstedChat() {
         </span>
       </button>
 
+      {/* Scrim — dims the page behind the drawer; click closes (pointer
+          convenience — Esc and the close button are the a11y paths). */}
+      {open && (
+        <div
+          className="vk-chat-scrim"
+          aria-hidden="true"
+          onClick={closeChat}
+        />
+      )}
+
       {open && (
         <div
           ref={panelRef}
@@ -700,7 +856,8 @@ export default function VerkstedChat() {
           </div>
 
           <div className="vk-chat-main">
-            {/* The watchman at his desk — decorative backdrop. */}
+            {/* The watchman at his desk — a top vignette (no longer a full
+                backdrop; the conversation owns its own surface below). */}
             <div
               className={`vk-chat-scene${busy ? " is-typing" : ""}${idle ? " is-idle" : ""}`}
               aria-hidden="true"
@@ -742,9 +899,8 @@ export default function VerkstedChat() {
                   <ellipse cx="18" cy="38.5" rx="11" ry="2.5" fill="#0d0a08" />
                 </svg>
               )}
+              {idle && <p className="vk-chat-idleline">{t.chat.idle}</p>}
             </div>
-            {/* Luminance fade so high notes stay readable on the dark wall. */}
-            <div className="vk-chat-fade" aria-hidden="true" />
 
             <div
               ref={scrollRef}
@@ -761,62 +917,141 @@ export default function VerkstedChat() {
               tabIndex={0}
             >
               {mode !== "direct" && (
-                <div className="vk-chat-note vk-chat-note--ai">
-                  <span className="vk-sr">{t.chat.modeAi}: </span>
-                  <p>
-                    {(hourBucket && t.chat.welcomeByHour?.[hourBucket]) ||
-                      t.chat.welcome}
+                <div className="vk-chat-entry">
+                  <p className="vk-chat-meta">
+                    <span className="vk-chat-metasender">{t.chat.modeAi}</span>
                   </p>
+                  <div className="vk-chat-note vk-chat-note--ai vk-paper">
+                    <p>
+                      {(hourBucket && t.chat.welcomeByHour?.[hourBucket]) ||
+                        t.chat.welcome}
+                    </p>
+                  </div>
                 </div>
               )}
               {mode !== "direct" && followupShown && t.chat.welcomeFollowup && (
-                <div className="vk-chat-note vk-chat-note--ai">
-                  <span className="vk-sr">{t.chat.modeAi}: </span>
-                  <p>{t.chat.welcomeFollowup}</p>
+                <div className="vk-chat-entry">
+                  <p className="vk-chat-meta">
+                    <span className="vk-chat-metasender">{t.chat.modeAi}</span>
+                  </p>
+                  <div className="vk-chat-note vk-chat-note--ai vk-paper vk-rot-b">
+                    <p>{t.chat.welcomeFollowup}</p>
+                  </div>
                 </div>
               )}
 
-              {msgs.map((m, i) => {
-                if (m.fail) return <FailCard key={i} t={t} style={noteDelay(i)} />;
-                if (m.role === "user") {
+              {(() => {
+                // One conversation: every note is meta (sender · HH:mm ·
+                // delivery) + a cream slip, with day dividers between
+                // local calendar days. Sender labels are VISIBLE now —
+                // they replace the old SR-only prefixes.
+                const out: ReactNode[] = [];
+                let prevDay = "";
+                const meta = (
+                  m: Msg,
+                  sender: string,
+                  withStatus: boolean
+                ) => {
+                  const time = m.createdAt
+                    ? timeLabelOf(m.createdAt, lang)
+                    : "";
                   return (
+                    <p className="vk-chat-meta">
+                      <span className="vk-chat-metasender">{sender}</span>
+                      {time && <time dateTime={m.createdAt}>{time}</time>}
+                      {withStatus && m.status === "sending" && (
+                        <span>{ui.sending}</span>
+                      )}
+                      {withStatus && m.status === "sent" && (
+                        <span className="vk-chat-metaok">
+                          <span aria-hidden="true">✓ </span>
+                          {ui.delivered}
+                        </span>
+                      )}
+                      {withStatus && m.status === "failed" && (
+                        <span className="vk-chat-metafail">
+                          {ui.notDelivered}
+                        </span>
+                      )}
+                    </p>
+                  );
+                };
+                msgs.forEach((m, i) => {
+                  const key = m.localId != null ? `loc-${m.localId}` : `m-${i}`;
+                  if (m.createdAt) {
+                    const dk = dayKeyOf(m.createdAt);
+                    if (dk && dk !== prevDay) {
+                      prevDay = dk;
+                      out.push(
+                        <div key={`day-${dk}`} className="vk-chat-day">
+                          {dayLabelOf(m.createdAt, lang, ui)}
+                        </div>
+                      );
+                    }
+                  }
+                  if (m.fail) {
+                    out.push(<FailCard key={key} t={t} style={noteDelay(i)} />);
+                    return;
+                  }
+                  if (m.role === "user") {
+                    out.push(
+                      <div
+                        key={key}
+                        className="vk-chat-entry vk-chat-entry--user"
+                        style={noteDelay(i)}
+                      >
+                        {meta(m, ui.you, true)}
+                        <div
+                          className={`vk-chat-note vk-chat-note--user vk-paper ${
+                            i % 2 ? "vk-rot-c" : "vk-rot-a"
+                          }`}
+                        >
+                          <NoteBody text={m.text} />
+                        </div>
+                      </div>
+                    );
+                    return;
+                  }
+                  if (m.role === "petter") {
+                    out.push(
+                      <div
+                        key={key}
+                        className="vk-chat-entry"
+                        style={noteDelay(i)}
+                      >
+                        {meta(m, ui.petter, false)}
+                        <div className="vk-chat-note vk-chat-note--petter vk-paper">
+                          <span
+                            className="vk-chat-petterstamp"
+                            aria-hidden="true"
+                          >
+                            {t.chat.petterStamp}
+                          </span>
+                          <NoteBody text={m.text} />
+                        </div>
+                      </div>
+                    );
+                    return;
+                  }
+                  out.push(
                     <div
-                      key={i}
-                      className={`vk-chat-note vk-chat-note--user vk-paper ${
-                        i % 2 ? "vk-rot-c" : "vk-rot-a"
-                      }`}
+                      key={key}
+                      className="vk-chat-entry"
                       style={noteDelay(i)}
                     >
-                      <NoteBody text={m.text} />
+                      {meta(m, t.chat.modeAi, false)}
+                      <div
+                        className={`vk-chat-note vk-chat-note--ai vk-paper${
+                          i % 2 ? "" : " vk-rot-b"
+                        }`}
+                      >
+                        <NoteBody text={m.text} />
+                      </div>
                     </div>
                   );
-                }
-                if (m.role === "petter") {
-                  return (
-                    <div
-                      key={i}
-                      className="vk-chat-note vk-chat-note--petter vk-paper"
-                      style={noteDelay(i)}
-                    >
-                      <span className="vk-chat-petterstamp" aria-hidden="true">
-                        {t.chat.petterStamp}
-                      </span>
-                      <span className="vk-sr">{t.chat.petterStamp}: </span>
-                      <NoteBody text={m.text} />
-                    </div>
-                  );
-                }
-                return (
-                  <div
-                    key={i}
-                    className="vk-chat-note vk-chat-note--ai"
-                    style={noteDelay(i)}
-                  >
-                    <span className="vk-sr">{t.chat.modeAi}: </span>
-                    <NoteBody text={m.text} />
-                  </div>
-                );
-              })}
+                });
+                return out;
+              })()}
 
               {busy && <p className="vk-chat-thinking">{thinkingLine}</p>}
 
@@ -904,11 +1139,6 @@ export default function VerkstedChat() {
                 ))}
             </div>
 
-            {idle && (
-              <p className="vk-chat-idleline" aria-hidden="true">
-                {t.chat.idle}
-              </p>
-            )}
           </div>
 
           <footer className="vk-chat-foot">

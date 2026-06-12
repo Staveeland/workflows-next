@@ -1,0 +1,325 @@
+/* ════════════════════════════════════════════════════════════════════
+   FAKTURERING («regningsblokka») — AdminFaktura i verkstedkontoret.
+   Bygger på tokens i base.css og skjelettet i portal.css/admin.css
+   (vk-portal-felt, vk-portal-input, vk-adm-seksjon) — INGENTING
+   hardkodet som finnes som token. Samme stemme som kontoret ellers:
+   mono-etiketter, hairlines, ingen seremoni, ingen animasjon.
+   Mobil er førsteklasses på 360px; alle mål ≥44px.
+   ════════════════════════════════════════════════════════════════════ */
+
+.vk-fak {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Stille mono-fyll: lastelinje, tom liste, env-hint. */
+.vk-fak-tomt {
+  margin: 0;
+  color: var(--stov);
+}
+
+/* ── Tilkoblingslinja — lanternedotten betyr «strøm på» ── */
+
+.vk-fak-kobling {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--stov);
+  font-size: 13px;
+}
+
+.vk-fak-koblingsdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--drift-green);
+  box-shadow: 0 0 6px rgba(126, 210, 154, 0.5);
+}
+
+.vk-fak-koblingsvia {
+  padding: 2px 8px;
+  border: 1px dashed var(--hairline);
+  color: var(--kritt);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vk-fak-koblingsboks {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px dashed var(--hairline);
+}
+
+/* ── Listehodet: hvem som faktureres + synk-knappen ── */
+
+.vk-fak-listehode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vk-fak-tilhvem {
+  margin: 0;
+  color: var(--stov);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+/* ── Fakturalista — én rad per faktura, hairline-delt ── */
+
+.vk-fak-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--hairline);
+}
+
+.vk-fak-rad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.vk-fak-radmeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 0;
+  color: var(--stov);
+  font-size: 12px;
+}
+
+.vk-fak-radmeta--dimmet {
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.vk-fak-belop {
+  font-weight: 500;
+  color: var(--papir);
+}
+
+.vk-fak-beskrivelse {
+  margin: 0;
+  max-width: 64ch;
+  color: var(--papir);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* Status-chip — vk-adm-chips lille søsken, samme oppskrift. */
+.vk-fak-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--glod);
+  background: rgba(255, 180, 84, 0.07);
+  border: 1px solid rgba(255, 180, 84, 0.28);
+  border-radius: 999px;
+}
+
+/* «Betalt» — levert/oppgjort fortjener den ENE grønne i verkstedet. */
+.vk-fak-chip--betalt {
+  color: var(--drift-green);
+  background: rgba(126, 210, 154, 0.07);
+  border-color: rgba(126, 210, 154, 0.28);
+}
+
+/* «Forfalt» — stempelrød KANT (dekor, aldri brødtekst); teksten holder
+   seg i amber så kontrasten står. */
+.vk-fak-chip--forfalt {
+  border-color: rgba(226, 89, 61, 0.55);
+  background: rgba(226, 89, 61, 0.08);
+}
+
+/* ── Knappene — mono-pillen fra kontoret (vk-adm-oppdater-resepten) ── */
+
+.vk-fak-knapperad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.vk-fak-knapp {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 18px;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--stov);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color var(--dur-2) var(--ease-work),
+    border-color var(--dur-2) var(--ease-work),
+    background-color var(--dur-2) var(--ease-work);
+}
+
+.vk-fak-knapp:hover {
+  color: var(--papir);
+  background: var(--benk);
+}
+
+.vk-fak-knapp[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.vk-fak-knapp[disabled]:hover {
+  color: var(--stov);
+  background: transparent;
+}
+
+/* Armert (to-stegs bekreftelse) — gløden varsler at neste trykk teller. */
+.vk-fak-knapp[data-armed="true"] {
+  color: var(--glod);
+  border-color: var(--glod);
+  background: rgba(255, 180, 84, 0.07);
+}
+
+/* ── Skjemaet for nye utkast ── */
+
+.vk-fak-skjema {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
+}
+
+/* Én linje: beskrivelse + antall + pris + mva + fjern, grid på desktop. */
+.vk-fak-linje {
+  display: grid;
+  grid-template-columns: minmax(0, 2.4fr) 72px minmax(110px, 1fr) 92px 44px;
+  gap: 10px;
+  align-items: end;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.vk-fak-select {
+  /* vk-portal-input-arven dekker resten; select trenger bare piltrygg høyde. */
+  min-height: 44px;
+}
+
+/* Fjern-linja — 44px kryss, samme språk som filfjerneren i Benken. */
+.vk-fak-fjernlinje {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-height: 44px;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--stov);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color var(--dur-2) var(--ease-work),
+    border-color var(--dur-2) var(--ease-work);
+}
+
+.vk-fak-fjernlinje:hover {
+  color: var(--stempel);
+  border-color: var(--stempel);
+}
+
+.vk-fak-skjemarad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.vk-fak-skjemarad--detaljer {
+  align-items: end;
+}
+
+.vk-fak-felt--forfall {
+  width: 140px;
+}
+
+.vk-fak-felt--tekst {
+  flex: 1;
+  min-width: 220px;
+}
+
+/* Løpende sum — kritt-annotasjon, regnestykket i margen. */
+.vk-fak-sum {
+  margin: 0;
+  color: var(--kritt);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+/* Bekreftelseslinja — alltid i DOM (live region), grønn når den taler. */
+.vk-fak-bekreftelse {
+  margin: 0;
+  min-height: 1.4em;
+  color: var(--drift-green);
+  font-size: 13px;
+}
+
+/* ── Mobil: linjene bretter til to rader ── */
+
+@media (max-width: 720px) {
+  .vk-fak-linje {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "beskrivelse beskrivelse"
+      "antall pris"
+      "mva fjern";
+  }
+
+  .vk-fak-felt--beskrivelse {
+    grid-area: beskrivelse;
+  }
+
+  .vk-fak-felt--antall {
+    grid-area: antall;
+  }
+
+  .vk-fak-felt--pris {
+    grid-area: pris;
+  }
+
+  .vk-fak-felt--mva {
+    grid-area: mva;
+  }
+
+  .vk-fak-fjernlinje {
+    grid-area: fjern;
+    justify-self: end;
+  }
+}

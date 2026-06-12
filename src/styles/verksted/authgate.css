@@ -1,0 +1,52 @@
+/* ════════════════════════════════════════════════════════════════════
+   VERKSTEDET — authgate add-ons: the one-time-code door (AuthGate.tsx)
+   portal.css owns the original gate styles (.vk-portal-auth*); this file
+   ONLY adds the code-entry block. Same tokens, same hand, no overrides.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* The code form sits under the email row behind a dashed seam — two
+   parallel doors out of the same email: type the code OR click the link. */
+.vk-portal-kodeform {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--hairline);
+}
+
+.vk-portal-kode-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+/* Six digits, stamped: mono, big, spaced, tabular. Builds on
+   .vk-portal-input (portal.css) — only the modifier lives here. Focus
+   styling (amber underline) is inherited from .vk-portal-input:focus. */
+.vk-portal-input--kode {
+  flex: 0 1 230px;
+  min-width: 180px;
+  font-family: var(--font-spline), ui-monospace, monospace;
+  font-size: 24px;
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
+}
+
+.vk-portal-input--kode::placeholder {
+  letter-spacing: 0.3em;
+}
+
+/* The quiet alternative — the magic link still works. */
+.vk-portal-ellerlenke {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--stov);
+}
+
+@media (max-width: 480px) {
+  .vk-portal-kodeknapp {
+    flex: 1 1 auto;
+  }
+}

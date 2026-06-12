@@ -4,6 +4,7 @@ import { mockMe, portalMockEnabled } from "@/lib/portalMock";
 import type {
   PortalAssessment,
   PortalMeResponse,
+  PortalSluttrapport,
   PortalStatus,
   PortalTilbud,
 } from "@/lib/portalTypes";
@@ -38,7 +39,7 @@ export async function GET(req: Request) {
   const { data: row, error } = await supabase
     .from("kartlegginger")
     .select(
-      "id, status, answers, assessment, mockup_path, created_at, tilbud, tilbud_sendt_at, godkjent_at, uke"
+      "id, status, answers, assessment, mockup_path, created_at, tilbud, tilbud_sendt_at, godkjent_at, godkjent_vilkar, uke, levert_at, sluttrapport"
     )
     .order("created_at", { ascending: false })
     .limit(1)
@@ -90,7 +91,13 @@ export async function GET(req: Request) {
       tilbud: (row.tilbud ?? null) as PortalTilbud | null,
       tilbudSendtAt: (row.tilbud_sendt_at ?? null) as string | null,
       godkjentAt: (row.godkjent_at ?? null) as string | null,
+      // The canonical terms text the customer accepted — the receipt/print
+      // renders THIS string, never the (rewordable) portalContent copy.
+      godkjentVilkar: (row.godkjent_vilkar ?? null) as string | null,
       uke: typeof row.uke === "number" ? row.uke : null,
+      // Level 5 SKJØTET — stamped by the admin lever-flow.
+      levertAt: (row.levert_at ?? null) as string | null,
+      sluttrapport: (row.sluttrapport ?? null) as PortalSluttrapport | null,
     },
   });
 }

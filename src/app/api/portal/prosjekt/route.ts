@@ -1,15 +1,28 @@
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { bedriftFraAnswers, epostAdminVarsel, sendPortalEpost } from "@/lib/epost";
+import {
+  bedriftFraAnswers,
+  epostAdminVarsel,
+  lagPortalLenke,
+  sendPortalEpost,
+} from "@/lib/epost";
 import { portalAuth, unauthorized } from "@/lib/portalAuth";
-import { mockProsjekt, mockProsjektPost, portalMockEnabled } from "@/lib/portalMock";
+import {
+  mockProsjekt,
+  mockProsjektPost,
+  mockProsjektSett,
+  portalMockEnabled,
+} from "@/lib/portalMock";
 import type {
   ForesporselStatus,
+  PortalStatus,
+  ProsjektFaktura,
+  ProsjektFakturaStatus,
+  ProsjektFeedType,
   ProsjektFilRef,
   ProsjektFra,
   ProsjektInnlegg,
   ProsjektInnleggFil,
-  ProsjektInnleggType,
   ProsjektPostBody,
   ProsjektPostResponse,
   ProsjektResponse,
@@ -47,6 +60,8 @@ const SIGNED_URL_TTL_SECONDS = 3600;
 // Reads are cheap but each one signs URLs; writes ping Petter's phone.
 const RL_GET_MAX = 60;
 const RL_POST_MAX = 20;
+// The read marker (sett:true) is one row-update, no varsler — roomier cap.
+const RL_SETT_MAX = 60;
 const RL_WINDOW_MS = 10 * 60_000;
 
 /** Malformed ids would be uuid cast errors (22P02 → 500) — answer honestly. */
@@ -58,6 +73,17 @@ const INNLEGG_TYPER: readonly string[] = [
   "leveranse",
   "foresporsel",
   "status",
+  "faktura",
+  "milepael",
+];
+
+/** fakturaer.status values a customer can ever see (RLS hides «utkast»). */
+const FAKTURA_STATUSER: readonly string[] = [
+  "sendt",
+  "delbetalt",
+  "betalt",
+  "forfalt",
+  "kansellert",
 ];
 
 type InnleggRow = {
@@ -203,7 +229,7 @@ async function tilInnlegg(
     fra: (row.fra === "workflows" ? "workflows" : "kunde") as ProsjektFra,
     type: (INNLEGG_TYPER.includes(row.type)
       ? row.type
-      : "melding") as ProsjektInnleggType,
+      : "melding") as ProsjektFeedType,
     tekst: row.tekst ?? "",
     lenke,
     filer,
@@ -250,10 +276,10 @@ export async function GET(req: Request) {
   }
 
   // The kartlegging row doubles as the ownership check (RLS hides other
-  // users' rows) and carries uke.
+  // users' rows) and carries uke + the customer's read marker.
   const { data: row, error: rowError } = await supabase
     .from("kartlegginger")
-    .select("id, uke, godkjent_at")
+    .select("id, uke, godkjent_at, status, kunde_sett_at")
     .eq("id", id)
     .maybeSingle();
   if (rowError) {
@@ -280,6 +306,10 @@ export async function GET(req: Request) {
     )
   );
 
+  // The invoice panel — RLS filters drafts AND ownership. A hiccup here
+  // must not take the whole room down: the feed carries the thread.
+  const fakturaer = await hentFakturaer(supabase, id);
+
   const u = effektivUke(
     (row.godkjent_at ?? null) as string | null,
     typeof row.uke === "number" ? row.uke : null
@@ -287,8 +317,57 @@ export async function GET(req: Request) {
   return NextResponse.json<ProsjektResponse>({
     uke: u.uke,
     ukeKilde: u.kilde,
+    status: row.status as PortalStatus,
+    kundeSettAt: (row.kunde_sett_at ?? null) as string | null,
+    fakturaer,
     innlegg,
   });
+}
+
+/* ── fakturaer → the customer's invoice panel (RLS hides «utkast») ── */
+
+type FakturaRow = {
+  id: string;
+  invoice_number: number | string | null;
+  kid: string | null;
+  belop_ore: number | string | null;
+  valuta: string | null;
+  beskrivelse: string | null;
+  issue_date: string | null;
+  due_date: string | null;
+  status: string;
+  settled_at: string | null;
+};
+
+async function hentFakturaer(
+  supabase: SupabaseClient,
+  id: string
+): Promise<ProsjektFaktura[]> {
+  const { data, error } = await supabase
+    .from("fakturaer")
+    .select(
+      "id, invoice_number, kid, belop_ore, valuta, beskrivelse, issue_date, due_date, status, settled_at"
+    )
+    .eq("kartlegging_id", id)
+    .order("created_at", { ascending: true });
+  if (error) {
+    console.error("[portal/prosjekt] faktura select failed", error);
+    return [];
+  }
+  return ((data ?? []) as FakturaRow[])
+    .filter((r) => FAKTURA_STATUSER.includes(r.status))
+    .map((r) => ({
+      id: r.id,
+      nummer: r.invoice_number === null ? null : Number(r.invoice_number),
+      kid: r.kid ?? null,
+      belopOre: r.belop_ore === null ? null : Number(r.belop_ore),
+      valuta: r.valuta || "NOK",
+      beskrivelse: r.beskrivelse ?? "",
+      utstedt: r.issue_date ?? null,
+      forfall: r.due_date ?? null,
+      betalt: r.settled_at ?? null,
+      status: r.status as ProsjektFakturaStatus,
+    }));
 }
 
 /* ── POST — one customer message into the room ── */
@@ -309,6 +388,12 @@ export async function POST(req: Request) {
   if (!id) {
     return NextResponse.json({ error: "Mangler id" }, { status: 400 });
   }
+
+  // sett:true — the read marker, not a message. Own flow, no varsler.
+  if ((raw as { sett?: unknown }).sett === true) {
+    return settLest(req, id);
+  }
+
   const tekst = typeof body.tekst === "string" ? body.tekst.trim() : "";
   if (tekst.length > PROSJEKT_TEKST_MAX) {
     return NextResponse.json({ error: "Meldingen er for lang" }, { status: 400 });
@@ -483,10 +568,84 @@ export async function POST(req: Request) {
     ...epostAdminVarsel("prosjekt", {
       email: kundeEpost,
       bedrift: bedriftFraAnswers(row.answers),
+      lenke: await lagPortalLenke("petter@workflows.no", "admin"),
     }),
   });
   if (!adminEp.ok) {
     console.log(`[portal/prosjekt] admin-e-post ikke sendt: ${adminEp.error}`);
+  }
+
+  return NextResponse.json<ProsjektPostResponse>({ ok: true });
+}
+
+/* ── sett:true — stamp kunde_sett_at = now() with the customer's token ──
+   The kartlegging-vakt trigger lets a customer update EXACTLY this column
+   without a status transition, and RLS scopes the write to their own row.
+   Sent by the client when the reader reaches the bottom of the feed; the
+   admin side reads the stamp back as «sett av kunden». No Telegram, no
+   e-post — a read marker is not an event. */
+
+async function settLest(req: Request, id: string) {
+  // DEV MOCK — everything fake lives in portalMock.ts.
+  if (portalMockEnabled()) {
+    return NextResponse.json<ProsjektPostResponse>(await mockProsjektSett(id));
+  }
+
+  let auth;
+  try {
+    auth = await portalAuth(req);
+  } catch (err) {
+    console.error("[portal/prosjekt] auth setup failed", err);
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+  if (!auth) return unauthorized();
+  const { supabase, user } = auth;
+
+  const rl = rateLimit({
+    key: "portal:prosjekt:sett",
+    identifier: user.id,
+    max: RL_SETT_MAX,
+    windowMs: RL_WINDOW_MS,
+  });
+  if (!rl.ok) return tooManyRequests(rl, RL_SETT_MAX);
+
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Fant ikke prosjektet" }, { status: 404 });
+  }
+
+  const { data: row, error: rowError } = await supabase
+    .from("kartlegginger")
+    .select("id, status, user_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (rowError) {
+    console.error("[portal/prosjekt] sett row select failed", rowError);
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+  if (!row) {
+    return NextResponse.json({ error: "Fant ikke prosjektet" }, { status: 404 });
+  }
+  // The marker means «the CUSTOMER has seen this». The admin can read any
+  // row through their policies — looking must never stamp it on their
+  // behalf, so the owner check is explicit, not just RLS-implied.
+  if (row.user_id !== user.id) {
+    return NextResponse.json({ error: "Fant ikke prosjektet" }, { status: 404 });
+  }
+  // Only a room that exists can be read: videre (running) or levert (log).
+  if (row.status !== "videre" && row.status !== "levert") {
+    return NextResponse.json(
+      { error: "Prosjektet er ikke i gang ennå" },
+      { status: 409 }
+    );
+  }
+
+  const { error: settError } = await supabase
+    .from("kartlegginger")
+    .update({ kunde_sett_at: new Date().toISOString() })
+    .eq("id", id);
+  if (settError) {
+    console.error("[portal/prosjekt] sett update failed", settError);
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
   }
 
   return NextResponse.json<ProsjektPostResponse>({ ok: true });

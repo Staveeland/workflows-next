@@ -47,6 +47,26 @@ npm run build
 
 Brukes for å verifisere at endringer kompilerer. Vercel bygger uansett på push, men lokal build fanger opp feil tidligere.
 
+## Kundeportalen (/start) — lastbærende konvensjoner
+
+- **Datakontrakter:** chip-/steg-id-ene i `kartlegginger.answers` (definert i
+  `src/lib/portalContent.ts`) og status-enumen i `src/lib/portalTypes.ts` er
+  lagret data — aldri rename, kun legg til. Nye statuser må koordineres i
+  klient, API, DB-check og statusmaskin-triggeren samtidig.
+- **Statusmaskin i DB:** `kartlegging_vakt()`-triggeren (se
+  `supabase/migrations/`) håndhever lovlige statusoverganger og fryser
+  tilbud/godkjenning etter kundens aksept. API-ruter må jobbe innenfor den.
+- **Auth-modell:** portal-ruter bruker bruker-scopet Supabase-klient
+  (`src/lib/portalAuth.ts`) — service role brukes ALDRI i portalflater, kun i
+  isolerte moduler (chat, Fiken-tokens, cron).
+- **A11y er kontrakt:** fokus-styring ved fasebytter, live-regions,
+  `aria-disabled`-mønsteret, `prefers-reduced-motion` og synlige fokus-stiler
+  skal bevares og matches i alt nytt portal-UI.
+- **XSS-postur:** all brukertekst rendres escaped via React (aldri rå HTML),
+  kun https-lenker, filer leveres som signerte attachment-URL-er, SVG aldri
+  inline. Markdown kun gjennom rehype-sanitize.
+- **Tospråklig:** all kunde-copy ligger i `portalContent.ts` på NO + EN.
+
 ## Bildestil
 
 All bildeproduksjon (nettside, SoMe, OG, mockups) følger den kanoniske

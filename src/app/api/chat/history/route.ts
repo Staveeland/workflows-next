@@ -1,16 +1,35 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { verifyChatSession } from "@/lib/chatSession";
+import { getClientIp, rateLimit, tooManyRequests } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
-const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// 20 restores per minute per IP — a visitor loads history once per panel
+// session; anything past this is scripted.
+const RL_MAX = 20;
+const RL_WINDOW_MS = 60_000;
 
 export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const email = (url.searchParams.get("email") || "").trim().toLowerCase();
-  if (!email || !EMAIL_RX.test(email)) {
-    return NextResponse.json({ error: "Ugyldig e-post" }, { status: 400 });
+  const ip = getClientIp(req);
+  const rl = rateLimit({
+    key: "chat:history",
+    identifier: ip,
+    max: RL_MAX,
+    windowMs: RL_WINDOW_MS,
+  });
+  if (!rl.ok) return tooManyRequests(rl, RL_MAX);
+
+  // Identity comes ONLY from the signed HttpOnly cookie (set by handover/
+  // send) — never from query params. NOTE: the cookie is still issued on a
+  // self-claimed e-mail (handover/send verify nothing), so this raises the
+  // bar (forces a noisy write + Telegram ping) without proving ownership.
+  // Real fix when chat identity matters more: OTP-verify the e-mail first.
+  const email = verifyChatSession(req);
+  if (!email) {
+    return NextResponse.json({ error: "Ingen chat-sesjon" }, { status: 401 });
   }
+
   const sb = supabaseAdmin();
   const { data: user } = await sb
     .from("chat_users")

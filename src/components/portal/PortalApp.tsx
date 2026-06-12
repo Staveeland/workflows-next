@@ -4,6 +4,7 @@ import "@/styles/verksted/base.css";
 import "@/styles/verksted/portal.css";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { fraunces, schibsted, spline } from "@/components/verksted/fonts";
 import { WorkflowsLogo } from "@/components/verksted/WorkflowsLogo";
 import { useLang } from "@/components/LanguageProvider";
@@ -24,7 +25,7 @@ import Benken from "@/components/portal/Benken";
 import { useSesjonEpost } from "@/components/portal/useSesjonEpost";
 import Forslag, { FORSLAG_HEADING_ID } from "@/components/portal/Forslag";
 import LevelRail from "@/components/portal/LevelRail";
-import Tilbud, { TILBUD_VURDERING_ID } from "@/components/portal/Tilbud";
+import Tilbud, { Kvittering, Skjotet, TILBUD_VURDERING_ID } from "@/components/portal/Tilbud";
 import Wizard, { type PortalAnswers } from "@/components/portal/Wizard";
 
 /**
@@ -34,7 +35,11 @@ import Wizard, { type PortalAnswers } from "@/components/portal/Wizard";
  *                                              ↘ error (feilet / submit died)
  *   … then out-of-session: Petter sends the quote (status «tilbud_sendt»)
  *   → phase tilbud (level 3) → godkjenn → phase videre (level 4, BYGGES),
- *   which opens Benken — the project room (feed + composer).
+ *   which opens Benken — the project room (feed + composer). When Petter
+ *   marks the project delivered (status «levert») the customer lands on
+ *   phase levert (level 5, SKJØTET): the handover sheet + the room as a
+ *   readable archive. A realtime channel on the kartlegging row makes all
+ *   of these flips land live; polling stays as the generating fallback.
  *
  * Draft answers persist to localStorage (vk-portal-draft) on every answer so
  * they survive the magic-link round trip; AuthGate auto-submits when a
@@ -58,6 +63,7 @@ type Phase =
   | "forslag"
   | "tilbud"
   | "videre"
+  | "levert"
   | "error";
 
 interface Draft {
@@ -71,6 +77,8 @@ interface Draft {
 }
 
 const POLL_MS = 5000;
+// With a live realtime channel the poll is only a belt-and-braces fallback.
+const POLL_REALTIME_MS = 10_000;
 
 // Abandoned drafts can hold free-text business details — don't keep them
 // around forever on shared machines.
@@ -163,7 +171,8 @@ function isReady(k: PortalKartlegging): boolean {
     k.status === "forslag_klart" ||
     k.status === "likt" ||
     k.status === "tilbud_sendt" ||
-    k.status === "videre"
+    k.status === "videre" ||
+    k.status === "levert"
   );
 }
 
@@ -173,9 +182,21 @@ function isWorking(k: PortalKartlegging): boolean {
 
 /** Which phase a landable row belongs to — the status owns the screen. */
 function landingPhase(k: PortalKartlegging): Phase {
+  if (k.status === "levert") return "levert";
   if (k.status === "videre") return "videre";
   if (k.status === "tilbud_sendt" && k.tilbud) return "tilbud";
   return "forslag";
+}
+
+/** Phases where the server can move the story on its own — the realtime
+    channel (and the generating-poll) listen for exactly these moments. */
+function isLivePhase(phase: Phase): boolean {
+  return (
+    phase === "generating" ||
+    phase === "forslag" ||
+    phase === "tilbud" ||
+    phase === "videre"
+  );
 }
 
 /* ── Generating — the lantern moment ── */
@@ -311,6 +332,9 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
   // «Fant ingen kartlegging …» — shown on wizard step 1 after a loginOnly
   // boot that found no rows.
   const [loginNotice, setLoginNotice] = useState(false);
+  // A live realtime channel on the kartlegging row — when SUBSCRIBED, the
+  // generating-poll relaxes to its fallback cadence.
+  const [realtimeAktiv, setRealtimeAktiv] = useState(false);
 
   const draftRef = useRef(draft);
   const langRef = useRef(lang);
@@ -555,30 +579,102 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
     void startLogin();
   }, [startLogin]);
 
-  /* ── Generating: poll /me every 5s until forslag_klart (or feilet) ── */
+  /* ── One truth-sync against /me — shared by the generating-poll and the
+        realtime channel. Routes the row to its phase; a same-status update
+        just refreshes the data (React bails on the identical phase), so it
+        never fights the optimistic like/godkjenn flips. ── */
+  const synk = useCallback(async () => {
+    const token = await getToken();
+    if (!token) return;
+    try {
+      const me = await apiFetch<PortalMeResponse>("/api/portal/me", token);
+      const k = me.kartlegging;
+      if (!k) return;
+      if (isReady(k)) land(k);
+      else if (isWorking(k)) setKart(k);
+      else if (k.status === "feilet") setPhase("error");
+    } catch {
+      // Transient — the poll/fallback keeps trying.
+    }
+  }, [getToken, land]);
+
+  /* ── Generating: poll /me until forslag_klart (or feilet). With a live
+        realtime channel the poll relaxes to a fallback cadence — the UPDATE
+        event is what actually lands the reveal. ── */
   useEffect(() => {
     if (phase !== "generating") return;
     let stopped = false;
-    const tick = async () => {
-      const token = await getToken();
-      if (!token || stopped) return;
-      try {
-        const me = await apiFetch<PortalMeResponse>("/api/portal/me", token);
-        if (stopped) return;
-        const k = me.kartlegging;
-        if (!k) return;
-        if (isReady(k)) land(k);
-        else if (k.status === "feilet") setPhase("error");
-      } catch {
-        // Transient — keep polling.
-      }
-    };
-    const id = window.setInterval(() => void tick(), POLL_MS);
+    const id = window.setInterval(
+      () => {
+        if (!stopped) void synk();
+      },
+      realtimeAktiv ? POLL_REALTIME_MS : POLL_MS
+    );
     return () => {
       stopped = true;
       window.clearInterval(id);
     };
-  }, [phase, getToken, land]);
+  }, [phase, synk, realtimeAktiv]);
+
+  /* ── Realtime: subscribe to UPDATEs on the customer's own kartlegging row
+        (RLS gates the events — the channel carries the user's token via
+        realtime.setAuth). Live in every phase where the server can move the
+        story on its own: the reveal lands without waiting for the poll, the
+        quote flips the screen while the customer waits, and godkjent/levert
+        land the moment Petter stamps them. Torn down on phase change and
+        unmount; the generating-poll stays as the fallback. ── */
+  const kartId = kart?.id ?? null;
+  useEffect(() => {
+    if (devMock || !kartId || !isLivePhase(phase)) return;
+    const id = kartId;
+    let stopped = false;
+    let channel: RealtimeChannel | null = null;
+    (async () => {
+      const token = await getToken();
+      if (!token || stopped) return;
+      try {
+        const supabase = supabaseBrowser();
+        await supabase.realtime.setAuth(token);
+        if (stopped) return;
+        channel = supabase
+          .channel(`vk-kartlegging-${id}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "kartlegginger",
+              filter: `id=eq.${id}`,
+            },
+            // The payload is not trusted as state — /me stays the one truth
+            // (signed mockup URL, stale-flip, shape guarantees).
+            () => void synk()
+          )
+          .subscribe((status) => {
+            if (stopped) return;
+            setRealtimeAktiv(status === "SUBSCRIBED");
+            // Events that fired in the join/rejoin window never reach the
+            // callback above — one truth-sync per (re)join closes the gap
+            // (outside generating there is no poll to catch it later).
+            if (status === "SUBSCRIBED") void synk();
+          });
+      } catch (err) {
+        // No realtime is never fatal — polling/refetch carries the flow.
+        console.error("[portal] realtime setup failed", err);
+      }
+    })();
+    return () => {
+      stopped = true;
+      setRealtimeAktiv(false);
+      if (channel) {
+        try {
+          void supabaseBrowser().removeChannel(channel);
+        } catch {
+          // ignore — the socket may already be gone
+        }
+      }
+    };
+  }, [devMock, kartId, phase, getToken, synk]);
 
   /* ── Actions ── */
 
@@ -596,10 +692,12 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
 
   const completeWizard = useCallback((answers: PortalAnswers) => {
     interactedRef.current = true;
-    // The last step index of the FULL list — when the bransje step was
-    // auto-skipped (research found it), the Wizard clamps this down to the
-    // last index of its filtered list on restore.
-    const lastStep = portalContent[langRef.current].steps.length - 1;
+    // «Last step» as a sentinel, not an index: the Wizard's step list is
+    // dynamic (bransje auto-skipped, oppfolging injected), so a concrete
+    // index computed HERE can point at the wrong step on restore. The
+    // Wizard clamps initialStep to its own filtered list's last index —
+    // MAX_SAFE_INTEGER always lands on the summary.
+    const lastStep = Number.MAX_SAFE_INTEGER;
     const next: Draft = { answers, step: lastStep, done: true, lang: langRef.current };
     setDraft(next);
     writeDraft(next);
@@ -705,13 +803,15 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
   /* ── Rail ── */
 
   const level =
-    phase === "videre"
-      ? 4
-      : phase === "tilbud" || (phase === "forslag" && kart?.status === "likt")
-        ? 3
-        : phase === "forslag" || phase === "generating" || phase === "error"
-          ? 2
-          : 1;
+    phase === "levert"
+      ? 5
+      : phase === "videre"
+        ? 4
+        : phase === "tilbud" || (phase === "forslag" && kart?.status === "likt")
+          ? 3
+          : phase === "forslag" || phase === "generating" || phase === "error"
+            ? 2
+            : 1;
 
   const onRailBack = (n: number) => {
     if (n === 1) {
@@ -753,7 +853,10 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
               phases). Mid-generation logout would orphan a paid drawing.
               The quiet mono address says WHO is in — truncated, full on
               title (and the toolbar reads it out loud on hover). */}
-          {phase === "forslag" || phase === "tilbud" || phase === "videre" ? (
+          {phase === "forslag" ||
+          phase === "tilbud" ||
+          phase === "videre" ||
+          phase === "levert" ? (
             <>
               {sesjonEpost ? (
                 <span
@@ -780,10 +883,14 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
 
       <LevelRail
         current={level}
-        // No backward navigation once the quote is approved (phase videre) —
-        // there is nothing meaningful to go back TO; the bench is rigged.
+        // No backward navigation once the quote is approved (videre/levert)
+        // — there is nothing meaningful to go back TO; the bench is rigged
+        // and, at level 5, archived.
         onBack={
-          level > 1 && phase !== "generating" && phase !== "videre"
+          level > 1 &&
+          phase !== "generating" &&
+          phase !== "videre" &&
+          phase !== "levert"
             ? onRailBack
             : undefined
         }
@@ -792,7 +899,7 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
 
       <main
         id="main"
-        className={`vk-portal-stage${phase === "forslag" ? " vk-portal-stage--wide" : ""}${phase === "videre" ? " vk-portal-stage--rom" : ""}`}
+        className={`vk-portal-stage${phase === "forslag" ? " vk-portal-stage--wide" : ""}${phase === "videre" || phase === "levert" ? " vk-portal-stage--rom" : ""}`}
       >
         {phase === "intro" ? (
           <section className="vk-portal-intro">
@@ -871,14 +978,42 @@ export default function PortalApp({ devMock = false }: { devMock?: boolean }) {
         ) : null}
 
         {/* The project room replaces the old static confirmation — the
-            kartlegging row is always set by the time «videre» renders. */}
+            kartlegging row is always set by the time «videre» renders.
+            The receipt (the approved quote, printable) folds away above
+            the room: there when needed, never in the way. */}
         {phase === "videre" && kart ? (
-          <Benken
-            kartlegging={kart}
-            devMock={devMock}
-            autoFocus={interactedRef.current}
-            getToken={getToken}
-          />
+          <>
+            {kart.tilbud ? (
+              <details className="vk-portal-tsammendrag vk-portal-kvittdetails">
+                <summary className="vk-mono vk-portal-tsummary">
+                  {t.tilbud.kvittering.tittel}
+                </summary>
+                <div className="vk-portal-tsammendrag-body">
+                  <Kvittering kartlegging={kart} />
+                </div>
+              </details>
+            ) : null}
+            <Benken
+              kartlegging={kart}
+              devMock={devMock}
+              autoFocus={interactedRef.current}
+              getToken={getToken}
+            />
+          </>
+        ) : null}
+
+        {/* Level 5 — SKJØTET: the handover sheet, then the room as a
+            readable archive (Benken tolerates the levert status). */}
+        {phase === "levert" && kart ? (
+          <>
+            <Skjotet kartlegging={kart} autoFocus={interactedRef.current} />
+            <Benken
+              kartlegging={kart}
+              devMock={devMock}
+              autoFocus={false}
+              getToken={getToken}
+            />
+          </>
         ) : null}
 
         {phase === "error" ? (

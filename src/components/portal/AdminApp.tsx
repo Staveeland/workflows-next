@@ -15,14 +15,21 @@ import {
   ADMIN_EMAIL,
   type AdminDetaljResponse,
   type AdminKartlegging,
+  type AdminLeverResponse,
   type AdminListItem,
   type AdminListeResponse,
   type AdminSlettResponse,
+  type PortalSluttrapport,
+  type PortalStatus,
   type PortalTilbud,
 } from "@/lib/portalTypes";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 import { consumeAuthErrorFromUrl } from "@/components/portal/AuthGate";
-import AdminDetalj, { adminChipClass, formatDato } from "@/components/portal/AdminDetalj";
+import AdminDetalj, {
+  adminChipClass,
+  formatBelopOre,
+  formatDato,
+} from "@/components/portal/AdminDetalj";
 import { useSesjonEpost } from "@/components/portal/useSesjonEpost";
 
 /**
@@ -55,6 +62,135 @@ function formatTid(d: Date, lang: Lang): string {
   return new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "nb-NO", {
     timeStyle: "short",
   }).format(d);
+}
+
+/* ── The pipeline — status → column, the dashboard's working unit ── */
+
+type PipelineGruppe =
+  | "nye"
+  | "forslagKlart"
+  | "likt"
+  | "tilbudSendt"
+  | "bygges"
+  | "levert"
+  | "feilet";
+
+const PIPELINE_REKKEFOLGE: readonly PipelineGruppe[] = [
+  "nye",
+  "forslagKlart",
+  "likt",
+  "tilbudSendt",
+  "bygges",
+  "levert",
+  "feilet",
+];
+
+function gruppeAv(status: PortalStatus): PipelineGruppe {
+  switch (status) {
+    case "innsendt":
+    case "genererer":
+      return "nye";
+    case "forslag_klart":
+      return "forslagKlart";
+    case "likt":
+      return "likt";
+    case "tilbud_sendt":
+      return "tilbudSendt";
+    case "videre":
+      return "bygges";
+    case "levert":
+      return "levert";
+    case "feilet":
+      return "feilet";
+  }
+}
+
+type Filter = "alle" | "venter" | PipelineGruppe;
+
+/* ── SLA: «likt for 18 t siden» — counted in WORKING hours (08–16 Mon–Fri),
+      since the quote promise is «innen én arbeidsdag». Day-by-day overlap,
+      capped at 90 days (anything past that is loud regardless). ── */
+
+const SLA_LIKT_ARBEIDSTIMER = 8;
+
+function arbeidstimerSiden(iso: string): number {
+  const startMs = Date.parse(iso);
+  const nowMs = Date.now();
+  if (!Number.isFinite(startMs) || startMs >= nowMs) return 0;
+  let timer = 0;
+  const d = new Date(startMs);
+  for (let i = 0; i < 90 && d.getTime() < nowMs; i += 1) {
+    const dag = d.getDay();
+    if (dag !== 0 && dag !== 6) {
+      const dagStart = new Date(d);
+      dagStart.setHours(8, 0, 0, 0);
+      const dagSlutt = new Date(d);
+      dagSlutt.setHours(16, 0, 0, 0);
+      const fra = Math.max(d.getTime(), dagStart.getTime());
+      const til = Math.min(nowMs, dagSlutt.getTime());
+      if (til > fra) timer += (til - fra) / 3_600_000;
+    }
+    d.setDate(d.getDate() + 1);
+    d.setHours(0, 0, 0, 0);
+  }
+  return timer;
+}
+
+/** «18 t» / «3 d» — compact duration for the SLA line. */
+function kortVarighet(iso: string, lang: Lang): string {
+  const diffMs = Date.now() - Date.parse(iso);
+  const timer = Math.floor(diffMs / 3_600_000);
+  if (timer < 48) return lang === "en" ? `${timer} h` : `${timer} t`;
+  return `${Math.floor(timer / 24)} d`;
+}
+
+/** Rows that wait on PETTER: liked past the working-hours promise, failed
+    generations, or open requests that may need a nudge. */
+function venterPaDeg(row: AdminListItem): boolean {
+  if (row.slettetAt) return false;
+  if (row.status === "feilet") return true;
+  if (
+    row.status === "likt" &&
+    row.liktAt &&
+    arbeidstimerSiden(row.liktAt) > SLA_LIKT_ARBEIDSTIMER
+  ) {
+    return true;
+  }
+  return row.apneForesporsler > 0;
+}
+
+/** The one-line WHY for a venter-på-deg row (priority: likt > feilet > forespørsler). */
+function slaTekst(
+  row: AdminListItem,
+  t: (typeof portalContent)["no"],
+  lang: Lang
+): string | null {
+  if (
+    row.status === "likt" &&
+    row.liktAt &&
+    arbeidstimerSiden(row.liktAt) > SLA_LIKT_ARBEIDSTIMER
+  ) {
+    return t.admin.liste.slaLiktTemplate.replace("{t}", kortVarighet(row.liktAt, lang));
+  }
+  if (row.status === "feilet") return t.admin.liste.slaFeilet;
+  if (row.apneForesporsler > 0) {
+    return t.admin.liste.slaForesporslerTemplate.replace(
+      "{n}",
+      String(row.apneForesporsler)
+    );
+  }
+  return null;
+}
+
+/** «2 t siden» — relative last-activity stamp for the list rows. */
+function relativTid(iso: string, t: (typeof portalContent)["no"]): string {
+  const diffMs = Date.now() - Date.parse(iso);
+  if (!Number.isFinite(diffMs) || diffMs < 60_000) return t.admin.liste.relNaa;
+  const min = Math.floor(diffMs / 60_000);
+  if (min < 60) return t.admin.liste.relMinTemplate.replace("{n}", String(min));
+  const timer = Math.floor(min / 60);
+  if (timer < 48) return t.admin.liste.relTimeTemplate.replace("{n}", String(timer));
+  return t.admin.liste.relDagTemplate.replace("{n}", String(Math.floor(timer / 24)));
 }
 
 /* ── Slim admin gate — AuthGate's pattern, /start/admin's redirect ── */
@@ -157,7 +293,12 @@ function AdminAuthGate({
       setCooldown(RESEND_COOLDOWN_S);
     } catch (err) {
       console.error("[portal/admin] signInWithOtp failed", err);
-      setError(t.authgate.feil);
+      // Supabase email rate limit reads as status 429 / "rate limit" — that
+      // is OUR ceiling, not a typo in the address. Same mapping as AuthGate.
+      const status = (err as { status?: number })?.status;
+      const msg = err instanceof Error ? err.message : "";
+      const rateLimited = status === 429 || /rate limit/i.test(msg);
+      setError(rateLimited ? t.authgate.forMangeLenker : t.authgate.feil);
     } finally {
       setSending(false);
     }
@@ -225,6 +366,10 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
   const [valgt, setValgt] = useState<AdminKartlegging | null>(null);
   const [detaljState, setDetaljState] = useState<Lasting>("laster");
   const [sistHentet, setSistHentet] = useState<Date | null>(null);
+  // The dashboard controls — pipeline filter, free-text search, deleted.
+  const [filter, setFilter] = useState<Filter>("alle");
+  const [sok, setSok] = useState("");
+  const [visSlettede, setVisSlettede] = useState(false);
   const sisteIdRef = useRef<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const firstRender = useRef(true);
@@ -475,7 +620,67 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
     [valgt, rows, getToken, apiFetch]
   );
 
-  /** DELETE the open kartlegging; on success → back to the list (refetch). */
+  /** PATCH the lever-flow: videre → levert (+ sluttrapport). Optimistic
+      flip on the open detail + the list row; nothing reverts on failure
+      since nothing flipped before the request resolved. */
+  const markerLevert = useCallback(
+    async (sluttrapport: PortalSluttrapport): Promise<boolean> => {
+      const k = valgt;
+      if (!k) return false;
+      const token = await getToken();
+      if (!token) {
+        setPhase("auth");
+        return false;
+      }
+      try {
+        await apiFetch<AdminLeverResponse>("/api/portal/admin/prosjekt", token, {
+          method: "PATCH",
+          body: JSON.stringify({ id: k.id, handling: "lever", sluttrapport }),
+        });
+        const levertAt = new Date().toISOString();
+        setValgt({ ...k, status: "levert", levertAt, sluttrapport });
+        setRows((rs) =>
+          rs.map((r) =>
+            r.id === k.id ? { ...r, status: "levert", sistAktivitet: levertAt } : r
+          )
+        );
+        return true;
+      } catch (err) {
+        console.error("[portal/admin] lever failed", err);
+        handleApiError(err, () => {});
+        return false;
+      }
+    },
+    [valgt, getToken, apiFetch, handleApiError]
+  );
+
+  /** PATCH the undo: levert → videre (the sluttrapport stays as a draft). */
+  const angreLevert = useCallback(async (): Promise<boolean> => {
+    const k = valgt;
+    if (!k) return false;
+    const token = await getToken();
+    if (!token) {
+      setPhase("auth");
+      return false;
+    }
+    try {
+      await apiFetch<AdminLeverResponse>("/api/portal/admin/prosjekt", token, {
+        method: "PATCH",
+        body: JSON.stringify({ id: k.id, handling: "angre" }),
+      });
+      setValgt({ ...k, status: "videre", levertAt: null });
+      setRows((rs) =>
+        rs.map((r) => (r.id === k.id ? { ...r, status: "videre" } : r))
+      );
+      return true;
+    } catch (err) {
+      console.error("[portal/admin] angre lever failed", err);
+      handleApiError(err, () => {});
+      return false;
+    }
+  }, [valgt, getToken, apiFetch, handleApiError]);
+
+  /** Soft-DELETE the open kartlegging; on success → back to the list. */
   const slettKartlegging = useCallback(async (): Promise<boolean> => {
     const k = valgt;
     if (!k) return false;
@@ -503,6 +708,28 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
       return false;
     }
   }, [valgt, getToken, apiFetch, tilListe, handleApiError]);
+
+  /* ── Dashboard derivations — cheap, recomputed per render ── */
+  const aktiveRader = rows.filter((r) => !r.slettetAt);
+  const slettedeAntall = rows.length - aktiveRader.length;
+  const venterAntall = aktiveRader.filter(venterPaDeg).length;
+  const gruppeAntall = new Map<PipelineGruppe, number>();
+  for (const r of aktiveRader) {
+    const g = gruppeAv(r.status);
+    gruppeAntall.set(g, (gruppeAntall.get(g) ?? 0) + 1);
+  }
+  const sokTrim = sok.trim().toLowerCase();
+  const synligeRader = (visSlettede ? rows : aktiveRader).filter((r) => {
+    if (filter === "venter" && !venterPaDeg(r)) return false;
+    if (filter !== "alle" && filter !== "venter" && gruppeAv(r.status) !== filter)
+      return false;
+    if (sokTrim) {
+      const navn = (r.bedriftNavn ?? "").toLowerCase();
+      if (!navn.includes(sokTrim) && !r.email.toLowerCase().includes(sokTrim))
+        return false;
+    }
+    return true;
+  });
 
   return (
     <div
@@ -615,39 +842,165 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
                   <p className="vk-adm-tomt">{t.admin.liste.tom}</p>
                 ) : (
                   <>
-                    <p className="vk-mono vk-adm-antall">
-                      {t.admin.liste.antallTemplate.replace("{n}", String(rows.length))}
-                    </p>
-                    <ol className="vk-adm-liste">
-                      {rows.map((row) => (
-                        <li key={row.id}>
+                    {/* ── The dashboard toolbar: search + pipeline chips ── */}
+                    <div className="vk-adm-verktoy">
+                      <div className="vk-portal-felt vk-adm-sokfelt">
+                        <label className="vk-portal-label" htmlFor="vk-adm-sok">
+                          {t.admin.liste.sokLabel}
+                        </label>
+                        <input
+                          id="vk-adm-sok"
+                          type="search"
+                          className="vk-portal-input"
+                          placeholder={t.admin.liste.sokPlassholder}
+                          value={sok}
+                          onChange={(e) => setSok(e.target.value)}
+                        />
+                      </div>
+                      <div
+                        className="vk-adm-filterchips"
+                        role="group"
+                        aria-label={t.admin.liste.tittel}
+                      >
+                        <button
+                          type="button"
+                          className="vk-portal-chip vk-adm-filterchip"
+                          aria-pressed={filter === "alle"}
+                          onClick={() => setFilter("alle")}
+                        >
+                          {t.admin.liste.filterAlle} ({aktiveRader.length})
+                        </button>
+                        {/* Kept visible while ACTIVE even at zero — the
+                            escape route must never disappear under you. */}
+                        {venterAntall > 0 || filter === "venter" ? (
                           <button
                             type="button"
-                            className="vk-adm-rad"
-                            onClick={() => void apneDetalj(row.id)}
+                            className="vk-portal-chip vk-adm-filterchip vk-adm-filterchip--sla"
+                            aria-pressed={filter === "venter"}
+                            onClick={() => setFilter("venter")}
                           >
-                            <span className="vk-mono vk-adm-dato">
-                              {formatDato(row.createdAt, lang)}
-                            </span>
-                            <span className="vk-adm-bedrift">
-                              {row.bedriftNavn ?? t.admin.liste.ukjentBedrift}
-                            </span>
-                            <span className="vk-adm-epost">{row.email}</span>
-                            <span className="vk-mono vk-adm-anbefaling">
-                              {row.anbefaling ? t.admin.anbefaling[row.anbefaling] : "—"}
-                            </span>
-                            {row.nyttFraKunde ? (
-                              <span className="vk-stamp vk-adm-nyttchip">
-                                {t.admin.liste.nyttFraKunde}
-                              </span>
-                            ) : null}
-                            <span className={adminChipClass(row.status)}>
-                              {t.admin.status[row.status]}
-                            </span>
+                            {t.admin.liste.venterPaDeg} ({venterAntall})
                           </button>
-                        </li>
-                      ))}
-                    </ol>
+                        ) : null}
+                        {PIPELINE_REKKEFOLGE.map((gruppe) => (
+                          <button
+                            key={gruppe}
+                            type="button"
+                            className="vk-portal-chip vk-adm-filterchip"
+                            aria-pressed={filter === gruppe}
+                            onClick={() => setFilter(gruppe)}
+                          >
+                            {t.admin.liste.pipeline[gruppe]} ({gruppeAntall.get(gruppe) ?? 0})
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* The SLA pulse — one quiet line, only when it matters. */}
+                    {venterAntall > 0 ? (
+                      <p className="vk-mono vk-adm-slapuls" role="status">
+                        {t.admin.liste.venterAntallTemplate.replace(
+                          "{n}",
+                          String(venterAntall)
+                        )}
+                      </p>
+                    ) : null}
+
+                    <div className="vk-adm-antallrad">
+                      <p className="vk-mono vk-adm-antall">
+                        {t.admin.liste.antallTemplate.replace(
+                          "{n}",
+                          String(synligeRader.length)
+                        )}
+                      </p>
+                      {slettedeAntall > 0 ? (
+                        <button
+                          type="button"
+                          className="vk-mono vk-adm-vissslettede"
+                          aria-pressed={visSlettede}
+                          onClick={() => setVisSlettede((v) => !v)}
+                        >
+                          {visSlettede
+                            ? t.admin.liste.skjulSlettede
+                            : t.admin.liste.visSlettedeTemplate.replace(
+                                "{n}",
+                                String(slettedeAntall)
+                              )}
+                        </button>
+                      ) : null}
+                    </div>
+
+                    {synligeRader.length === 0 ? (
+                      <p className="vk-adm-tomt">{t.admin.liste.ingenTreff}</p>
+                    ) : (
+                      <ol className="vk-adm-liste">
+                        {synligeRader.map((row) => {
+                          const sla = slaTekst(row, t, lang);
+                          return (
+                            <li key={row.id}>
+                              <button
+                                type="button"
+                                className="vk-adm-rad vk-adm-rad--kort"
+                                data-sla={
+                                  !row.slettetAt && venterPaDeg(row) ? "true" : undefined
+                                }
+                                data-slettet={row.slettetAt ? "true" : undefined}
+                                onClick={() => void apneDetalj(row.id)}
+                              >
+                                <span className="vk-adm-radtopp">
+                                  <span className="vk-adm-bedrift">
+                                    {row.bedriftNavn ?? t.admin.liste.ukjentBedrift}
+                                  </span>
+                                  <span className="vk-adm-epost">{row.email}</span>
+                                  <span className="vk-adm-radchips">
+                                    {row.slettetAt ? (
+                                      <span className="vk-adm-chip vk-adm-chip--slettet">
+                                        {t.admin.liste.slettetChip}
+                                      </span>
+                                    ) : null}
+                                    {row.nyttFraKunde ? (
+                                      <span className="vk-stamp vk-adm-nyttchip">
+                                        {row.nyttAntall > 0
+                                          ? t.admin.liste.nyttFraKundeAntallTemplate.replace(
+                                              "{n}",
+                                              String(row.nyttAntall)
+                                            )
+                                          : t.admin.liste.nyttFraKunde}
+                                      </span>
+                                    ) : null}
+                                    <span className={adminChipClass(row.status)}>
+                                      {t.admin.status[row.status]}
+                                    </span>
+                                  </span>
+                                </span>
+                                <span className="vk-adm-radbunn">
+                                  <span className="vk-mono vk-adm-dato">
+                                    {formatDato(row.createdAt, lang)}
+                                  </span>
+                                  <span className="vk-mono vk-adm-aktivitet">
+                                    {relativTid(row.sistAktivitet, t)}
+                                  </span>
+                                  <span className="vk-mono vk-adm-anbefaling">
+                                    {row.anbefaling
+                                      ? t.admin.anbefaling[row.anbefaling]
+                                      : "—"}
+                                  </span>
+                                  {typeof row.prisBelopOre === "number" ? (
+                                    <span className="vk-mono vk-adm-radpris">
+                                      {formatBelopOre(row.prisBelopOre)}{" "}
+                                      {t.tilbud.belopEksMva}
+                                    </span>
+                                  ) : null}
+                                  {sla ? (
+                                    <span className="vk-mono vk-adm-slalinje">{sla}</span>
+                                  ) : null}
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ol>
+                    )}
                   </>
                 )}
               </>
@@ -685,6 +1038,8 @@ export default function AdminApp({ devMock = false }: { devMock?: boolean }) {
               kartlegging={valgt}
               onBack={tilListe}
               onSendTilbud={sendTilbud}
+              onLever={markerLevert}
+              onAngreLever={angreLevert}
               onSlett={slettKartlegging}
             />
           ) : null

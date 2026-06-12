@@ -24,10 +24,12 @@
  *   GET  /api/portal/admin/liste?id=<id>  — response: AdminDetaljResponse
  *     (one full row + 1h signed mockup URL — no separate detail route)
  *   DELETE /api/portal/admin/liste?id=<id> — response: AdminSlettResponse
- *     (removes the mockup storage object when set, then the row)
+ *     (SOFT delete: stamps slettet_at — row, mockup and files all stay)
  *   POST /api/portal/admin/tilbud — body: AdminTilbudBody
  *     response: AdminTilbudResponse (row → tilbud, tilbud_sendt_at,
- *     status='tilbud_sendt')
+ *     status='tilbud_sendt'; refuses rows the customer already approved)
+ *   PATCH /api/portal/admin/prosjekt — body: AdminLeverBody
+ *     response: AdminLeverResponse (videre ⇄ levert — the lever-flow)
  *
  * Keep this file dependency-free (types + plain constants only).
  */
@@ -60,18 +62,45 @@ export type PortalStatus =
   | "likt"
   | "tilbud_sendt"
   | "videre"
+  | "levert"
   | "feilet";
+
+/** Legal VAT rates for the structured quote price (mirrors Fiken). */
+export const TILBUD_MVA_SATSER: readonly number[] = [25, 15, 12, 0];
+
+/** Upper bound for the structured price — 100 mill. kr in øre. */
+export const TILBUD_BELOP_MAX_ORE = 100_000_000_00;
 
 /**
  * The quote Petter writes by hand (kartlegginger.tilbud jsonb).
  * pris is a free-form string («fra 45 000 kr eks. mva») — never a number.
+ *
+ * prisBelopOre/mvaSats are ADDITIVE structured fields (the Fiken bridge):
+ * old rows without them keep working everywhere. When prisBelopOre is set
+ * the client shows the formatted amount instead of the free-form pris.
  */
 export interface PortalTilbud {
   /** 1–3 short paragraphs separated by "\n\n". Petters own words. */
   tekst: string;
   pris: string;
   leveranse: string;
+  /** Structured amount ex. VAT, in øre (integer ≥ 0). Optional. */
+  prisBelopOre?: number;
+  /** VAT rate — one of TILBUD_MVA_SATSER. Defaults to 25 when belop is set. */
+  mvaSats?: number;
 }
+
+/**
+ * The closing report Petter writes when marking a project «levert»
+ * (kartlegginger.sluttrapport jsonb). Open shape — tekst is the contract.
+ */
+export interface PortalSluttrapport {
+  /** 1–4 short paragraphs separated by "\n\n". */
+  tekst: string;
+}
+
+/** Cap for the sluttrapport text (route + form). */
+export const SLUTTRAPPORT_TEKST_MAX = 4000;
 
 /** The row as the client sees it (GET /api/portal/me). */
 export interface PortalKartlegging {
@@ -88,6 +117,12 @@ export interface PortalKartlegging {
   godkjentAt: string | null;
   /** Project week 1–6 (kartlegginger.uke) — set by Petter once «videre». */
   uke: number | null;
+  /** Stamped when Petter marks the project «levert» (level 5 SKJØTET). */
+  levertAt?: string | null;
+  /** Petters closing report — written when the project is delivered. */
+  sluttrapport?: PortalSluttrapport | null;
+  /** The canonical terms text the customer approved (kvittering/print). */
+  godkjentVilkar?: string | null;
 }
 
 export interface PortalSubmitBody {
@@ -111,6 +146,16 @@ export interface PortalLikeResponse {
   ok: true;
 }
 
+/** One crawled subpage from the company's own website (research). */
+export interface ResearchUnderside {
+  /** Final URL after redirects, capped at 200 chars. */
+  url: string;
+  /** <title>, capped at 120 chars. */
+  tittel?: string;
+  /** Meta description or tag-stripped text excerpt, capped at 400 chars. */
+  tekst?: string;
+}
+
 /**
  * Company-research findings — public data only (Brønnøysundregistrene +
  * the company's own website). Stored verbatim as answers.research (or null
@@ -131,6 +176,19 @@ export interface ResearchFunn {
   sideTittel?: string;
   /** meta description / og:description, capped at 300 chars. */
   sideBeskrivelse?: string;
+  /** Up to 4 crawled subpages (om/tjenester/priser-ish) — partial on timeout. */
+  undersider?: ResearchUnderside[];
+  /**
+   * Regnskapsregisteret, latest filed year — sum driftsinntekter. A price
+   * signal for Petter in the back office; the wizard never shows it.
+   */
+  omsetning?: number;
+  /** Årsresultat from the same filing. */
+  resultat?: number;
+  /** The year the filing covers (regnskapsperiode.tilDato). */
+  regnskapsAar?: number;
+  /** Reporting currency — ONLY set when not NOK (e.g. "USD"). */
+  valuta?: string;
 }
 
 /** POST /api/portal/research — navn is required (2–80 chars). */
@@ -142,6 +200,37 @@ export interface PortalResearchBody {
 export interface PortalResearchResponse {
   funn: ResearchFunn | null;
 }
+
+/**
+ * POST /api/portal/oppfolging — UNAUTHENTICATED (like /research), strictly
+ * rate limited per IP. Takes the answers so far and asks a cheap model for
+ * ONE sharp follow-up question in the answer language. Failure is never the
+ * visitor's problem: anything but a clean question returns sporsmal: null
+ * and the wizard silently skips the step.
+ */
+export interface PortalOppfolgingBody {
+  answers: Record<string, unknown>;
+  lang: "no" | "en";
+}
+
+export interface PortalOppfolgingResponse {
+  sporsmal: string | null;
+}
+
+/**
+ * answers.oppfolging as the wizard stores it — the generated question rides
+ * along with the answer so Petter (and the assessment model) sees BOTH.
+ * null = generation was tried and skipped; absent = never tried.
+ */
+export interface PortalOppfolgingAnswer {
+  sporsmal: string;
+  svar: string;
+}
+
+/** Free-text caps shared by the wizard UI and the prompt rendering. */
+export const DROMEN_MAX = 2000;
+export const OPPFOLGING_SPORSMAL_MAX = 240;
+export const OPPFOLGING_SVAR_MAX = 1000;
 
 /** answers.bedrift as the wizard stores it (first step, id "bedrift"). */
 export interface PortalBedriftAnswer {
@@ -200,6 +289,19 @@ export interface AdminListItem {
   status: PortalStatus;
   /** Customer activity (innlegg/likt/godkjent) newer than admin_sett_at. */
   nyttFraKunde: boolean;
+  /** Customer INNLEGG newer than admin_sett_at — the cheap unread count. */
+  nyttAntall: number;
+  /** Latest of created/liked/tilbud/godkjent/levert/customer post — ISO. */
+  sistAktivitet: string;
+  /** liked_at — the SLA clock for «likt uten tilbud». */
+  liktAt: string | null;
+  /** Open workflows-forespørsler waiting on the CUSTOMER side feed. */
+  apneForesporsler: number;
+  /** Structured quote price (øre ex. VAT) when Petter set one. */
+  prisBelopOre: number | null;
+  mvaSats: number | null;
+  /** Soft delete stamp — the list hides these by default. */
+  slettetAt: string | null;
 }
 
 export interface AdminListeResponse {
@@ -219,6 +321,11 @@ export interface AdminKartlegging {
   tilbudSendtAt: string | null;
   godkjentAt: string | null;
   createdAt: string;
+  /** Level 5 SKJØTET — stamped by the lever-flow (admin/prosjekt PATCH). */
+  levertAt?: string | null;
+  sluttrapport?: PortalSluttrapport | null;
+  /** Soft delete stamp — set by DELETE admin/liste?id=. */
+  slettetAt?: string | null;
 }
 
 export interface AdminDetaljResponse {
@@ -234,8 +341,34 @@ export interface AdminTilbudResponse {
   ok: true;
 }
 
-/** DELETE /api/portal/admin/liste?id= — mockup object + row removed. */
+/**
+ * DELETE /api/portal/admin/liste?id= — SOFT delete: stamps slettet_at on
+ * the row (approved runs can never be hard-deleted; the DB trigger agrees).
+ * The customer select policy filters deleted rows automatically; the admin
+ * list hides them behind a «vis slettede»-toggle.
+ */
 export interface AdminSlettResponse {
+  ok: true;
+}
+
+/**
+ * PATCH /api/portal/admin/prosjekt — the lever-flow (level 5 SKJØTET).
+ *
+ *   handling "lever": row must sit in «videre» → status='levert',
+ *     levert_at=now(), sluttrapport (required, tekst 1–SLUTTRAPPORT_TEKST_MAX).
+ *   handling "angre": row must sit in «levert» → status='videre',
+ *     levert_at=null (the sluttrapport draft is kept on the row).
+ *
+ * The DB statusmaskin enforces the same transitions; the route answers 409
+ * with a readable message instead of a trigger error.
+ */
+export interface AdminLeverBody {
+  id: string;
+  handling: "lever" | "angre";
+  sluttrapport?: PortalSluttrapport;
+}
+
+export interface AdminLeverResponse {
   ok: true;
 }
 
@@ -266,15 +399,60 @@ export interface AdminSlettResponse {
 /** Mirrors public.prosjekt_innlegg.fra. */
 export type ProsjektFra = "kunde" | "workflows";
 
-/** Mirrors public.prosjekt_innlegg.type. */
+/**
+ * The types a composer can POST (the routes validate against exactly
+ * these — the kunde-RLS allows only fra=kunde/type=melding regardless).
+ * «milepael» is admin-postable: the quiet celebration line in the feed.
+ */
 export type ProsjektInnleggType =
   | "melding"
   | "leveranse"
   | "foresporsel"
-  | "status";
+  | "status"
+  | "milepael";
+
+/**
+ * Everything the FEED can carry — the postable types PLUS «faktura»,
+ * which only the Fiken-synk posts (service role): «Faktura nr. X er
+ * betalt — takk!». Render-only; the DB check-constraint is the
+ * write-side gate.
+ */
+export type ProsjektFeedType = ProsjektInnleggType | "faktura";
 
 /** Mirrors public.prosjekt_innlegg.foresporsel_status. */
 export type ForesporselStatus = "apen" | "levert";
+
+/**
+ * Mirrors public.fakturaer.status MINUS «utkast» — the customer SELECT
+ * policy hides drafts, so they never reach a client.
+ */
+export type ProsjektFakturaStatus =
+  | "sendt"
+  | "delbetalt"
+  | "betalt"
+  | "forfalt"
+  | "kansellert";
+
+/**
+ * One invoice as the customer sees it in the room (GET /api/portal/prosjekt).
+ * Admin writing happens in the Fiken routes — this shape is read-only.
+ */
+export interface ProsjektFaktura {
+  id: string;
+  /** Fiken invoice number — null until Fiken assigns one. */
+  nummer: number | null;
+  kid: string | null;
+  /** Gross amount in øre — null until the invoice is priced. */
+  belopOre: number | null;
+  /** ISO 4217 — "NOK" unless Fiken says otherwise. */
+  valuta: string;
+  beskrivelse: string;
+  /** issue_date / due_date / settled_at — ISO dates, or null. */
+  utstedt: string | null;
+  forfall: string | null;
+  betalt: string | null;
+  status: ProsjektFakturaStatus;
+}
 
 /** Validation caps — routes + composers code against the same numbers. */
 export const PROSJEKT_TEKST_MAX = 4000;
@@ -351,7 +529,7 @@ export interface ProsjektInnleggFil {
 export interface ProsjektInnlegg {
   id: string;
   fra: ProsjektFra;
-  type: ProsjektInnleggType;
+  type: ProsjektFeedType;
   tekst: string;
   /** Validated https-URL — or null. Render as <a rel="noopener noreferrer">. */
   lenke: string | null;
@@ -369,6 +547,22 @@ export interface ProsjektResponse {
   /** Effective week — auto from godkjent_at unless manually overridden. */
   uke: number | null;
   ukeKilde: "auto" | "manuell" | null;
+  /**
+   * Row status — «levert» renders the room read-only. Optional: the admin
+   * route predates the field (the client falls back to its own props).
+   */
+  status?: PortalStatus;
+  /**
+   * kartlegginger.kunde_sett_at — the customer's read marker. The kunde-GET
+   * always sets it; the «── nytt ──» divider freezes on the FIRST value of
+   * the session so later marks don't move the line under the reader.
+   */
+  kundeSettAt?: string | null;
+  /**
+   * The customer's invoices, created_at ascending — kunde-GET only. RLS
+   * hides «utkast» rows; an empty array still renders the (empty) panel.
+   */
+  fakturaer?: ProsjektFaktura[];
   /** created_at ascending — the room reads top-to-bottom. */
   innlegg: ProsjektInnlegg[];
 }
@@ -394,6 +588,17 @@ export interface ProsjektPostBody {
 
 export interface ProsjektPostResponse {
   ok: true;
+}
+
+/**
+ * POST /api/portal/prosjekt with sett:true — stamps kunde_sett_at = now()
+ * with the CUSTOMER's own token (the kartlegging-vakt trigger allows
+ * exactly this column without a status transition). Sent when the reader
+ * actually reaches the bottom of the feed — never on mere mount.
+ */
+export interface ProsjektSettBody {
+  id: string;
+  sett: true;
 }
 
 /** POST /api/portal/prosjekt/fil — validate BEFORE the direct upload. */

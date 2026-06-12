@@ -1,19 +1,29 @@
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { epostNyttIProsjektet, sendPortalEpost } from "@/lib/epost";
+import {
+  epostLevert,
+  epostNyttIProsjektet,
+  lagPortalLenke,
+  sendPortalEpost,
+} from "@/lib/epost";
 import { forbidden, portalAuth, unauthorized } from "@/lib/portalAuth";
 import { effektivUke, erBildeFil } from "@/lib/portalTypes";
 import {
+  mockAdminLever,
   mockAdminProsjektPost,
   mockProsjekt,
   portalMockEnabled,
 } from "@/lib/portalMock";
 import type {
+  AdminLeverBody,
+  AdminLeverResponse,
   AdminProsjektPostBody,
   AdminProsjektPostResponse,
   ForesporselStatus,
+  PortalSluttrapport,
   ProsjektFilRef,
   ProsjektFra,
+  ProsjektFeedType,
   ProsjektInnlegg,
   ProsjektInnleggFil,
   ProsjektInnleggType,
@@ -28,6 +38,7 @@ import {
   PROSJEKT_TEKST_MAX,
   PROSJEKT_UKE_MAX,
   PROSJEKT_UKE_MIN,
+  SLUTTRAPPORT_TEKST_MAX,
 } from "@/lib/portalTypes";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 
@@ -63,7 +74,12 @@ const INNLEGG_TYPER: readonly ProsjektInnleggType[] = [
   "leveranse",
   "foresporsel",
   "status",
+  "milepael",
 ];
+
+/** Display coercion accepts everything the feed can carry — «faktura»
+    is posted by the Fiken-synk (service role), never by this route. */
+const FEED_TYPER: readonly ProsjektFeedType[] = [...INNLEGG_TYPER, "faktura"];
 
 type InnleggRow = {
   id: string;
@@ -219,8 +235,8 @@ async function tilInnlegg(
   return {
     id: row.id,
     fra: (row.fra === "workflows" ? "workflows" : "kunde") as ProsjektFra,
-    type: (INNLEGG_TYPER as readonly string[]).includes(row.type)
-      ? (row.type as ProsjektInnleggType)
+    type: (FEED_TYPER as readonly string[]).includes(row.type)
+      ? (row.type as ProsjektFeedType)
       : "melding",
     tekst: row.tekst ?? "",
     lenke,
@@ -399,7 +415,8 @@ export async function POST(req: Request) {
         lenke: lenke ?? undefined,
         fil: fil ?? undefined,
         filer: filer.length ? filer : undefined,
-        uke: uke ?? undefined,
+        // "auto" must travel too — the mock clears its override on it.
+        uke: ukeTilAuto ? "auto" : (uke ?? undefined),
       })
     );
   }
@@ -480,7 +497,12 @@ export async function POST(req: Request) {
     const lang = row.lang === "en" ? "en" : "no";
     const ep = await sendPortalEpost({
       to: kundeEpost,
-      ...epostNyttIProsjektet(lang, { type: type as ProsjektInnleggType }),
+      // One-time login deep link — falls back to the plain gate link
+      // inside lagPortalLenke (fail-graceful by contract).
+      ...epostNyttIProsjektet(lang, {
+        type: type as ProsjektInnleggType,
+        lenke: await lagPortalLenke(kundeEpost),
+      }),
     });
     if (!ep.ok) {
       console.log(
@@ -490,4 +512,135 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json<AdminProsjektPostResponse>({ ok: true });
+}
+
+/* ── PATCH — the lever-flow (level 5 SKJØTET) ──
+   handling "lever": videre → levert (+ levert_at + sluttrapport).
+   handling "angre": levert → videre (levert_at cleared; the sluttrapport
+   stays on the row as a draft for the next delivery).
+   The DB statusmaskin enforces the same transitions — the .in()-guards
+   here exist to answer 409 with words instead of a trigger error. */
+
+export async function PATCH(req: Request) {
+  let raw: unknown;
+  try {
+    raw = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Ugyldig JSON" }, { status: 400 });
+  }
+  const body =
+    typeof raw === "object" && raw !== null
+      ? (raw as Partial<AdminLeverBody>)
+      : {};
+
+  const id = typeof body.id === "string" ? body.id.trim() : "";
+  if (!id) {
+    return NextResponse.json({ error: "Mangler id" }, { status: 400 });
+  }
+  const handling = body.handling;
+  if (handling !== "lever" && handling !== "angre") {
+    return NextResponse.json({ error: "Ugyldig handling" }, { status: 400 });
+  }
+
+  let sluttrapport: PortalSluttrapport | null = null;
+  if (handling === "lever") {
+    const r = body.sluttrapport;
+    const tekst =
+      typeof r === "object" && r !== null && typeof r.tekst === "string"
+        ? r.tekst.trim()
+        : "";
+    if (!tekst || tekst.length > SLUTTRAPPORT_TEKST_MAX) {
+      return NextResponse.json({ error: "Ugyldig sluttrapport" }, { status: 400 });
+    }
+    sluttrapport = { tekst };
+  }
+
+  // DEV MOCK — everything fake lives in portalMock.ts (auto-admin).
+  if (portalMockEnabled()) {
+    const mocked = await mockAdminLever(id, handling, sluttrapport ?? undefined);
+    if (!mocked) {
+      return NextResponse.json(
+        { error: "Fant ikke kartleggingen — eller feil status" },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json<AdminLeverResponse>(mocked);
+  }
+
+  let auth;
+  try {
+    auth = await portalAuth(req);
+  } catch (err) {
+    console.error("[portal/admin/prosjekt] auth setup failed", err);
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+  if (!auth) return unauthorized();
+  if (auth.user.email !== ADMIN_EMAIL) return forbidden();
+  const { supabase, user } = auth;
+
+  const rl = rateLimit({
+    key: "portal:admin:prosjekt",
+    identifier: user.id,
+    max: RL_MAX,
+    windowMs: RL_WINDOW_MS,
+  });
+  if (!rl.ok) return tooManyRequests(rl, RL_MAX);
+
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Fant ikke prosjektet" }, { status: 404 });
+  }
+
+  const now = new Date().toISOString();
+  const oppdatering =
+    handling === "lever"
+      ? {
+          status: "levert",
+          levert_at: now,
+          sluttrapport,
+          updated_at: now,
+        }
+      : {
+          status: "videre",
+          levert_at: null,
+          updated_at: now,
+        };
+  const { data: updated, error } = await supabase
+    .from("kartlegginger")
+    .update(oppdatering)
+    .eq("id", id)
+    .in("status", handling === "lever" ? ["videre"] : ["levert"])
+    .select("id, email, lang");
+  if (error) {
+    console.error("[portal/admin/prosjekt] lever update failed", error);
+    return NextResponse.json({ error: "Noe gikk galt." }, { status: 500 });
+  }
+  if (!updated || updated.length === 0) {
+    return NextResponse.json(
+      {
+        error:
+          handling === "lever"
+            ? "Kan ikke levere — løpet står ikke i «godkjent»."
+            : "Kan ikke angre — løpet står ikke i «levert».",
+      },
+      { status: 409 }
+    );
+  }
+
+  // The Skjøtet moment deserves an e-post — fail-silent like every other
+  // notification, and only on lever (an angre is quiet by design).
+  if (handling === "lever") {
+    const row = updated[0] as { email: string | null; lang: string | null };
+    if (row.email) {
+      const lang = row.lang === "en" ? "en" : "no";
+      const ep = await sendPortalEpost({
+        to: row.email,
+        ...epostLevert(lang, { lenke: await lagPortalLenke(row.email) }),
+      });
+      if (!ep.ok) {
+        console.log(`[portal/admin/prosjekt] e-post (levert) ikke sendt: ${ep.error}`);
+      }
+    }
+  }
+
+  return NextResponse.json<AdminLeverResponse>({ ok: true });
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import "@/styles/verksted/benken.css";
+
 import {
   useCallback,
   useEffect,
@@ -7,7 +9,9 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
+  type ReactElement,
 } from "react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useLang } from "@/components/LanguageProvider";
 import { formatDato } from "@/components/portal/AdminDetalj";
 import Lysbord, { type LysbordBilde } from "@/components/portal/Lysbord";
@@ -68,6 +72,7 @@ const TYPER: readonly ProsjektInnleggType[] = [
   "leveranse",
   "foresporsel",
   "status",
+  "milepael",
 ];
 
 const UKER: readonly number[] = Array.from(
@@ -138,6 +143,39 @@ function formatStorrelse(bytes: number, lang: Lang): string {
   return `${Math.max(1, Math.round(bytes / 1024))} kB`;
 }
 
+/* ── Dates: day dividers + HH:mm (mirrors the customer feed) ── */
+
+function lokalDagKey(d: Date): string {
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function dagKey(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return lokalDagKey(d);
+}
+
+/** «I dag» / «I går» / the short office date — divider label. */
+function formatDag(iso: string, lang: Lang, t: PortalContent): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const naa = new Date();
+  if (lokalDagKey(d) === lokalDagKey(naa)) return t.benken.iDag;
+  const igaar = new Date(naa.getFullYear(), naa.getMonth(), naa.getDate() - 1);
+  if (lokalDagKey(d) === lokalDagKey(igaar)) return t.benken.iGar;
+  return formatDato(iso, lang);
+}
+
+/** «14:32» — the meta line carries the clock; the divider owns the day. */
+function formatKlokke(iso: string, lang: Lang): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "nb-NO", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
+}
+
 /** https only, no smuggled credentials, ≤500 chars — URL parser, no regex. */
 function validerLenke(raw: string): string | null {
   if (raw.length > PROSJEKT_LENKE_MAX) return null;
@@ -176,6 +214,8 @@ export default function AdminBenken({ kartleggingId, kundeEpost }: AdminBenkenPr
   const [bekreftet, setBekreftet] = useState(false);
   const filInput = useRef<HTMLInputElement>(null);
   const tekstFelt = useRef<HTMLTextAreaElement>(null);
+  /** Fetch race guard — last started wins (same seq pattern as Benken). */
+  const seqRef = useRef(0);
 
   // Which control does the active error belong to? The error strings are
   // already localized, so compare against the same content keys.
@@ -189,6 +229,7 @@ export default function AdminBenken({ kartleggingId, kundeEpost }: AdminBenkenPr
 
   const hentFeed = useCallback(
     async (stille = false) => {
+      const seq = ++seqRef.current;
       if (!stille) setTilstand("laster");
       try {
         const token = await hentToken();
@@ -197,10 +238,13 @@ export default function AdminBenken({ kartleggingId, kundeEpost }: AdminBenkenPr
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!res.ok) throw new Error(`admin/prosjekt → ${res.status}`);
-        setProsjekt((await res.json()) as ProsjektResponse);
+        const json = (await res.json()) as ProsjektResponse;
+        if (seq !== seqRef.current) return;
+        setProsjekt(json);
         setTilstand("klar");
       } catch (err) {
         console.error("[portal/admin/benken] fetch failed", err);
+        if (seq !== seqRef.current) return;
         // Quiet refetch keeps the stale thread visible; the first load
         // has nothing to keep and says feil out loud.
         if (!stille) setTilstand("feil");
@@ -212,6 +256,130 @@ export default function AdminBenken({ kartleggingId, kundeEpost }: AdminBenkenPr
   useEffect(() => {
     void hentFeed();
   }, [hentFeed]);
+
+  /**
+   * The customer's read marker — read DIRECTLY from PostgREST with
+   * Petters own token (the admin select policy carries it; same trust
+   * model as the direct storage upload below). The admin GET route
+   * predates the column, so this stays self-contained.
+   */
+  const [kundeSett, setKundeSett] = useState<string | null>(null);
+  const hentKundeSett = useCallback(async () => {
+    if (!UUID_RE.test(kartleggingId)) return;
+    try {
+      const { data, error } = await supabaseBrowser()
+        .from("kartlegginger")
+        .select("kunde_sett_at")
+        .eq("id", kartleggingId)
+        .maybeSingle();
+      if (error) throw error;
+      setKundeSett((data?.kunde_sett_at as string | null) ?? null);
+    } catch (err) {
+      // The receipt is a nicety — the feed never waits for it.
+      console.error("[portal/admin/benken] kunde_sett_at fetch failed", err);
+    }
+  }, [kartleggingId]);
+
+  useEffect(() => {
+    void hentKundeSett();
+  }, [hentKundeSett]);
+
+  /** Burst-safe quiet refetch — realtime events within 250 ms → ONE fetch. */
+  const hentTimer = useRef<number | null>(null);
+  const planlagtHent = useCallback(() => {
+    if (hentTimer.current !== null) return;
+    hentTimer.current = window.setTimeout(() => {
+      hentTimer.current = null;
+      void hentFeed(true);
+      void hentKundeSett();
+    }, 250);
+  }, [hentFeed, hentKundeSett]);
+
+  useEffect(() => {
+    return () => {
+      if (hentTimer.current !== null) window.clearTimeout(hentTimer.current);
+    };
+  }, []);
+
+  // Fallback parity with the customer room: refresh quietly when the
+  // office tab regains focus (also re-mints the 1h signed file URLs).
+  useEffect(() => {
+    const onFocus = () => {
+      void hentFeed(true);
+      void hentKundeSett();
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") onFocus();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [hentFeed, hentKundeSett]);
+
+  /**
+   * LIVE — postgres_changes on this room's innlegg + fakturaer, plus the
+   * kartlegging row itself (kunde_sett_at flips «sett av kunden» live).
+   * RLS-scoped via realtime.setAuth with Petters token; every event
+   * funnels into the same quiet refetch (payloads carry raw paths, the
+   * GET signs them properly). Dev-mock rows have no realtime.
+   */
+  useEffect(() => {
+    if (!UUID_RE.test(kartleggingId)) return;
+    const sb = supabaseBrowser();
+    let kanal: RealtimeChannel | null = null;
+    let avbrutt = false;
+    void (async () => {
+      const token = await hentToken();
+      if (avbrutt || token === "dev-mock") return;
+      await sb.realtime.setAuth(token);
+      if (avbrutt) return;
+      kanal = sb
+        .channel(`benken-adm:${kartleggingId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "prosjekt_innlegg",
+            filter: `kartlegging_id=eq.${kartleggingId}`,
+          },
+          () => planlagtHent()
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "fakturaer",
+            filter: `kartlegging_id=eq.${kartleggingId}`,
+          },
+          () => planlagtHent()
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "kartlegginger",
+            filter: `id=eq.${kartleggingId}`,
+          },
+          () => planlagtHent()
+        )
+        .subscribe((status) => {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            // Focus-refetch stays as the fallback — log, don't fuss.
+            console.error(`[portal/admin/benken] realtime ${status}`);
+          }
+        });
+    })();
+    return () => {
+      avbrutt = true;
+      if (kanal) void sb.removeChannel(kanal);
+    };
+  }, [kartleggingId, planlagtHent]);
 
   /**
    * The file flow: /fil validates and answers with the ONE safe path, then
@@ -387,7 +555,7 @@ export default function AdminBenken({ kartleggingId, kundeEpost }: AdminBenkenPr
     }
   }
 
-  function innleggRad(i: ProsjektInnlegg) {
+  function innleggRad(i: ProsjektInnlegg, visSett: boolean) {
     const bilder = i.filer.filter((f) => f.bilde && f.url);
     const andreFiler = i.filer.filter((f) => !f.bilde || !f.url);
     return (
@@ -408,7 +576,8 @@ export default function AdminBenken({ kartleggingId, kundeEpost }: AdminBenkenPr
           <span aria-hidden="true">·</span>
           <span>{b.typer[i.type]}</span>
           <span aria-hidden="true">·</span>
-          <span>{formatDato(i.createdAt, lang, true)}</span>
+          {/* The day lives on the divider — the row carries the clock. */}
+          <span>{formatKlokke(i.createdAt, lang)}</span>
           {i.foresporselStatus ? (
             <span
               className={
@@ -484,8 +653,48 @@ export default function AdminBenken({ kartleggingId, kundeEpost }: AdminBenkenPr
             </p>
           )
         )}
+        {/* The read receipt — under the LAST innlegg the customer has
+            seen (kunde_sett_at), the one quiet drift-green line. */}
+        {visSett && kundeSett ? (
+          <p className="vk-mono vk-adm-sett">
+            <span aria-hidden="true">✓ </span>
+            {b.settAvKundenTemplate.replace(
+              "{tid}",
+              formatDato(kundeSett, lang, true)
+            )}
+          </p>
+        ) : null}
       </li>
     );
+  }
+
+  /* ── Feed rows: day dividers woven between the innlegg ── */
+
+  function feedRader(innlegg: ProsjektInnlegg[]): ReactElement[] {
+    // The last innlegg the customer has seen — the receipt's anchor.
+    let sistSettId: string | null = null;
+    if (kundeSett) {
+      const grense = Date.parse(kundeSett);
+      for (const i of innlegg) {
+        if (Date.parse(i.createdAt) <= grense) sistSettId = i.id;
+        else break;
+      }
+    }
+    const rader: ReactElement[] = [];
+    let forrigeDag = "";
+    for (const i of innlegg) {
+      const dag = dagKey(i.createdAt);
+      if (dag !== forrigeDag) {
+        forrigeDag = dag;
+        rader.push(
+          <li key={`dag-${dag}`} className="vk-benk-dag vk-adm-benk-dag">
+            <span className="vk-mono">{formatDag(i.createdAt, lang, t)}</span>
+          </li>
+        );
+      }
+      rader.push(innleggRad(i, i.id === sistSettId));
+    }
+    return rader;
   }
 
   return (
@@ -526,7 +735,7 @@ export default function AdminBenken({ kartleggingId, kundeEpost }: AdminBenkenPr
           {prosjekt.innlegg.length === 0 ? (
             <p className="vk-mono vk-adm-tomt">{b.tom}</p>
           ) : (
-            <ol className="vk-adm-benk-feed">{prosjekt.innlegg.map(innleggRad)}</ol>
+            <ol className="vk-adm-benk-feed">{feedRader(prosjekt.innlegg)}</ol>
           )}
 
           {/* ── The composer ── */}

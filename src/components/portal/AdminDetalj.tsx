@@ -3,25 +3,38 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLang } from "@/components/LanguageProvider";
 import AdminBenken from "@/components/portal/AdminBenken";
+import AdminFaktura from "@/components/portal/AdminFaktura";
 import { portalContent, type PortalContent } from "@/lib/portalContent";
 import type { Lang } from "@/lib/translations";
 import {
+  SLUTTRAPPORT_TEKST_MAX,
+  TILBUD_BELOP_MAX_ORE,
   TILBUD_LEVERANSE_MAX,
+  TILBUD_MVA_SATSER,
   TILBUD_PRIS_MAX,
   TILBUD_TEKST_MAX,
   type AdminKartlegging,
+  type PortalOppfolgingAnswer,
+  type PortalSluttrapport,
   type PortalTilbud,
   type ResearchFunn,
+  type ResearchUnderside,
 } from "@/lib/portalTypes";
 
 /**
  * Verkstedkontoret — one kartlegging on the bench. Petters working view:
- * the answers (labelled from the wizard steps), the research findings, the
+ * the price signals up top (budget answer + Regnskapsregisteret figures),
+ * the answers (labelled from the wizard steps, incl. the AI follow-up),
+ * the research findings (now with crawled subpages and key figures), the
  * assessment exactly as the customer saw it (same vk-portal-f* classes as
- * Forslag), and THE QUOTE FORM — the whole point of the room.
+ * Forslag), THE QUOTE FORM (with the structured price for Fiken), the
+ * lever-flow to level 5 SKJØTET, fakturering (AdminFaktura) and Benken.
  *
- * The parent owns the POST: onSendTilbud resolves true on success and flips
- * kartlegging.status optimistically, so the badge here updates by prop.
+ * The parent owns all POSTs: onSendTilbud/onLever/onAngreLever resolve true
+ * on success and flip kartlegging optimistically, so badges update by prop.
+ *
+ * After the customer approves (videre/levert) the quote is FROZEN in the
+ * database — the form gives way to a locked, read-only view with the why.
  */
 
 interface AdminDetaljProps {
@@ -29,16 +42,22 @@ interface AdminDetaljProps {
   onBack: () => void;
   /** POSTs admin/tilbud — resolves true on success. */
   onSendTilbud: (tilbud: PortalTilbud) => Promise<boolean>;
-  /** DELETEs the row — resolves true on success (parent leaves the view). */
+  /** PATCHes admin/prosjekt {handling:"lever"} — resolves true on success. */
+  onLever: (sluttrapport: PortalSluttrapport) => Promise<boolean>;
+  /** PATCHes admin/prosjekt {handling:"angre"} — levert → videre. */
+  onAngreLever: () => Promise<boolean>;
+  /** Soft-DELETEs the row — resolves true on success (parent leaves). */
   onSlett: () => Promise<boolean>;
 }
 
 /**
- * Status chip class — «videre» means delivered/agreed and earns the ONE
- * green in the shop (--drift-green); every other status stays amber.
+ * Status chip class — «videre»/«levert» mean agreed/delivered and earn the
+ * ONE green in the shop (--drift-green); every other status stays amber.
  */
 export function adminChipClass(status: AdminKartlegging["status"]): string {
-  return status === "videre" ? "vk-adm-chip vk-adm-chip--godkjent" : "vk-adm-chip";
+  return status === "videre" || status === "levert"
+    ? "vk-adm-chip vk-adm-chip--godkjent"
+    : "vk-adm-chip";
 }
 
 /** Quiet office date — «12.06.2026», optionally with the clock. */
@@ -51,7 +70,35 @@ export function formatDato(iso: string, lang: Lang, medTid = false): string {
   ).format(d);
 }
 
+/** «45 000 kr» from øre — the structured quote price. */
+export function formatBelopOre(ore: number): string {
+  return new Intl.NumberFormat("nb-NO", {
+    style: "currency",
+    currency: "NOK",
+    minimumFractionDigits: ore % 100 === 0 ? 0 : 2,
+    maximumFractionDigits: ore % 100 === 0 ? 0 : 2,
+  }).format(ore / 100);
+}
+
+/** «226 000 000 kr» / «12 400 000 USD» — Regnskapsregisteret figures. */
+function formatRegnskapstall(n: number, valuta?: string): string {
+  return `${new Intl.NumberFormat("nb-NO").format(n)} ${valuta ?? "kr"}`;
+}
+
+/** «45 000», «45000,50» → øre — or null when it isn't an amount. */
+function krTilOre(raw: string): number | null {
+  const s = raw.replace(/[\s ]/g, "").replace(",", ".");
+  if (!s || !/^\d+(\.\d{1,2})?$/.test(s)) return null;
+  const kr = Number(s);
+  if (!Number.isFinite(kr)) return null;
+  const ore = Math.round(kr * 100);
+  // Mirror the route's cap — over-the-top sums say belopUgyldig here
+  // instead of bouncing as a generic server error.
+  return ore > TILBUD_BELOP_MAX_ORE ? null : ore;
+}
+
 const FEIL_ID = "vk-adm-tilbud-feil";
+const LEVER_FEIL_ID = "vk-adm-lever-feil";
 
 /* ── Answers → readable lines, labelled from the wizard steps ── */
 
@@ -61,6 +108,18 @@ interface SvarLinje {
   verdi: string;
 }
 
+function oppfolgingOf(
+  answers: Record<string, unknown>
+): PortalOppfolgingAnswer | null {
+  const o = answers.oppfolging;
+  if (typeof o !== "object" || o === null || Array.isArray(o)) return null;
+  const sporsmal = (o as Record<string, unknown>).sporsmal;
+  const svar = (o as Record<string, unknown>).svar;
+  if (typeof sporsmal !== "string" || typeof svar !== "string") return null;
+  if (!sporsmal.trim() || !svar.trim()) return null;
+  return { sporsmal: sporsmal.trim(), svar: svar.trim() };
+}
+
 function svarLinjer(
   answers: Record<string, unknown>,
   t: PortalContent
@@ -68,7 +127,8 @@ function svarLinjer(
   const linjer: SvarLinje[] = [];
   // research renders as its own section; bedrift folds into the heading
   // but keeps its line here so nothing the customer typed is hidden.
-  const used = new Set<string>(["research"]);
+  // oppfolging gets its own pretty rendering below (never raw JSON).
+  const used = new Set<string>(["research", "oppfolging"]);
 
   for (const step of t.steps) {
     used.add(step.id);
@@ -115,6 +175,19 @@ function svarLinjer(
         verdi: tekst.trim(),
       });
     }
+
+    // The AI follow-up rides right after «dromen» — the question it asked
+    // IS the label, so Petter reads it like any other wizard line.
+    if (step.id === "dromen") {
+      const oppf = oppfolgingOf(answers);
+      if (oppf) {
+        linjer.push({
+          key: "oppfolging",
+          label: `${oppf.sporsmal} ${t.admin.detalj.oppfolgingSuffix}`,
+          verdi: oppf.svar,
+        });
+      }
+    }
   }
 
   // Anything the wizard didn't define (future keys) — raw, never dropped.
@@ -145,15 +218,96 @@ const RESEARCH_FELT_REKKEFOLGE: (keyof ResearchFunn)[] = [
   "bransje",
   "ansatte",
   "sted",
+  "omsetning",
+  "resultat",
+  "regnskapsAar",
+  "valuta",
   "nettside",
   "sideTittel",
   "sideBeskrivelse",
+  "undersider",
 ];
+
+/** One research value → display text (numbers formatted; arrays handled
+    by the dedicated undersider-renderer, never here). */
+function researchVerdi(felt: keyof ResearchFunn, research: ResearchFunn): string {
+  const verdi = research[felt];
+  if (felt === "omsetning" || felt === "resultat") {
+    return typeof verdi === "number"
+      ? formatRegnskapstall(verdi, research.valuta)
+      : String(verdi);
+  }
+  return String(verdi);
+}
+
+/* ── The price-signal box — budget answer + key figures, up top ── */
+
+function Prislapp({
+  answers,
+  research,
+  t,
+}: {
+  answers: Record<string, unknown>;
+  research: ResearchFunn | null;
+  t: PortalContent;
+}) {
+  const budsjettStep = t.steps.find((s) => s.id === "budsjett");
+  const budsjettSvar =
+    typeof answers.budsjett === "string" && answers.budsjett
+      ? budsjettStep?.chips?.find((c) => c.id === answers.budsjett)?.label ??
+        (answers.budsjett as string)
+      : null;
+  const omsetning =
+    typeof research?.omsetning === "number" ? research.omsetning : null;
+  const resultat =
+    typeof research?.resultat === "number" ? research.resultat : null;
+
+  if (!budsjettSvar && omsetning === null && resultat === null) return null;
+
+  const aar =
+    typeof research?.regnskapsAar === "number" ? ` (${research.regnskapsAar})` : "";
+
+  return (
+    <aside className="vk-adm-prislapp" aria-label={t.admin.detalj.prislappTittel}>
+      <h2 className="vk-mono vk-adm-prislapp-tittel">
+        {t.admin.detalj.prislappTittel}
+      </h2>
+      <dl className="vk-adm-prislapp-liste">
+        {budsjettSvar ? (
+          <div className="vk-adm-prislapp-rad">
+            <dt>{t.admin.detalj.prislappBudsjett}</dt>
+            <dd>{budsjettSvar}</dd>
+          </div>
+        ) : null}
+        {omsetning !== null ? (
+          <div className="vk-adm-prislapp-rad">
+            <dt>
+              {t.admin.detalj.researchFelter.omsetning}
+              {aar}
+            </dt>
+            <dd>{formatRegnskapstall(omsetning, research?.valuta)}</dd>
+          </div>
+        ) : null}
+        {resultat !== null ? (
+          <div className="vk-adm-prislapp-rad">
+            <dt>
+              {t.admin.detalj.researchFelter.resultat}
+              {aar}
+            </dt>
+            <dd>{formatRegnskapstall(resultat, research?.valuta)}</dd>
+          </div>
+        ) : null}
+      </dl>
+    </aside>
+  );
+}
 
 export default function AdminDetalj({
   kartlegging,
   onBack,
   onSendTilbud,
+  onLever,
+  onAngreLever,
   onSlett,
 }: AdminDetaljProps) {
   const { lang } = useLang();
@@ -163,14 +317,35 @@ export default function AdminDetalj({
   const [tekst, setTekst] = useState(k.tilbud?.tekst ?? "");
   const [pris, setPris] = useState(k.tilbud?.pris ?? "");
   const [leveranse, setLeveranse] = useState(k.tilbud?.leveranse ?? "");
+  // Structured price — kroner as typed; parsed to øre on submit.
+  const [belop, setBelop] = useState(
+    typeof k.tilbud?.prisBelopOre === "number"
+      ? String(k.tilbud.prisBelopOre / 100).replace(".", ",")
+      : ""
+  );
+  const [mvaSats, setMvaSats] = useState<number>(
+    typeof k.tilbud?.mvaSats === "number" ? k.tilbud.mvaSats : 25
+  );
   const [sender, setSender] = useState(false);
   const [feil, setFeil] = useState<string | null>(null);
   const [bekreftet, setBekreftet] = useState(false);
+  // The lever-flow — two-stage like delete (arm → 5s → deliver).
+  const [sluttrapportTekst, setSluttrapportTekst] = useState(
+    k.sluttrapport?.tekst ?? ""
+  );
+  const [leverArmed, setLeverArmed] = useState(false);
+  const [leverer, setLeverer] = useState(false);
+  const [leverFeil, setLeverFeil] = useState<string | null>(null);
+  const [angreArmed, setAngreArmed] = useState(false);
+  const [angrer, setAngrer] = useState(false);
+  const [angreFeil, setAngreFeil] = useState(false);
   // Two-stage delete: first press arms (5s window), second press deletes.
   const [slettArmed, setSlettArmed] = useState(false);
   const [sletter, setSletter] = useState(false);
   const [slettFeil, setSlettFeil] = useState(false);
   const disarmTimer = useRef<number | null>(null);
+  const leverDisarmTimer = useRef<number | null>(null);
+  const angreDisarmTimer = useRef<number | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // The list row that was pressed just unmounted — land focus here.
@@ -180,7 +355,9 @@ export default function AdminDetalj({
 
   useEffect(() => {
     return () => {
-      if (disarmTimer.current !== null) window.clearTimeout(disarmTimer.current);
+      for (const timer of [disarmTimer, leverDisarmTimer, angreDisarmTimer]) {
+        if (timer.current !== null) window.clearTimeout(timer.current);
+      }
     };
   }, []);
 
@@ -191,10 +368,19 @@ export default function AdminDetalj({
   const research = researchOf(k.answers);
   const a = k.assessment;
   const harTilbud = !!k.tilbud;
+  // After approval the quote is frozen in the DB (also for admin) — the
+  // form gives way to the locked view.
+  const tilbudLaast = k.status === "videre" || k.status === "levert";
+  // The route only accepts these statuses (409 otherwise) — don't render
+  // a form for innsendt/genererer/feilet whose save is doomed.
+  const tilbudKlar =
+    k.status === "forslag_klart" ||
+    k.status === "likt" ||
+    k.status === "tilbud_sendt";
 
   async function send(e: FormEvent) {
     e.preventDefault();
-    if (sender) return;
+    if (sender || tilbudLaast) return;
     const tilbud: PortalTilbud = {
       tekst: tekst.trim(),
       pris: pris.trim(),
@@ -206,6 +392,18 @@ export default function AdminDetalj({
       setBekreftet(false);
       return;
     }
+    // The structured price is optional — but when typed it must parse.
+    const belopTrim = belop.trim();
+    if (belopTrim) {
+      const ore = krTilOre(belopTrim);
+      if (ore === null) {
+        setFeil(t.admin.tilbudForm.belopUgyldig);
+        setBekreftet(false);
+        return;
+      }
+      tilbud.prisBelopOre = ore;
+      tilbud.mvaSats = mvaSats;
+    }
     setFeil(null);
     setBekreftet(false);
     setSender(true);
@@ -215,7 +413,59 @@ export default function AdminDetalj({
     else setFeil(t.admin.tilbudForm.feil);
   }
 
-  /** First press arms; a second press inside 5s deletes for good. */
+  /** Two-stage lever: first press arms; second inside 5s delivers. */
+  async function lever() {
+    if (leverer) return;
+    const rapport = sluttrapportTekst.trim();
+    if (!rapport) {
+      setLeverFeil(t.admin.lever.mangler);
+      setLeverArmed(false);
+      return;
+    }
+    if (!leverArmed) {
+      setLeverArmed(true);
+      setLeverFeil(null);
+      leverDisarmTimer.current = window.setTimeout(() => {
+        setLeverArmed(false);
+        leverDisarmTimer.current = null;
+      }, 5000);
+      return;
+    }
+    if (leverDisarmTimer.current !== null) {
+      window.clearTimeout(leverDisarmTimer.current);
+      leverDisarmTimer.current = null;
+    }
+    setLeverer(true);
+    const ok = await onLever({ tekst: rapport });
+    setLeverer(false);
+    setLeverArmed(false);
+    if (!ok) setLeverFeil(t.admin.lever.feil);
+  }
+
+  /** Two-stage undo: levert → videre (the report stays as a draft). */
+  async function angreLever() {
+    if (angrer) return;
+    if (!angreArmed) {
+      setAngreArmed(true);
+      setAngreFeil(false);
+      angreDisarmTimer.current = window.setTimeout(() => {
+        setAngreArmed(false);
+        angreDisarmTimer.current = null;
+      }, 5000);
+      return;
+    }
+    if (angreDisarmTimer.current !== null) {
+      window.clearTimeout(angreDisarmTimer.current);
+      angreDisarmTimer.current = null;
+    }
+    setAngrer(true);
+    const ok = await onAngreLever();
+    setAngrer(false);
+    setAngreArmed(false);
+    if (!ok) setAngreFeil(true);
+  }
+
+  /** First press arms; a second press inside 5s soft-deletes. */
   async function slett() {
     if (sletter) return;
     if (!slettArmed) {
@@ -280,8 +530,33 @@ export default function AdminDetalj({
               </span>
             </>
           ) : null}
+          {k.levertAt ? (
+            <>
+              <span aria-hidden="true"> · </span>
+              <span className="vk-adm-godkjentdato">
+                {t.admin.detalj.levertTemplate.replace(
+                  "{dato}",
+                  formatDato(k.levertAt, lang, true)
+                )}
+              </span>
+            </>
+          ) : null}
+          {k.slettetAt ? (
+            <>
+              <span aria-hidden="true"> · </span>
+              <span className="vk-adm-slettetdato">
+                {t.admin.detalj.slettetTemplate.replace(
+                  "{dato}",
+                  formatDato(k.slettetAt, lang, true)
+                )}
+              </span>
+            </>
+          ) : null}
         </p>
       </header>
+
+      {/* ── Price signals — the first thing Petter needs for the quote ── */}
+      <Prislapp answers={k.answers} research={research} t={t} />
 
       {/* ── The answers ── */}
       <section className="vk-adm-seksjon" aria-label={t.admin.detalj.svarTittel}>
@@ -304,10 +579,46 @@ export default function AdminDetalj({
             {RESEARCH_FELT_REKKEFOLGE.map((felt) => {
               const verdi = research[felt];
               if (verdi === undefined || verdi === null || verdi === "") return null;
+              if (felt === "undersider") {
+                const sider = Array.isArray(verdi)
+                  ? (verdi as ResearchUnderside[]).filter(
+                      (s) => s && typeof s.url === "string"
+                    )
+                  : [];
+                if (sider.length === 0) return null;
+                return (
+                  <div key={felt} className="vk-adm-svarrad">
+                    <dt>{t.admin.detalj.researchFelter.undersider}</dt>
+                    <dd>
+                      <ul className="vk-adm-undersider">
+                        {sider.map((side, i) => (
+                          <li key={i}>
+                            <span className="vk-mono vk-adm-underside-url">
+                              {side.url}
+                            </span>
+                            {side.tittel ? (
+                              <span className="vk-adm-underside-tittel">
+                                {" "}
+                                — {side.tittel}
+                              </span>
+                            ) : null}
+                            {side.tekst ? (
+                              <span className="vk-adm-underside-tekst">
+                                {" "}
+                                {side.tekst}
+                              </span>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                );
+              }
               return (
                 <div key={felt} className="vk-adm-svarrad">
                   <dt>{t.admin.detalj.researchFelter[felt]}</dt>
-                  <dd>{String(verdi)}</dd>
+                  <dd>{researchVerdi(felt, research)}</dd>
                 </div>
               );
             })}
@@ -369,7 +680,9 @@ export default function AdminDetalj({
         )}
       </section>
 
-      {/* ── THE QUOTE FORM — Petters benk ── */}
+      {/* ── THE QUOTE — Petters benk. Editable until the customer approves;
+            after that the DB freezes it and the form yields to the locked
+            read-only view with the explanation. ── */}
       <section className="vk-adm-seksjon" aria-label={t.admin.tilbudForm.tittel}>
         <h2 className="vk-mono vk-adm-stittel">{t.admin.tilbudForm.tittel}</h2>
         {k.tilbudSendtAt ? (
@@ -381,87 +694,283 @@ export default function AdminDetalj({
           </p>
         ) : null}
 
-        <form className="vk-adm-form" onSubmit={send} noValidate>
-          <div className="vk-portal-felt">
-            <label className="vk-portal-label" htmlFor="vk-adm-tekst">
-              {t.admin.tilbudForm.tekstLabel}
-            </label>
-            <textarea
-              id="vk-adm-tekst"
-              className="vk-portal-textarea"
-              rows={6}
-              maxLength={TILBUD_TEKST_MAX}
-              value={tekst}
-              placeholder={t.admin.tilbudForm.tekstPlassholder}
-              aria-invalid={feil ? true : undefined}
-              aria-describedby={feil ? FEIL_ID : undefined}
-              onChange={(e) => setTekst(e.target.value)}
-            />
+        {tilbudLaast && k.tilbud ? (
+          <div className="vk-adm-tilbudlaast">
+            <p className="vk-mono vk-adm-laastlinje">
+              {t.admin.tilbudForm.laastTemplate.replace(
+                "{dato}",
+                k.godkjentAt ? formatDato(k.godkjentAt, lang, true) : "—"
+              )}
+            </p>
+            {k.tilbud.tekst.split("\n\n").map((avsnitt, i) => (
+              <p key={i} className="vk-adm-innlegg-tekst">
+                {avsnitt}
+              </p>
+            ))}
+            <dl className="vk-adm-svar">
+              <div className="vk-adm-svarrad">
+                <dt>{t.admin.tilbudForm.prisLabel}</dt>
+                <dd>
+                  {typeof k.tilbud.prisBelopOre === "number" ? (
+                    <>
+                      {formatBelopOre(k.tilbud.prisBelopOre)}{" "}
+                      <span className="vk-mono">
+                        ({t.tilbud.belopEksMva}, {k.tilbud.mvaSats ?? 25} %)
+                      </span>
+                      {" — "}
+                      {k.tilbud.pris}
+                    </>
+                  ) : (
+                    k.tilbud.pris
+                  )}
+                </dd>
+              </div>
+              <div className="vk-adm-svarrad">
+                <dt>{t.admin.tilbudForm.leveranseLabel}</dt>
+                <dd>{k.tilbud.leveranse}</dd>
+              </div>
+            </dl>
           </div>
-          <div className="vk-adm-formrad">
+        ) : tilbudLaast ? (
+          /* Frozen but no quote on the row (should not happen) — say why
+             the form is gone rather than offering a doomed save. */
+          <p className="vk-mono vk-adm-laastlinje">
+            {t.admin.tilbudForm.laastTemplate.replace(
+              "{dato}",
+              k.godkjentAt ? formatDato(k.godkjentAt, lang, true) : "—"
+            )}
+          </p>
+        ) : !tilbudKlar ? (
+          /* innsendt/genererer/feilet — the route would 409 a save, so
+             explain instead of offering a doomed form. */
+          <p className="vk-mono vk-adm-laastlinje">
+            {t.admin.tilbudForm.ikkeKlar}
+          </p>
+        ) : (
+          <form className="vk-adm-form" onSubmit={send} noValidate>
             <div className="vk-portal-felt">
-              <label className="vk-portal-label" htmlFor="vk-adm-pris">
-                {t.admin.tilbudForm.prisLabel}
+              <label className="vk-portal-label" htmlFor="vk-adm-tekst">
+                {t.admin.tilbudForm.tekstLabel}
               </label>
-              <input
-                id="vk-adm-pris"
-                type="text"
-                className="vk-portal-input"
-                maxLength={TILBUD_PRIS_MAX}
-                value={pris}
-                placeholder={t.admin.tilbudForm.prisPlassholder}
+              <textarea
+                id="vk-adm-tekst"
+                className="vk-portal-textarea"
+                rows={6}
+                maxLength={TILBUD_TEKST_MAX}
+                value={tekst}
+                placeholder={t.admin.tilbudForm.tekstPlassholder}
                 aria-invalid={feil ? true : undefined}
                 aria-describedby={feil ? FEIL_ID : undefined}
-                onChange={(e) => setPris(e.target.value)}
+                onChange={(e) => setTekst(e.target.value)}
               />
             </div>
-            <div className="vk-portal-felt">
-              <label className="vk-portal-label" htmlFor="vk-adm-leveranse">
-                {t.admin.tilbudForm.leveranseLabel}
-              </label>
-              <input
-                id="vk-adm-leveranse"
-                type="text"
-                className="vk-portal-input"
-                maxLength={TILBUD_LEVERANSE_MAX}
-                value={leveranse}
-                placeholder={t.admin.tilbudForm.leveransePlassholder}
-                aria-invalid={feil ? true : undefined}
-                aria-describedby={feil ? FEIL_ID : undefined}
-                onChange={(e) => setLeveranse(e.target.value)}
-              />
+            <div className="vk-adm-formrad">
+              <div className="vk-portal-felt">
+                <label className="vk-portal-label" htmlFor="vk-adm-pris">
+                  {t.admin.tilbudForm.prisLabel}
+                </label>
+                <input
+                  id="vk-adm-pris"
+                  type="text"
+                  className="vk-portal-input"
+                  maxLength={TILBUD_PRIS_MAX}
+                  value={pris}
+                  placeholder={t.admin.tilbudForm.prisPlassholder}
+                  aria-invalid={feil ? true : undefined}
+                  aria-describedby={feil ? FEIL_ID : undefined}
+                  onChange={(e) => setPris(e.target.value)}
+                />
+              </div>
+              <div className="vk-portal-felt">
+                <label className="vk-portal-label" htmlFor="vk-adm-leveranse">
+                  {t.admin.tilbudForm.leveranseLabel}
+                </label>
+                <input
+                  id="vk-adm-leveranse"
+                  type="text"
+                  className="vk-portal-input"
+                  maxLength={TILBUD_LEVERANSE_MAX}
+                  value={leveranse}
+                  placeholder={t.admin.tilbudForm.leveransePlassholder}
+                  aria-invalid={feil ? true : undefined}
+                  aria-describedby={feil ? FEIL_ID : undefined}
+                  onChange={(e) => setLeveranse(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
-          <div className="vk-adm-formrad vk-adm-formrad--send">
-            <button
-              type="submit"
-              className="vk-btn vk-btn--cta"
-              disabled={sender}
-              aria-busy={sender || undefined}
-            >
-              {harTilbud ? t.admin.tilbudForm.oppdaterKnapp : t.admin.tilbudForm.sendKnapp}
-            </button>
-            {bekreftet ? (
-              <p className="vk-adm-bekreftelse" role="status">
-                {t.admin.tilbudForm.bekreftelse}
+            {/* Structured price — the Fiken bridge. Optional, additive. */}
+            <div className="vk-adm-formrad">
+              <div className="vk-portal-felt">
+                <label className="vk-portal-label" htmlFor="vk-adm-belop">
+                  {t.admin.tilbudForm.belopLabel}
+                </label>
+                <input
+                  id="vk-adm-belop"
+                  type="text"
+                  inputMode="decimal"
+                  className="vk-portal-input"
+                  maxLength={14}
+                  value={belop}
+                  placeholder={t.admin.tilbudForm.belopPlassholder}
+                  aria-invalid={feil ? true : undefined}
+                  aria-describedby={feil ? FEIL_ID : "vk-adm-belop-hint"}
+                  onChange={(e) => setBelop(e.target.value)}
+                />
+                <p id="vk-adm-belop-hint" className="vk-mono vk-adm-komp-hint">
+                  {t.admin.tilbudForm.belopHint}
+                </p>
+              </div>
+              <div className="vk-portal-felt">
+                <label className="vk-portal-label" htmlFor="vk-adm-mva">
+                  {t.admin.tilbudForm.mvaLabel}
+                </label>
+                <select
+                  id="vk-adm-mva"
+                  className="vk-portal-input vk-adm-mvavelger"
+                  value={mvaSats}
+                  onChange={(e) => setMvaSats(Number(e.target.value))}
+                >
+                  {TILBUD_MVA_SATSER.map((sats) => (
+                    <option key={sats} value={sats}>
+                      {sats} %
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="vk-adm-formrad vk-adm-formrad--send">
+              <button
+                type="submit"
+                className="vk-btn vk-btn--cta"
+                disabled={sender}
+                aria-busy={sender || undefined}
+              >
+                {harTilbud ? t.admin.tilbudForm.oppdaterKnapp : t.admin.tilbudForm.sendKnapp}
+              </button>
+              {bekreftet ? (
+                <p className="vk-adm-bekreftelse" role="status">
+                  {t.admin.tilbudForm.bekreftelse}
+                </p>
+              ) : null}
+            </div>
+            {feil ? (
+              <p className="vk-portal-feilmelding" role="alert" id={FEIL_ID}>
+                {feil}
               </p>
             ) : null}
-          </div>
-          {feil ? (
-            <p className="vk-portal-feilmelding" role="alert" id={FEIL_ID}>
-              {feil}
-            </p>
-          ) : null}
-        </form>
+          </form>
+        )}
       </section>
 
-      {/* ── Benken — the project room, only once the customer went videre.
-          Self-contained: fetches and posts with its own admin token. ── */}
-      {k.status === "videre" ? (
+      {/* ── Fakturering — Fiken. Self-contained; only meaningful once the
+            customer has approved (videre) or the project is delivered. ── */}
+      {k.status === "videre" || k.status === "levert" ? (
+        <AdminFaktura
+          kartleggingId={k.id}
+          kundeEpost={k.email}
+          kundeNavn={bedriftNavn}
+          orgnr={research?.orgnr}
+        />
+      ) : null}
+
+      {/* ── Benken — the project room. Open while building («videre»),
+            readable archive after delivery («levert»). ── */}
+      {k.status === "videre" || k.status === "levert" ? (
         <AdminBenken kartleggingId={k.id} kundeEpost={k.email} />
       ) : null}
 
-      {/* ── Slett — destructive, two-stage, at the very bottom ── */}
+      {/* ── The lever-flow — close the circle to level 5 SKJØTET ── */}
+      {k.status === "videre" ? (
+        <section className="vk-adm-seksjon" aria-label={t.admin.lever.tittel}>
+          <h2 className="vk-mono vk-adm-stittel">{t.admin.lever.tittel}</h2>
+          <p className="vk-adm-tomt">{t.admin.lever.forklaring}</p>
+          <div className="vk-portal-felt vk-adm-leverfelt">
+            <label className="vk-portal-label" htmlFor="vk-adm-sluttrapport">
+              {t.admin.lever.sluttrapportLabel}
+            </label>
+            <textarea
+              id="vk-adm-sluttrapport"
+              className="vk-portal-textarea"
+              rows={5}
+              maxLength={SLUTTRAPPORT_TEKST_MAX}
+              value={sluttrapportTekst}
+              placeholder={t.admin.lever.sluttrapportPlassholder}
+              aria-invalid={leverFeil ? true : undefined}
+              aria-describedby={leverFeil ? LEVER_FEIL_ID : undefined}
+              onChange={(e) => setSluttrapportTekst(e.target.value)}
+            />
+          </div>
+          <div className="vk-adm-formrad vk-adm-formrad--send">
+            <button
+              type="button"
+              className="vk-btn vk-btn--cta"
+              data-armed={leverArmed ? "true" : undefined}
+              disabled={leverer}
+              aria-busy={leverer || undefined}
+              onClick={() => void lever()}
+            >
+              {leverArmed ? t.admin.lever.bekreft : t.admin.lever.knapp}
+            </button>
+          </div>
+          {/* Mirror the armed flip in a live region (same as delete). */}
+          <p className="vk-sr" role="status">
+            {leverArmed ? t.admin.lever.bekreft : ""}
+          </p>
+          {leverFeil ? (
+            <p className="vk-portal-feilmelding" role="alert" id={LEVER_FEIL_ID}>
+              {leverFeil}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
+      {k.status === "levert" ? (
+        <section className="vk-adm-seksjon" aria-label={t.admin.lever.tittel}>
+          <h2 className="vk-mono vk-adm-stittel">{t.admin.lever.tittel}</h2>
+          {k.levertAt ? (
+            <p className="vk-mono vk-adm-sendt">
+              {t.admin.lever.levertTemplate.replace(
+                "{dato}",
+                formatDato(k.levertAt, lang, true)
+              )}
+            </p>
+          ) : null}
+          {k.sluttrapport?.tekst ? (
+            <>
+              <h3 className="vk-mono vk-adm-stittel">
+                {t.admin.lever.sluttrapportTittel}
+              </h3>
+              {k.sluttrapport.tekst.split("\n\n").map((avsnitt, i) => (
+                <p key={i} className="vk-adm-innlegg-tekst">
+                  {avsnitt}
+                </p>
+              ))}
+            </>
+          ) : null}
+          <div>
+            <button
+              type="button"
+              className="vk-adm-slett"
+              data-armed={angreArmed ? "true" : undefined}
+              disabled={angrer}
+              aria-busy={angrer || undefined}
+              onClick={() => void angreLever()}
+            >
+              {angreArmed ? t.admin.lever.angreBekreft : t.admin.lever.angreKnapp}
+            </button>
+          </div>
+          <p className="vk-sr" role="status">
+            {angreArmed ? t.admin.lever.angreBekreft : ""}
+          </p>
+          {angreFeil ? (
+            <p className="vk-portal-feilmelding" role="alert">
+              {t.admin.lever.angreFeil}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
+      {/* ── Slett — destructive (soft), two-stage, at the very bottom ── */}
       <section className="vk-adm-seksjon">
         <button
           type="button"
@@ -478,6 +987,7 @@ export default function AdminDetalj({
         <p className="vk-sr" role="status">
           {slettArmed ? t.admin.slett.bekreft : ""}
         </p>
+        <p className="vk-mono vk-adm-komp-hint">{t.admin.slett.forklaring}</p>
         {slettFeil ? (
           <p className="vk-portal-feilmelding" role="alert">
             {t.admin.slett.feil}
